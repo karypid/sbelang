@@ -12,4 +12,5 @@ Require-Bundle: org.sbelang.dsl,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.sbelang.dsl.ide.contentassist.antlr,
  org.sbelang.dsl.ide.contentassist.antlr.internal
+Automatic-Module-Name: org.sbelang.dsl.ide
 
