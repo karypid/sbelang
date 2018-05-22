@@ -25,13 +25,13 @@ class SbeLangDslGenerateTest {
     def void testGenerate() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
-        val Resource resource = resourceSet.getResource(URI.createURI("resources/TestCase.sbelang"), true);
+        val Resource resource = resourceSet.getResource(URI.createURI("resources/Examples.sbelang"), true);
 
         val InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess
         val IGeneratorContext ctx = new GeneratorContext
 
         val SbeLangDslGenerator g = new SbeLangDslGenerator
         g.doGenerate(resource, fsa, ctx)
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "TestCase.sbe.xml"))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "Examples.sbelang.xml"))
     }
 }
