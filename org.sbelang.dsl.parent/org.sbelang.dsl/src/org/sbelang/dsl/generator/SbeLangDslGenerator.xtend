@@ -39,7 +39,7 @@ class SbeLangDslGenerator extends AbstractGenerator {
             '''
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" package="«spec.package.name»" id="«spec.package.id»" version="«spec.version.version»"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" package="«spec.package.name»" id="«spec.package.id»" version="«spec.package.version»"
                     byteOrder="littleEndian" xsi:schemaLocation="http://fixprotocol.io/2016/sbe sbe.xsd">
                     
                     «IF types.size > 0»

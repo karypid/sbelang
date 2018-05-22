@@ -23,8 +23,7 @@ class SbeLangDslParsingTest {
     @Test
     def void testPrimitives() {
         val result = parseHelper.parse('''
-            package PrimitivesTest @ 1
-            v 0
+            package PrimitivesTest @ 1 / 0
             types {
                 typeUint8 : uint8
                 typeUint16 : uint16

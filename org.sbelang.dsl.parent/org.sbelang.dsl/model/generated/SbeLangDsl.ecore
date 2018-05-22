@@ -4,8 +4,6 @@
   <eClassifiers xsi:type="ecore:EClass" name="Specification">
     <eStructuralFeatures xsi:type="ecore:EReference" name="package" eType="#//PackageDecl"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="version" eType="#//VersionDecl"
-        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="byteOrder" eType="#//ByteOrdeDecl"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="types" eType="#//Types"
@@ -16,8 +14,6 @@
   <eClassifiers xsi:type="ecore:EClass" name="PackageDecl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="VersionDecl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="version" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ByteOrdeDecl">

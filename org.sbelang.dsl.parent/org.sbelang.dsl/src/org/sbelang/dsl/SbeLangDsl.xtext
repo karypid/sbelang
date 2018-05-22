@@ -4,17 +4,12 @@ generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 
 Specification:
     package=PackageDecl
-    version=VersionDecl
     byteOrder=ByteOrdeDecl?
     
     types=(Types)? (messages+=Message)+;
 
 PackageDecl:
-	'package' name=Name '@' id=INT 
-;
-
-VersionDecl:
-    'v' version=INT
+	'package' name=Name '@' id=INT '/' version=INT
 ;
 
 ByteOrdeDecl:

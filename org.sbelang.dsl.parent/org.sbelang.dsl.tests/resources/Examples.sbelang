@@ -1,5 +1,4 @@
-package Examples @ 91
-v 0
+package Examples @ 91 / 0
 
 types {
     date : uint16, "LocalMktDate"
