@@ -5,16 +5,13 @@ generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 Specification:
     package=PackageDecl
     byteOrder=ByteOrdeDecl?
-    
     types=(Types)? (messages+=Message)+;
 
 PackageDecl:
-	'package' name=Name '@' id=INT '/' version=INT
-;
+    'package' name=QName '@' id=INT '/' version=INT;
 
 ByteOrdeDecl:
-    'byteOrder' order=('littleEndian' | 'bigEndian')
-;
+    'byteOrder' order=('littleEndian' | 'bigEndian');
 
 Message:
     'message' name=Name '@' id=INT semanticType=SemanitTypeModifier?
@@ -22,7 +19,7 @@ Message:
 
 BlockType:
     {BlockType} '{'
-    (fieldsList=FieldsList?  groupList=GroupList? dataList=DataList?)
+    (fieldsList=FieldsList? groupList=GroupList? dataList=DataList?)
     '}';
 
 FieldsList:
@@ -37,7 +34,8 @@ DataList:
     '}';
 
 Field:
-    name=Name presence=PresenceModifier? ':' fieldEncodingType=[TypeDeclaration] '@' id=INT semanticType=SemanitTypeModifier?;
+    name=Name presence=PresenceModifier? ':' fieldEncodingType=[TypeDeclaration] '@' id=INT
+    semanticType=SemanitTypeModifier?;
 
 Group:
     'group' name=Name ':' groupEncodingType=[TypeDeclaration] '@' id=INT
@@ -60,8 +58,7 @@ PresenceModifier:
     '?' | '=' (STRING | '-'? INT);
 
 SemanitTypeModifier:
-    ',' description=STRING
-;
+    ',' description=STRING;
 
 EncodedDataTypeLength:
     {EncodedDataTypeLength}
@@ -94,6 +91,9 @@ RefType:
 
 PrimitiveType:
     'char' | 'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'float' | 'double';
+
+QName:
+    ID ('.' ID)*;
 
 Name:
     ID;
