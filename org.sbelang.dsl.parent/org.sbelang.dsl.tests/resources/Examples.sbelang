@@ -1,5 +1,7 @@
 package Examples @ 91 / 0
 
+byteOrder littleEndian
+
 types {
     date : uint16, "LocalMktDate"
     enumEncoding : char
