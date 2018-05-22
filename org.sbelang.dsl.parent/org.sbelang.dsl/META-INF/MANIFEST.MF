@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: org.sbelang.dsl
+Bundle-Vendor: My Company
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: org.sbelang.dsl; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.xtext,
+ org.eclipse.xtext.xbase,
+ org.eclipse.equinox.common;bundle-version="3.5.0",
+ org.eclipse.emf.ecore,
+ org.eclipse.xtext.xbase.lib;bundle-version="2.13.0",
+ org.antlr.runtime,
+ org.eclipse.xtext.util,
+ org.eclipse.emf.common,
+ org.eclipse.xtend.lib;bundle-version="2.13.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.sbelang.dsl.services,
+ org.sbelang.dsl.generator,
+ org.sbelang.dsl.parser.antlr.internal,
+ org.sbelang.dsl.parser.antlr,
+ org.sbelang.dsl.sbeLangDsl.impl,
+ org.sbelang.dsl.validation,
+ org.sbelang.dsl.scoping,
+ org.sbelang.dsl,
+ org.sbelang.dsl.sbeLangDsl.util,
+ org.sbelang.dsl.sbeLangDsl,
+ org.sbelang.dsl.serializer
+Import-Package: org.apache.log4j

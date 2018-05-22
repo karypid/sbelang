@@ -1,0 +1,88 @@
+grammar org.sbelang.dsl.SbeLangDsl with org.eclipse.xtext.common.Terminals
+
+generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
+
+Specification:
+    types=(Types)? (messages+=Message)+;
+
+Message:
+    'message' name=Name '@' id=INT semanticType=SemanitTypeModifier?
+    block=BlockType;
+
+BlockType:
+    {BlockType} '{'
+    (fieldsList=FieldsList?  groupList=GroupList? dataList=DataList?)
+    '}';
+
+FieldsList:
+    (fields+=Field)+;
+
+GroupList:
+    (groups+=Group)+;
+
+DataList:
+    'data' '{'
+    (dataFields+=Field)+
+    '}';
+
+Field:
+    name=Name presence=PresenceModifier? ':' fieldEncodingType=[TypeDeclaration] '@' id=INT semanticType=SemanitTypeModifier?;
+
+Group:
+    'group' name=Name ':' groupEncodingType=[TypeDeclaration] '@' id=INT
+    block=BlockType;
+
+Types:
+    'types' '{' (types+=TypeDeclaration)+ '}';
+
+TypeDeclaration:
+    EncodedDataType | EnumType /* | SetType  */ | CompositeType;
+
+TypeDeclarationOrRef:
+    TypeDeclaration | RefType;
+
+EncodedDataType:
+    name=Name presence=PresenceModifier? ':' primitiveType=PrimitiveType range=EncodedDataTypeRange?
+    length=EncodedDataTypeLength? semanticType=SemanitTypeModifier?;
+
+PresenceModifier:
+    '?' | '=' (STRING | '-'? INT);
+
+SemanitTypeModifier:
+    ',' description=STRING
+;
+
+EncodedDataTypeLength:
+    {EncodedDataTypeLength}
+    '(' length=INT ')';
+
+EncodedDataTypeRange:
+// minValue + maxValue are defined as strings in XSD but we could use primitive type for strong typing
+    ':' '[' minValue=STRING '..' maxValue=STRING ']';
+
+CompositeType:
+    'composite' name=Name semanticType=SemanitTypeModifier? '{' (types+=TypeDeclaration)+ '}';
+
+EnumType:
+    'enum' name=Name ':' enumEncodingType=[EncodedDataType] '{' (values+=EnumValue)+ '}';
+
+EnumValue:
+    name=Name ':=' value=EnumLiteral;
+
+EnumLiteral:
+    INT | CHAR;
+
+terminal CHAR:
+    "'" . "'";
+
+SetType:
+    'set' name=Name;
+
+RefType:
+    'ref' name=Name;
+
+PrimitiveType:
+    'char' | 'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'float' | 'double';
+
+Name:
+    ID;
