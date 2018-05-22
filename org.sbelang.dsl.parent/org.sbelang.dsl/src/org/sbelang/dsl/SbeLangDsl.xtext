@@ -3,7 +3,23 @@ grammar org.sbelang.dsl.SbeLangDsl with org.eclipse.xtext.common.Terminals
 generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 
 Specification:
+    package=PackageDecl
+    version=VersionDecl
+    byteOrder=ByteOrdeDecl?
+    
     types=(Types)? (messages+=Message)+;
+
+PackageDecl:
+	'package' name=Name '@' id=INT 
+;
+
+VersionDecl:
+    'v' version=INT
+;
+
+ByteOrdeDecl:
+    'byteOrder' order=('littleEndian' | 'bigEndian')
+;
 
 Message:
     'message' name=Name '@' id=INT semanticType=SemanitTypeModifier?

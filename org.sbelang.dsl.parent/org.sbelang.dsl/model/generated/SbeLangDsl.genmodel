@@ -7,8 +7,21 @@
   <genPackages prefix="SbeLangDsl" basePackage="org.sbelang.dsl" disposableProviderFactory="true"
       fileExtensions="sbelang" ecorePackage="SbeLangDsl.ecore#/">
     <genClasses ecoreClass="SbeLangDsl.ecore#//Specification">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Specification/package"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Specification/version"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Specification/byteOrder"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Specification/types"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Specification/messages"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//PackageDecl">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PackageDecl/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PackageDecl/id"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//VersionDecl">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//VersionDecl/version"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//ByteOrdeDecl">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//ByteOrdeDecl/order"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//Message">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//Message/name"/>

@@ -4,6 +4,8 @@
 package org.sbelang.dsl.tests
 
 import com.google.inject.Inject
+import java.nio.file.Files
+import java.nio.file.Paths
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
@@ -15,16 +17,49 @@ import org.sbelang.dsl.sbeLangDsl.Specification
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
 class SbeLangDslParsingTest {
-	@Inject
-	ParseHelper<Specification> parseHelper
-	
-	@Test
-	def void loadModel() {
-		val result = parseHelper.parse('''
-			Hello Xtext!
-		''')
-		Assert.assertNotNull(result)
-		val errors = result.eResource.errors
-		Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
-	}
+    @Inject
+    ParseHelper<Specification> parseHelper
+
+    @Test
+    def void testPrimitives() {
+        val result = parseHelper.parse('''
+            package PrimitivesTest @ 1
+            v 0
+            types {
+                typeUint8 : uint8
+                typeUint16 : uint16
+                typeUint32 : uint32
+            }
+            
+            message TestMessage @ 1 {
+                fieldOfTypeUint8 : typeUint8 @ 1001
+                fieldOfTypeUint16 : typeUint16 @ 1002
+                fieldOfTypeUint32 : typeUint32 @ 1003
+            }
+        ''')
+        Assert.assertNotNull(result)
+
+        val errors = result.eResource.errors
+        Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
+
+        Assert.assertTrue(result.types.types.size == 3);
+        Assert.assertTrue(result.messages.size == 1);
+
+        val testMessage = result.messages.get(0)
+        val testMessageFields = testMessage.block.fieldsList
+        Assert.assertTrue(testMessageFields.fields.size == 3)
+        Assert.assertTrue(testMessageFields.fields.get(0).fieldEncodingType.name.equals("typeUint8"))
+    }
+
+    @Test
+    def void testExamples() {
+        val String fileString = new String(Files.readAllBytes(Paths.get("./resources/Examples.sbelang")))
+
+        val model = parseHelper.parse(fileString)
+        Assert.assertNotNull(model)
+
+        val errors = model.eResource.errors
+        Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
+    }
+
 }

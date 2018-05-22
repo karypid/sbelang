@@ -1,0 +1,124 @@
+package Examples @ 91
+v 0
+
+types {
+    date : uint16, "LocalMktDate"
+    enumEncoding : char
+    idString : char (8), "String"
+    intEnumEncoding : uint8
+    timestampEncoding : uint64, "UTCTimestamp"
+
+    composite DATA {
+        length : uint16, "Length"
+        varData : uint8 (0), "data"
+    }
+
+    composite MONTH_YEAR, "MonthYear" {
+        year : uint16
+        month : uint8
+        day : uint8
+        week : uint8
+    }
+
+    composite groupSizeEncoding {
+        blockLength : uint16, "Length"
+        numInGroup : uint16, "NumInGroup"
+    }
+
+    composite messageHeader {
+        blockLength : uint16
+        templateId : uint16
+        schemaId : uint16
+        version : uint16
+    }
+
+    composite optionalDecimalEncoding {
+        mantissa ? : int64 // optional
+        exponent = -3 : int8 // constant
+    }
+ 
+    composite qtyEncoding {
+        mantissa : int32
+        exponent = 0 : int8
+    }
+
+    enum businessRejectReasonEnum: intEnumEncoding {
+        Other := 0
+        UnknownID := 1
+        UnknownSecurity := 2
+        ApplicationNotAvailable := 4
+        NotAuthorized := 6
+    }
+ 
+    enum execTypeEnum : enumEncoding {
+        New := 0
+        DoneForDay := 3
+        Canceled := 4
+        Replaced := 5
+        PendingCancel := 6
+        Rejected := 8 
+        PendingNew := 'A'
+        Trade := 'F'
+    }
+    
+    enum ordStatusEnum : enumEncoding {
+        New := 0
+        PartialFilled := 1
+        Filled := 2
+        DoneForDay := 3
+        Canceled := 4
+        PendingCancel := 6
+        Rejected := 8
+        PendingNew := 'A'
+        PendingReplace := 'E'
+    }
+
+    enum ordTypeEnum : enumEncoding {
+        Market := 1
+        Limit := 2
+        Stop := 3
+        StopLimit := 4
+    }
+    
+    enum sideEnum : enumEncoding {
+        Buy := 1
+        Sell := 2
+    }
+}
+
+message BusinessMessageReject @ 97, "j" { // blockLength="9"
+    BusinesRejectRefId : idString @ 379, "String" // offset="0"
+    BusinessRejectReason : businessRejectReasonEnum @ 380, "int" // offset="8"
+    data {
+        Text : DATA @ 58, "data"
+    }
+}
+
+message ExecutionReport @ 98, "8" { // blockLength="42" semanticType="8"
+    OrderID : idString @ 37, "String" // offset="0"
+    ExecID : idString @ 17, "String" // offset="8
+    ExecType : execTypeEnum @ 150, "char" // offset="16"
+    OrdStatus : ordStatusEnum @ 39, "char"  // offset="17"
+    Symbol : idString @ 55, "String" // offset="18"
+    MaturityMonthYear : MONTH_YEAR @ 200, "MonthYear" // offset="26"
+    Side : sideEnum @ 54, "char" // offset="31"
+    LeavesQty : qtyEncoding @ 151, "Qty" // offset="32"
+    CumQty : qtyEncoding @ 14, "Qty" // offset="36"
+    TradeDate : date @ 75, "LocalMktDate" // offset="40"
+    group FillsGrp : groupSizeEncoding @ 2112 { // blockLength="12"
+        FillPx : optionalDecimalEncoding @ 1364, "Price" // offset="0"
+        FillQty : qtyEncoding @ 1365, "Qty" // offset="8"
+    }
+}
+
+message NewOrderSingle @ 99, "D" { // blockLength="54"
+    ClOrdId : idString @ 11, "String" // offset="0"
+    Account : idString @ 1, "String" // offset="8"
+    Symbol : idString @ 55, "String" // offset="16"
+    Side : sideEnum @ 54, "char" // offset="24" 
+    TransactTime : timestampEncoding @ 60, "UTCTimestamp" // offset="25"
+    OrderQty : qtyEncoding @ 38, "Qty" // offset="33"
+    OrdType : ordTypeEnum @ 40, "char" // offset="37"
+    Price : optionalDecimalEncoding @ 44, "Price" // offset="38"
+    StopPx : optionalDecimalEncoding @ 99, "Price" // offset="46"
+}

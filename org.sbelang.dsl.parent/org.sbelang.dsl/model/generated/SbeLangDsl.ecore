@@ -2,10 +2,26 @@
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="sbeLangDsl" nsURI="http://www.sbelang.org/dsl/SbeLangDsl" nsPrefix="sbeLangDsl">
   <eClassifiers xsi:type="ecore:EClass" name="Specification">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="package" eType="#//PackageDecl"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="version" eType="#//VersionDecl"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="byteOrder" eType="#//ByteOrdeDecl"
+        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="types" eType="#//Types"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="messages" upperBound="-1"
         eType="#//Message" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PackageDecl">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VersionDecl">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ByteOrdeDecl">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="order" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Message">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
