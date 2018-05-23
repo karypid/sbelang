@@ -1,3 +1,12 @@
+# Eclipse IDE files
+.project
+.classpath
+.settings
+
+# Maven
+target
+
+# xtext-generated sources that we don't modify
 src-gen/
 xtend-gen/
 
