@@ -9,4 +9,4 @@ target
 # xtext-generated sources that we don't modify
 src-gen/
 xtend-gen/
-
+plugin.xml_gen
