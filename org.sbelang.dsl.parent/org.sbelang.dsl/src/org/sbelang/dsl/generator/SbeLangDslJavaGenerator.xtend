@@ -1,15 +1,14 @@
 package org.sbelang.dsl.generator
 
 import java.io.File
+import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.sbelang.dsl.sbeLangDsl.CompositeType
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType
 import org.sbelang.dsl.sbeLangDsl.Specification
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.CompositeType
-import org.sbelang.dsl.sbeLangDsl.EnumType
-import org.eclipse.emf.common.util.EList
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     var String packageName
@@ -73,11 +72,11 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                         return offset;
                     }
                     «FOR EncodedDataType field : typeDecl.types.filter(EncodedDataType)»
-                    
-                    public «encoderName» «field.name»( final «getJavaType(field)» value) {
-                        buffer.put«getWireType(field).toFirstUpper»(offset + 0, («getWireType(field)») value, Protocol.BYTE_ORDER);
-                        return this;
-                    }
+                        
+                        public «encoderName» «field.name»( final «getJavaType(field)» value) {
+                            buffer.put«getWireType(field).toFirstUpper»(offset + 0, («getWireType(field)») value «getByteOrder(field)»);
+                            return this;
+                        }
                     «ENDFOR»
                 }
             '''
@@ -94,6 +93,11 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 
             '''
         )
+    }
+
+    def getByteOrder(EncodedDataType type) {
+        if(getWireType(type) == 'byte') ''
+        else ', Protocol.BYTE_ORDER'
     }
 
     def String getJavaType(EncodedDataType type) {
