@@ -16,13 +16,14 @@ import org.eclipse.xtext.testing.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.sbelang.dsl.SbeLangDslStandaloneSetup
-import org.sbelang.dsl.generator.SbeLangDslGenerator
+import org.sbelang.dsl.generator.SbeLangDslXmlGenerator
+import org.sbelang.dsl.generator.SbeLangDslJavaGenerator
 
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
-class SbeLangDslGenerateTest {	
+class SbeLangDslGenerateTest {
     @Test
-    def void testGenerate() {
+    def void testXmlGenerate() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
         val Resource resource = resourceSet.getResource(URI.createURI("resources/Examples.sbelang"), true);
@@ -30,8 +31,29 @@ class SbeLangDslGenerateTest {
         val InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess
         val IGeneratorContext ctx = new GeneratorContext
 
-        val SbeLangDslGenerator g = new SbeLangDslGenerator
+        val SbeLangDslXmlGenerator g = new SbeLangDslXmlGenerator
+        g.beforeGenerate(resource, fsa, ctx)
         g.doGenerate(resource, fsa, ctx)
+        g.afterGenerate(resource, fsa, ctx)
         System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "Examples.sbelang.xml"))
+    }
+
+    @Test
+    def void testJavaGenerate() {
+        val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
+        val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
+        val Resource resource = resourceSet.getResource(URI.createURI("resources/Examples.sbelang"), true);
+
+        val InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess
+        val IGeneratorContext ctx = new GeneratorContext
+
+        val SbeLangDslJavaGenerator g = new SbeLangDslJavaGenerator
+        g.beforeGenerate(resource, fsa, ctx)
+        g.doGenerate(resource, fsa, ctx)
+        g.afterGenerate(resource, fsa, ctx)
+
+//        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/Protocol.java"))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/DATAEncoder.java"))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/MONTH_YEAREncoder.java"))
     }
 }

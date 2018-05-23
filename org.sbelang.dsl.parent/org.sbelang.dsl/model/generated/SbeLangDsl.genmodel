@@ -17,8 +17,8 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PackageDecl/id"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PackageDecl/version"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//ByteOrdeDecl">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//ByteOrdeDecl/order"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//ByteOrderDecl">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//ByteOrderDecl/order"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//Message">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//Message/name"/>

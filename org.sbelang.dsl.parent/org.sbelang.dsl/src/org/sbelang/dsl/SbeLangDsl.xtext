@@ -4,13 +4,13 @@ generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 
 Specification:
     package=PackageDecl
-    byteOrder=ByteOrdeDecl?
+    byteOrder=ByteOrderDecl?
     types=(Types)? (messages+=Message)+;
 
 PackageDecl:
     'package' name=QName '@' id=INT '/' version=INT;
 
-ByteOrdeDecl:
+ByteOrderDecl:
     'byteOrder' order=('littleEndian' | 'bigEndian');
 
 Message:
