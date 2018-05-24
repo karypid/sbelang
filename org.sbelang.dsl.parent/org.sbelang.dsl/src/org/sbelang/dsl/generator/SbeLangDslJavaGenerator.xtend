@@ -11,6 +11,8 @@ import org.sbelang.dsl.sbeLangDsl.Specification
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import java.util.concurrent.atomic.AtomicInteger
 import org.sbelang.dsl.sbeLangDsl.Message
+import org.sbelang.dsl.sbeLangDsl.EnumType
+import org.sbelang.dsl.generator.SbeLangDslJavaGenerator.FieldInfo
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     var String packageName
@@ -43,8 +45,10 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             val encoderName = message.name.toFirstUpper + 'Encoder';
             fsa.generateFile(
                 packagePath + encoderName + '.java',
-                generateEncoder(encoderName, message.block.fieldsList.fields.filter[f| (f.fieldEncodingType instanceof EncodedDataType) ].map [ f |
-                    new Pair(f.name, f.fieldEncodingType)
+                generateEncoder(encoderName, message.block.fieldsList.fields
+                .filter[f| !(f.fieldEncodingType instanceof CompositeType) ]
+                .map [ f |
+                    new FieldInfo(f.name, f.fieldEncodingType)
                 ])
             )
         }
@@ -61,8 +65,9 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         val encoderName = compositeTypeDecl.name.toFirstUpper + 'Encoder';
         fsa.generateFile(
             packagePath + encoderName + '.java',
-            generateEncoder(encoderName, compositeTypeDecl.types.types.filter(EncodedDataType)
-                .map[edt|new Pair(edt.name, edt)]
+            generateEncoder(
+                encoderName,
+                compositeTypeDecl.types.types.filter(EncodedDataType).map[f|new FieldInfo(f.name, f)]
             )
         )
 
@@ -79,7 +84,17 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         )
     }
 
-    def generateEncoder(String encoderName, Iterable<Pair<String, EncodedDataType>> fields) {
+    static class FieldInfo {
+        String name;
+        TypeDeclaration sbeType;
+
+        new(String name, TypeDeclaration sbeType) {
+            this.name = name
+            this.sbeType = sbeType
+        }
+    }
+
+    def generateEncoder(String encoderName, Iterable<FieldInfo> fields) {
         '''
             «var AtomicInteger offset = new AtomicInteger(0)»
             package «packageName»;
@@ -107,17 +122,61 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 {
                     return offset;
                 }
-                «FOR Pair<String,EncodedDataType> pair : fields»
-                    «IF !isConstant(pair.value)»
-                        public «encoderName» «pair.key.toFirstLower»( final «getJavaType(pair.value)» value) {
-                            buffer.put«getWireType(pair.value).toFirstUpper»(offset + «offset.get», («getWireType(pair.value)») value «getByteOrder(pair.value)»);
+                «FOR FieldInfo fi : fields»
+                    «IF !isConstant(fi.sbeType)»
+                        public «encoderName» «fi.name.toFirstLower»( final «getJavaType(fi.sbeType)» value) {
+                            buffer.put«getWireType(fi.sbeType).toFirstUpper»(offset + «offset.get», («getWireType(fi.sbeType)») value «getByteOrder(fi.sbeType)»);
                             return this;
                         }
-                        «offset.set(offset.get + getWireSize(pair.value))»
+                        «offset.set(offset.get + getWireSize(fi.sbeType))»
                     «ENDIF»
                 «ENDFOR»
             }
         '''
+    }
+
+    def getWireSize(TypeDeclaration type) {
+        switch (type) {
+            EncodedDataType:
+                getWireSize(type)
+            EnumType:
+                getWireSize(type.enumEncodingType)
+            default:
+                throw new IllegalArgumentException("Can't handle: " + type.class.name)
+        }
+    }
+
+    def getByteOrder(TypeDeclaration type) {
+        switch (type) {
+            EncodedDataType:
+                getByteOrder(type)
+            EnumType:
+                getByteOrder(type.enumEncodingType)
+            default:
+                throw new IllegalArgumentException("Can't handle: " + type.class.name)
+        }
+    }
+
+    def String getJavaType(TypeDeclaration type) {
+        switch (type) {
+            EncodedDataType:
+                getJavaType(type)
+            EnumType:
+                getJavaType(type.enumEncodingType)
+            default:
+                throw new IllegalArgumentException("Can't handle: " + type.class.name)
+        }
+    }
+
+    def String getWireType(TypeDeclaration type) {
+        switch (type) {
+            EncodedDataType:
+                getJavaType(type)
+            EnumType:
+                getJavaType(type.enumEncodingType)
+            default:
+                throw new IllegalArgumentException("Can't handle: " + type.class.name)
+        }
     }
 
     def getWireSize(EncodedDataType type) {
