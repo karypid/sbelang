@@ -55,5 +55,7 @@ class SbeLangDslGenerateTest {
 //        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/Protocol.java"))
         System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/DATAEncoder.java"))
         System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/MONTH_YEAREncoder.java"))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/OptionalDecimalEncodingEncoder.java"))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/MessageHeaderEncoder.java"))
     }
 }

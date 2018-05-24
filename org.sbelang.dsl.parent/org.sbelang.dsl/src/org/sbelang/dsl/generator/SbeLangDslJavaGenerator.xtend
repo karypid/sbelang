@@ -9,6 +9,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeType
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType
 import org.sbelang.dsl.sbeLangDsl.Specification
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
+import java.util.concurrent.atomic.AtomicInteger
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     var String packageName
@@ -46,39 +47,42 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         fsa.generateFile(
             packagePath + encoderName + '.java',
             '''
-                package «packageName»;
-                
-                import org.agrona.MutableDirectBuffer;
-                
-                public class «encoderName» {
-                    private int offset;
-                    private MutableDirectBuffer buffer;
+                «var AtomicInteger offset = new AtomicInteger(0)»
+                    package «packageName»;
                     
-                    public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
-                    {
-                        this.buffer = buffer;
-                        this.offset = offset;
-                
-                        return this;
-                    }
-                
-                    public MutableDirectBuffer buffer()
-                    {
-                        return buffer;
-                    }
-                
-                    public int offset()
-                    {
-                        return offset;
-                    }
-                    «FOR EncodedDataType field : typeDecl.types.filter(EncodedDataType)»
+                    import org.agrona.MutableDirectBuffer;
+                    
+                    public class «encoderName» {
+                        private int offset;
+                        private MutableDirectBuffer buffer;
                         
-                        public «encoderName» «field.name»( final «getJavaType(field)» value) {
-                            buffer.put«getWireType(field).toFirstUpper»(offset + 0, («getWireType(field)») value «getByteOrder(field)»);
+                        public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
+                        {
+                            this.buffer = buffer;
+                            this.offset = offset;
+                    
                             return this;
                         }
-                    «ENDFOR»
-                }
+                    
+                        public MutableDirectBuffer buffer()
+                        {
+                            return buffer;
+                        }
+                    
+                        public int offset()
+                        {
+                            return offset;
+                        }
+                        «FOR EncodedDataType field : typeDecl.types.filter(EncodedDataType)»
+                            «IF !isConstant(field)»
+                                public «encoderName» «field.name»( final «getJavaType(field)» value) {
+                                    buffer.put«getWireType(field).toFirstUpper»(offset + «offset.get», («getWireType(field)») value «getByteOrder(field)»);
+                                    return this;
+                                }
+                                «offset.set(offset.get + getWireSize(field))»
+                            «ENDIF»
+                        «ENDFOR»
+                    }
             '''
         )
 
@@ -95,9 +99,25 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         )
     }
 
+    def getWireSize(EncodedDataType type) {
+        switch (type.primitiveType) {
+            case 'char': 2
+            case 'float': 4
+            case 'double': 8
+            case 'int8': 1
+            case 'uint8': 1
+            case 'int16': 2
+            case 'uint16': 2
+            case 'int32': 4
+            case 'uint32': 4
+            case 'int64': 8
+            case 'uint64': 8
+            default: throw new UnsupportedOperationException("TODO: auto-generated method stub")
+        }
+    }
+
     def getByteOrder(EncodedDataType type) {
-        if(getWireType(type) == 'byte') ''
-        else ', Protocol.BYTE_ORDER'
+        if(getWireType(type) == 'byte') '' else ', Protocol.BYTE_ORDER'
     }
 
     def String getJavaType(EncodedDataType type) {

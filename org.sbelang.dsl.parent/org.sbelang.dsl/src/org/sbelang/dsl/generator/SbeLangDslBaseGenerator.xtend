@@ -4,6 +4,7 @@
 package org.sbelang.dsl.generator
 
 import org.eclipse.xtext.generator.AbstractGenerator
+import org.sbelang.dsl.sbeLangDsl.EncodedDataType
 
 /**
  * Base class for SBE generators
@@ -13,4 +14,16 @@ abstract class SbeLangDslBaseGenerator extends AbstractGenerator {
     protected val String OPTIONAL_PRESENCE_MODIFIER = "?"
 
     protected val char CHAR_LITERAL_DELIMITER = '\''
+
+    def boolean isOptional(EncodedDataType type) {
+        type.presence !== null && OPTIONAL_PRESENCE_MODIFIER == type.presence
+    }
+
+    def boolean isConstant(EncodedDataType type) {
+        type.presence !== null && OPTIONAL_PRESENCE_MODIFIER != type.presence
+    }
+
+    def boolean isRequired(EncodedDataType type) {
+        type.presence === null
+    }
 }
