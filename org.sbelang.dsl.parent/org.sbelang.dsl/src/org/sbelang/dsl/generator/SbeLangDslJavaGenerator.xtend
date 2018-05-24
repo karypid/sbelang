@@ -61,7 +61,9 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         val encoderName = compositeTypeDecl.name.toFirstUpper + 'Encoder';
         fsa.generateFile(
             packagePath + encoderName + '.java',
-            generateEncoder(encoderName, compositeTypeDecl.types.filter(EncodedDataType).map[edt|new Pair(edt.name, edt)])
+            generateEncoder(encoderName, compositeTypeDecl.types.types.filter(EncodedDataType)
+                .map[edt|new Pair(edt.name, edt)]
+            )
         )
 
         val decoderName = compositeTypeDecl.name.toFirstUpper + 'Decoder';

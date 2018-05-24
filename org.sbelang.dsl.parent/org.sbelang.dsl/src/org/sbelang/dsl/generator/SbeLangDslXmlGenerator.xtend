@@ -77,7 +77,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 '''
             CompositeType: '''
                 <composite name="«typeDecl.name»"«IF typeDecl.semanticType !== null» semanticType="«typeDecl.semanticType.description»"«ENDIF»>
-                    «generateTypeDeclarations(typeDecl.types)»
+                    «generateTypeDeclarations(typeDecl.types.types)»
                 </composite>
             '''
             EnumType: '''
