@@ -30,8 +30,7 @@
         </composite>
         <composite name="optionalDecimalEncoding">
             <type name="mantissa" presence="optional" primitiveType="int64" />
-            <type name="exponent" presence="constant" primitiveType="int8">-3
-            </type>
+            <type name="exponent" presence="constant" primitiveType="int8">-3</type>
         </composite>
         <composite name="qtyEncoding">
             <type name="mantissa" primitiveType="int32" />
