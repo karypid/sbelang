@@ -10,6 +10,7 @@ import org.sbelang.dsl.sbeLangDsl.EncodedDataType
 import org.sbelang.dsl.sbeLangDsl.Specification
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import java.util.concurrent.atomic.AtomicInteger
+import org.sbelang.dsl.sbeLangDsl.Message
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     var String packageName
@@ -33,6 +34,20 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
         generateTypeDeclarations(fsa, spec.types.types)
 
+        generateMessages(fsa, spec.messages)
+
+    }
+
+    def generateMessages(IFileSystemAccess2 fsa, EList<Message> messages) {
+        for (Message message : messages) {
+            val encoderName = message.name.toFirstUpper + 'Encoder';
+            fsa.generateFile(
+                packagePath + encoderName + '.java',
+                generateEncoder(encoderName, message.block.fieldsList.fields.filter[f| (f.fieldEncodingType instanceof EncodedDataType) ].map [ f |
+                    new Pair(f.name, f.fieldEncodingType)
+                ])
+            )
+        }
     }
 
     def generateTypeDeclarations(IFileSystemAccess2 fsa, EList<TypeDeclaration> types) {
@@ -41,52 +56,15 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         }
     }
 
-    def generateCompositeType(IFileSystemAccess2 fsa, CompositeType typeDecl) {
+    def generateCompositeType(IFileSystemAccess2 fsa, CompositeType compositeTypeDecl) {
 
-        val encoderName = typeDecl.name.toFirstUpper + 'Encoder';
+        val encoderName = compositeTypeDecl.name.toFirstUpper + 'Encoder';
         fsa.generateFile(
             packagePath + encoderName + '.java',
-            '''
-                «var AtomicInteger offset = new AtomicInteger(0)»
-                    package «packageName»;
-                    
-                    import org.agrona.MutableDirectBuffer;
-                    
-                    public class «encoderName» {
-                        private int offset;
-                        private MutableDirectBuffer buffer;
-                        
-                        public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
-                        {
-                            this.buffer = buffer;
-                            this.offset = offset;
-                    
-                            return this;
-                        }
-                    
-                        public MutableDirectBuffer buffer()
-                        {
-                            return buffer;
-                        }
-                    
-                        public int offset()
-                        {
-                            return offset;
-                        }
-                        «FOR EncodedDataType field : typeDecl.types.filter(EncodedDataType)»
-                            «IF !isConstant(field)»
-                                public «encoderName» «field.name»( final «getJavaType(field)» value) {
-                                    buffer.put«getWireType(field).toFirstUpper»(offset + «offset.get», («getWireType(field)») value «getByteOrder(field)»);
-                                    return this;
-                                }
-                                «offset.set(offset.get + getWireSize(field))»
-                            «ENDIF»
-                        «ENDFOR»
-                    }
-            '''
+            generateEncoder(encoderName, compositeTypeDecl.types.filter(EncodedDataType).map[edt|new Pair(edt.name, edt)])
         )
 
-        val decoderName = typeDecl.name.toFirstUpper + 'Decoder';
+        val decoderName = compositeTypeDecl.name.toFirstUpper + 'Decoder';
         fsa.generateFile(
             packagePath + decoderName + '.java',
             '''
@@ -97,6 +75,47 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 
             '''
         )
+    }
+
+    def generateEncoder(String encoderName, Iterable<Pair<String, EncodedDataType>> fields) {
+        '''
+            «var AtomicInteger offset = new AtomicInteger(0)»
+            package «packageName»;
+            
+            import org.agrona.MutableDirectBuffer;
+            
+            public class «encoderName» {
+                private int offset;
+                private MutableDirectBuffer buffer;
+                
+                public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+            
+                    return this;
+                }
+            
+                public MutableDirectBuffer buffer()
+                {
+                    return buffer;
+                }
+            
+                public int offset()
+                {
+                    return offset;
+                }
+                «FOR Pair<String,EncodedDataType> pair : fields»
+                    «IF !isConstant(pair.value)»
+                        public «encoderName» «pair.key.toFirstLower»( final «getJavaType(pair.value)» value) {
+                            buffer.put«getWireType(pair.value).toFirstUpper»(offset + «offset.get», («getWireType(pair.value)») value «getByteOrder(pair.value)»);
+                            return this;
+                        }
+                        «offset.set(offset.get + getWireSize(pair.value))»
+                    «ENDIF»
+                «ENDFOR»
+            }
+        '''
     }
 
     def getWireSize(EncodedDataType type) {

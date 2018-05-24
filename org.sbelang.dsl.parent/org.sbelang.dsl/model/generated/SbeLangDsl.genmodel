@@ -53,8 +53,8 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//Group/id"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Group/block"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//Types">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Types/types"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//TypesList">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//TypesList/types"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//TypeDeclaration"/>
     <genClasses ecoreClass="SbeLangDsl.ecore#//TypeDeclarationOrRef">

@@ -6,7 +6,7 @@
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="byteOrder" eType="#//ByteOrderDecl"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="types" eType="#//Types"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="types" eType="#//TypesList"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="messages" upperBound="-1"
         eType="#//Message" containment="true"/>
@@ -62,7 +62,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="block" eType="#//BlockType"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Types">
+  <eClassifiers xsi:type="ecore:EClass" name="TypesList">
     <eStructuralFeatures xsi:type="ecore:EReference" name="types" upperBound="-1"
         eType="#//TypeDeclaration" containment="true"/>
   </eClassifiers>
