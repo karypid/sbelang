@@ -92,6 +92,15 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             this.name = name
             this.sbeType = sbeType
         }
+        
+        def int length() {
+            switch(sbeType) {
+                EncodedDataType: if (sbeType.length !== null) sbeType.length.length else 1
+                CompositeType: -1
+                EnumType: if (sbeType.enumEncodingType.length !== null) sbeType.enumEncodingType.length.length else 1
+                default: throw new IllegalStateException('''«sbeType.class.name»''')
+            }
+        }
     }
 
     def generateEncoder(String encoderName, Iterable<FieldInfo> fields) {
@@ -124,12 +133,38 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 }
                 «FOR FieldInfo fi : fields»
                     «IF !isConstant(fi.sbeType)»
+                    
+                    «IF fi.sbeType instanceof EnumType»
+                    public «encoderName» «fi.name.toFirstLower»( final «fi.sbeType.name» value) {
+                         buffer.putByte( offset + «offset», (byte) value.value() );
+                         return this;
+                    }
+                    «offset.set(offset.get + getWireSize(fi.sbeType))»
+                    «ELSEIF fi.sbeType instanceof CompositeType»
+                    // this is a composite: «fi.name» / «fi.sbeType.name»
+                    «ELSEIF fi.sbeType instanceof EncodedDataType»
+                        «IF fi.length == 1»
                         public «encoderName» «fi.name.toFirstLower»( final «getJavaType(fi.sbeType)» value) {
                             buffer.put«getWireType(fi.sbeType).toFirstUpper»(offset + «offset.get», («getWireType(fi.sbeType)») value «getByteOrder(fi.sbeType)»);
                             return this;
                         }
+                        «ELSE»
+                        public «encoderName» put«fi.name.toFirstUpper»( final byte[] src, final int srcOffset, final int srcLen ) {
+                            if ( srcOffset < 0 || srcOffset > ( src.length - srcLen ) )
+                            {
+                                throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                            }
+                    
+                            buffer.putBytes( this.offset + «offset», src, srcOffset, srcLen );
+                    
+                            return this;
+                        }
+                        «ENDIF»
                         «offset.set(offset.get + getWireSize(fi.sbeType))»
+                    «ELSE»
+                    // not yet supported: «fi.name» / «fi.sbeType.name»
                     «ENDIF»
+                    «ENDIF /* not constant*/»
                 «ENDFOR»
             }
         '''
@@ -180,6 +215,11 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     }
 
     def getWireSize(EncodedDataType type) {
+        if ( type.length !== null ) {
+            if ( type.length.length > 0 )
+                return type.length.length
+        }
+        
         switch (type.primitiveType) {
             case 'char': 2
             case 'float': 4
