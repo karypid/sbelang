@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.sbelang.dsl.sbeLangDsl.Message
 import org.sbelang.dsl.sbeLangDsl.EnumType
 import org.sbelang.dsl.generator.SbeLangDslJavaGenerator.FieldInfo
+import java.util.LinkedList
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     var String packageName
@@ -45,11 +46,19 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             val encoderName = message.name.toFirstUpper + 'Encoder';
             fsa.generateFile(
                 packagePath + encoderName + '.java',
-                generateEncoder(encoderName, message.block.fieldsList.fields
-                .filter[f| !(f.fieldEncodingType instanceof CompositeType) ]
-                .map [ f |
-                    new FieldInfo(f.name, f.fieldEncodingType)
-                ])
+                generateEncoder(encoderName,
+                        message.block.fieldsList.fields
+                            .filter[f| !(f.fieldEncodingType instanceof CompositeType) ]
+                            .map [ f |
+                                new FieldInfo(f.name, f.fieldEncodingType)
+                            ],
+                        if ( message.block.dataList === null) new LinkedList<FieldInfo>() else
+                        message.block.dataList.dataFields
+                            .filter[f| !(f.fieldEncodingType instanceof CompositeType) ]
+                            .map [ f |
+                                new FieldInfo(f.name, f.fieldEncodingType)
+                            ]
+                )
             )
         }
     }
@@ -67,7 +76,8 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             packagePath + encoderName + '.java',
             generateEncoder(
                 encoderName,
-                compositeTypeDecl.types.types.filter(EncodedDataType).map[f|new FieldInfo(f.name, f)]
+                compositeTypeDecl.types.types.filter(EncodedDataType).map[f|new FieldInfo(f.name, f)],
+                new LinkedList<FieldInfo>()
             )
         )
 
@@ -103,7 +113,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         }
     }
 
-    def generateEncoder(String encoderName, Iterable<FieldInfo> fields) {
+    def generateEncoder(String encoderName, Iterable<FieldInfo> fields, Iterable<FieldInfo> dataFields) {
         '''
             «var AtomicInteger offset = new AtomicInteger(0)»
             package «packageName»;
@@ -154,9 +164,9 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                             {
                                 throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
                             }
-                    
+                        
                             buffer.putBytes( this.offset + «offset», src, srcOffset, srcLen );
-                    
+                        
                             return this;
                         }
                         «ENDIF»
@@ -165,6 +175,18 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                     // not yet supported: «fi.name» / «fi.sbeType.name»
                     «ENDIF»
                     «ENDIF /* not constant*/»
+                «ENDFOR»
+                «FOR FieldInfo fi : dataFields»
+                    public «encoderName» put«fi.name.toFirstUpper»( final byte[] src, final int srcOffset, final int srcLen ) {
+                        if ( srcOffset < 0 || srcOffset > ( src.length - srcLen ) )
+                        {
+                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                        }
+                    
+                        buffer.putBytes( this.offset + «offset», src, srcOffset, srcLen );
+                    
+                        return this;
+                    }
                 «ENDFOR»
             }
         '''
