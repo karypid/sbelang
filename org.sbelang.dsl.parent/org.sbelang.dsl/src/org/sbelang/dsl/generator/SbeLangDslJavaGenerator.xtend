@@ -55,10 +55,10 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 }
                 «FOR f : message.fields»
                 
-                int «f.name»Offset() {
+                int «f.name»EncodingOffset() {
                     return «f.offset»;
                 
-                int «f.name»Length() {
+                int «f.name»EncodingLength() {
                     return «f.octetLength»;
                 }
                 
