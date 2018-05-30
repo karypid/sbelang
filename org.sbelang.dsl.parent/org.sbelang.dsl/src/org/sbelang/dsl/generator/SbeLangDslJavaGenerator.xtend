@@ -35,6 +35,12 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             package  «javaCompiler.packageName»;
             public class «encoderName» {
                 
+                public static final int SCHEMA_ID = «javaCompiler.schemaId»;
+                public static final int SCHEMA_VERSION = «javaCompiler.schemaVersion»;
+                public static final int TEMPLATE_ID = «message.templateId»;
+                public static final int BLOCK_LENGTH = «message.blockLength»;
+                public static final ByteOrder BYTE_ORDER = «javaCompiler.byteOrderConstant»;
+                
                 private MutableDirectBuffer buffer;
                 protected int offset;
                 protected int limit;
@@ -48,6 +54,9 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                     return this;
                 }
                 «FOR f : message.fields»
+                
+                int «f.name»Offset() {
+                    return «f.offset»;
                 
                 int «f.name»Length() {
                     return «f.octetLength»;

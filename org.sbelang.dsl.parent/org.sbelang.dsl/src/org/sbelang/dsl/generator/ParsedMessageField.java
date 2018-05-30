@@ -8,11 +8,13 @@ public class ParsedMessageField
 {
     public final Field f;
     public final int   octetLength;
+    public final int   offset;
 
-    public ParsedMessageField(Field f)
+    public ParsedMessageField(Field f, int offset)
     {
         super();
         this.f = f;
+        this.offset = offset;
         this.octetLength = Parser.getOctetLength(f.getFieldEncodingType());
     }
 
@@ -20,13 +22,19 @@ public class ParsedMessageField
     {
         return f.getName();
     }
+    
+    public int getOffset()
+    {
+        return offset;
+    }
 
     public int getOctetLength()
     {
         return octetLength;
     }
-    
-    public boolean isEnum() {
+
+    public boolean isEnum()
+    {
         return f.getFieldEncodingType() instanceof EnumType;
     }
 

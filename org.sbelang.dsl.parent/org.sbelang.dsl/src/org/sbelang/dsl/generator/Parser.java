@@ -53,10 +53,11 @@ public class Parser
 
         packageName = spec.getPackage().getName() + ".v" + spec.getPackage().getVersion();
         packagePath = packageName.replace('.', File.separatorChar) + File.separatorChar;
-        byteOrder = ((spec.getByteOrder() == null) || (spec.getByteOrder()
-                        .getOrder() == SbeLangDslBaseGenerator.LITTLE_ENDIAN_BYTE_ORDER))
-                                        ? ByteOrder.LITTLE_ENDIAN
-                                        : ByteOrder.BIG_ENDIAN;
+        byteOrder = ((spec.getByteOrder() == null)
+                        || (SbeLangDslBaseGenerator.LITTLE_ENDIAN_BYTE_ORDER
+                                        .equals(spec.getByteOrder().getOrder())))
+                                                        ? ByteOrder.LITTLE_ENDIAN
+                                                        : ByteOrder.BIG_ENDIAN;
 
         encodedDataTypes = spec.getTypesList().getTypes().stream()
                         .filter(t -> t instanceof EncodedDataType).map(t -> (EncodedDataType) t)
