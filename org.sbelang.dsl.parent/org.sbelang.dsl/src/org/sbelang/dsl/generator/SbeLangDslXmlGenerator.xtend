@@ -27,7 +27,7 @@ import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val spec = resource.getEObject("/") as Specification
-        val types = spec.types.types
+        val types = spec.typesList.types
         val messages = spec.messages
 
         val boAttr = if (spec.byteOrder === null) '''byteOrder="littleEndian"''' else '''byteOrder="«spec.byteOrder.order»"'''
@@ -77,7 +77,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 '''
             CompositeType: '''
                 <composite name="«typeDecl.name»"«IF typeDecl.semanticType !== null» semanticType="«typeDecl.semanticType.description»"«ENDIF»>
-                    «generateTypeDeclarations(typeDecl.types.types)»
+                    «generateTypeDeclarations(typeDecl.typesList.types)»
                 </composite>
             '''
             EnumType: '''

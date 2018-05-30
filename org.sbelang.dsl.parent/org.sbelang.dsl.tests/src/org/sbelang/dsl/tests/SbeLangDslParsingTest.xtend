@@ -41,7 +41,7 @@ class SbeLangDslParsingTest {
         val errors = result.eResource.errors
         Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
 
-        Assert.assertTrue(result.types.types.size == 3);
+        Assert.assertTrue(result.typesList.types.size == 3);
         Assert.assertTrue(result.messages.size == 1);
 
         val testMessage = result.messages.get(0)

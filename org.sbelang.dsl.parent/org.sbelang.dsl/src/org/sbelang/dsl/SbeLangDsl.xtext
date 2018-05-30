@@ -5,7 +5,7 @@ generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 Specification:
     package=PackageDecl
     byteOrder=ByteOrderDecl?
-    ('types' '{' types=TypesList '}')? (messages+=Message)+;
+    ('types' '{' typesList=TypesList '}')? (messages+=Message)+;
 
 PackageDecl:
     'package' name=QName '@' id=INT '/' version=INT;
@@ -69,10 +69,10 @@ EncodedDataTypeRange:
     ':' '[' minValue=STRING '..' maxValue=STRING ']';
 
 CompositeType:
-    'composite' name=Name semanticType=SemanitTypeModifier? '{' types=TypesList '}';
+    'composite' name=Name semanticType=SemanitTypeModifier? '{' typesList=TypesList '}';
 
 EnumType:
-    'enum' name=Name ':' enumEncodingType=[EncodedDataType] '{' (values+=EnumValue)+ '}';
+    'enum' name=Name ':' enumEncodingType=[EncodedDataType] '{' (values+=EnumValue)+ '}'; // length must be 1
 
 EnumValue:
     name=Name ':=' value=EnumLiteral;

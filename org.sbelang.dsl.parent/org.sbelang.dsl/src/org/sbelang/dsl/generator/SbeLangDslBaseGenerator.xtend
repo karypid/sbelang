@@ -13,8 +13,8 @@ import org.sbelang.dsl.sbeLangDsl.CompositeType
  * Base class for SBE generators
  */
 abstract class SbeLangDslBaseGenerator extends AbstractGenerator {
-    protected val String LITTLE_ENDIAN_BYTE_ORDER = "littleEndian"
-    protected val String OPTIONAL_PRESENCE_MODIFIER = "?"
+    protected static val String LITTLE_ENDIAN_BYTE_ORDER = "littleEndian"
+    protected static val String OPTIONAL_PRESENCE_MODIFIER = "?"
 
     protected val char CHAR_LITERAL_DELIMITER = '\''
 

@@ -1,315 +1,104 @@
 package org.sbelang.dsl.generator
 
-import java.io.File
-import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.sbeLangDsl.CompositeType
-import org.sbelang.dsl.sbeLangDsl.EncodedDataType
 import org.sbelang.dsl.sbeLangDsl.Specification
-import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
-import java.util.concurrent.atomic.AtomicInteger
 import org.sbelang.dsl.sbeLangDsl.Message
-import org.sbelang.dsl.sbeLangDsl.EnumType
-import org.sbelang.dsl.generator.SbeLangDslJavaGenerator.FieldInfo
-import java.util.LinkedList
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
-    var String packageName
-    var String packagePath
 
     override beforeGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
         super.beforeGenerate(input, fsa, context)
-
-        val spec = input.getEObject("/") as Specification
-        packageName = spec.package.name + ".v" + spec.package.version
-        packagePath = packageName.replace('.', File.separatorChar) + File.separatorChar
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val spec = resource.getEObject("/") as Specification
+        val Parser javaCompiler = new Parser(spec)
 
+        // metadata for overall message schema
         fsa.generateFile(
-            packagePath + 'Protocol.java',
-            generateProtocol(spec)
+            javaCompiler.packagePath + 'MessageSchema.java',
+            generateMessageSchema(spec, javaCompiler)
         )
-
-        generateTypeDeclarations(fsa, spec.types.types)
-
-        generateMessages(fsa, spec.messages)
-
-    }
-
-    def generateMessages(IFileSystemAccess2 fsa, EList<Message> messages) {
-        for (Message message : messages) {
-            val encoderName = message.name.toFirstUpper + 'Encoder';
-            fsa.generateFile(
-                packagePath + encoderName + '.java',
-                generateEncoder(encoderName,
-                        message.block.fieldsList.fields
-                            .filter[f| !(f.fieldEncodingType instanceof CompositeType) ]
-                            .map [ f |
-                                new FieldInfo(f.name, f.fieldEncodingType)
-                            ],
-                        if ( message.block.dataList === null) new LinkedList<FieldInfo>() else
-                        message.block.dataList.dataFields
-                            .filter[f| !(f.fieldEncodingType instanceof CompositeType) ]
-                            .map [ f |
-                                new FieldInfo(f.name, f.fieldEncodingType)
-                            ]
-                )
-            )
-        }
-    }
-
-    def generateTypeDeclarations(IFileSystemAccess2 fsa, EList<TypeDeclaration> types) {
-        for (CompositeType compositeType : types.filter(CompositeType)) {
-            generateCompositeType(fsa, compositeType)
-        }
-    }
-
-    def generateCompositeType(IFileSystemAccess2 fsa, CompositeType compositeTypeDecl) {
-
-        val encoderName = compositeTypeDecl.name.toFirstUpper + 'Encoder';
-        fsa.generateFile(
-            packagePath + encoderName + '.java',
-            generateEncoder(
-                encoderName,
-                compositeTypeDecl.types.types.filter(EncodedDataType).map[f|new FieldInfo(f.name, f)],
-                new LinkedList<FieldInfo>()
-            )
-        )
-
-        val decoderName = compositeTypeDecl.name.toFirstUpper + 'Decoder';
-        fsa.generateFile(
-            packagePath + decoderName + '.java',
-            '''
-                package «packageName»;
-                
-                public class «decoderName» {
-                }
-                
-            '''
-        )
-    }
-
-    static class FieldInfo {
-        String name;
-        TypeDeclaration sbeType;
-
-        new(String name, TypeDeclaration sbeType) {
-            this.name = name
-            this.sbeType = sbeType
-        }
         
-        def int length() {
-            switch(sbeType) {
-                EncodedDataType: if (sbeType.length !== null) sbeType.length.length else 1
-                CompositeType: -1
-                EnumType: if (sbeType.enumEncodingType.length !== null) sbeType.enumEncodingType.length.length else 1
-                default: throw new IllegalStateException('''«sbeType.class.name»''')
-            }
-        }
-    }
+        javaCompiler.messages.forEach[name, msg|fsa.generateFile(
+            javaCompiler.packagePath + name + 'Encoder.java',
+            generateEncoder(msg, javaCompiler)
+        )]
 
-    def generateEncoder(String encoderName, Iterable<FieldInfo> fields, Iterable<FieldInfo> dataFields) {
+    }
+    
+    def generateEncoder(ParsedMessage message, Parser javaCompiler) {
+        val encoderName = message.name.toFirstUpper + "Encoder";
         '''
-            «var AtomicInteger offset = new AtomicInteger(0)»
-            package «packageName»;
-            
-            import org.agrona.MutableDirectBuffer;
-            
+            package  «javaCompiler.packageName»;
             public class «encoderName» {
-                private int offset;
+                
                 private MutableDirectBuffer buffer;
+                protected int offset;
+                protected int limit;
                 
                 public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
                 {
                     this.buffer = buffer;
                     this.offset = offset;
-            
+                    limit(offset + BLOCK_LENGTH);
+                
                     return this;
                 }
-            
-                public MutableDirectBuffer buffer()
-                {
-                    return buffer;
+                «FOR f : message.fields»
+                
+                int «f.name»Length() {
+                    return «f.octetLength»;
                 }
-            
-                public int offset()
+                
+                «IF f.isPrimitive»
+                «ELSEIF f.isCharArray»
+                public «encoderName» put«f.name.toFirstUpper»(final byte[] src, final int srcOffset, final int srcLen)
                 {
-                    return offset;
-                }
-                «FOR FieldInfo fi : fields»
-                    «IF !isConstant(fi.sbeType)»
-                    
-                    «IF fi.sbeType instanceof EnumType»
-                    public «encoderName» «fi.name.toFirstLower»( final «fi.sbeType.name» value) {
-                         buffer.putByte( offset + «offset», (byte) value.value() );
-                         return this;
+                    final int length = «f.octetLength»;
+                    if (srcOffset < 0 || srcOffset > (src.length - length))
+                    {
+                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
                     }
-                    «offset.set(offset.get + getWireSize(fi.sbeType))»
-                    «ELSEIF fi.sbeType instanceof CompositeType»
-                    // this is a composite: «fi.name» / «fi.sbeType.name»
-                    «ELSEIF fi.sbeType instanceof EncodedDataType»
-                        «IF fi.length == 1»
-                        public «encoderName» «fi.name.toFirstLower»( final «getJavaType(fi.sbeType)» value) {
-                            buffer.put«getWireType(fi.sbeType).toFirstUpper»(offset + «offset.get», («getWireType(fi.sbeType)») value «getByteOrder(fi.sbeType)»);
-                            return this;
-                        }
-                        «ELSE»
-                        public «encoderName» put«fi.name.toFirstUpper»( final byte[] src, final int srcOffset, final int srcLen ) {
-                            if ( srcOffset < 0 || srcOffset > ( src.length - srcLen ) )
-                            {
-                                throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
-                            }
-                        
-                            buffer.putBytes( this.offset + «offset», src, srcOffset, srcLen );
-                        
-                            return this;
-                        }
-                        «ENDIF»
-                        «offset.set(offset.get + getWireSize(fi.sbeType))»
-                    «ELSE»
-                    // not yet supported: «fi.name» / «fi.sbeType.name»
-                    «ENDIF»
-                    «ENDIF /* not constant*/»
+                
+                    buffer.putBytes(this.offset + 0, src, srcOffset, length);
+                
+                    return this;
+                }
+                «ELSEIF f.isEnum»
+                public «encoderName» «f.name.toFirstLower»(final «f.f.fieldEncodingType.name.toFirstUpper» value)
+                {
+                    buffer.putByte(offset + 8, (byte)value.value());
+                    return this;
+                }
+                «ENDIF»
                 «ENDFOR»
-                «FOR FieldInfo fi : dataFields»
-                    public «encoderName» put«fi.name.toFirstUpper»( final byte[] src, final int srcOffset, final int srcLen ) {
-                        if ( srcOffset < 0 || srcOffset > ( src.length - srcLen ) )
-                        {
-                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
-                        }
-                    
-                        buffer.putBytes( this.offset + «offset», src, srcOffset, srcLen );
-                    
-                        return this;
-                    }
+                «FOR f : message.dataFields»
                 «ENDFOR»
             }
+          '''
+     }
+     
+     // primitive, length == 1 ---> SIMPLE
+     // char primitive, length > 1  ---> ARRAY of bytes
+     // NON-char primitive, length > 1  ---> weird sbe-tool behavior
+     // enum --> spec requires 8-bit char/int only, but says MAY be higher --> sbe-tool weird behaviour at > 1 octet
+     // data (1) fixed-length: just X octets with the data's bytes, where X is the fixed length
+     // data (2) var-length: uint8/uint16 (1/2 byte) header with length, then that many data octets
+     
+
+    def generateMessageSchema(Specification spec, Parser javaCompiler) {
         '''
-    }
-
-    def getWireSize(TypeDeclaration type) {
-        switch (type) {
-            EncodedDataType:
-                getWireSize(type)
-            EnumType:
-                getWireSize(type.enumEncodingType)
-            default:
-                throw new IllegalArgumentException("Can't handle: " + type.class.name)
-        }
-    }
-
-    def getByteOrder(TypeDeclaration type) {
-        switch (type) {
-            EncodedDataType:
-                getByteOrder(type)
-            EnumType:
-                getByteOrder(type.enumEncodingType)
-            default:
-                throw new IllegalArgumentException("Can't handle: " + type.class.name)
-        }
-    }
-
-    def String getJavaType(TypeDeclaration type) {
-        switch (type) {
-            EncodedDataType:
-                getJavaType(type)
-            EnumType:
-                getJavaType(type.enumEncodingType)
-            default:
-                throw new IllegalArgumentException("Can't handle: " + type.class.name)
-        }
-    }
-
-    def String getWireType(TypeDeclaration type) {
-        switch (type) {
-            EncodedDataType:
-                getJavaType(type)
-            EnumType:
-                getJavaType(type.enumEncodingType)
-            default:
-                throw new IllegalArgumentException("Can't handle: " + type.class.name)
-        }
-    }
-
-    def getWireSize(EncodedDataType type) {
-        if ( type.length !== null ) {
-            if ( type.length.length > 0 )
-                return type.length.length
-        }
-        
-        switch (type.primitiveType) {
-            case 'char': 2
-            case 'float': 4
-            case 'double': 8
-            case 'int8': 1
-            case 'uint8': 1
-            case 'int16': 2
-            case 'uint16': 2
-            case 'int32': 4
-            case 'uint32': 4
-            case 'int64': 8
-            case 'uint64': 8
-            default: throw new UnsupportedOperationException("TODO: auto-generated method stub")
-        }
-    }
-
-    def getByteOrder(EncodedDataType type) {
-        if(getWireType(type) == 'byte') '' else ', Protocol.BYTE_ORDER'
-    }
-
-    def String getJavaType(EncodedDataType type) {
-        switch (type.primitiveType) {
-            case 'char': 'char'
-            case 'float': 'float'
-            case 'double': 'double'
-            case 'int8': 'byte'
-            case 'uint8': 'short'
-            case 'int16': 'short'
-            case 'uint16': 'int'
-            case 'int32': 'int'
-            case 'uint32': 'long'
-            case 'int64': 'long'
-            case 'uint64': '<UNKNOWN>'
-            default: '<UNKNOWN>'
-        }
-    }
-
-    def String getWireType(EncodedDataType type) {
-        switch (type.primitiveType) {
-            case 'char': 'char'
-            case 'float': 'float'
-            case 'double': 'double'
-            case 'int8': 'byte'
-            case 'uint8': 'byte'
-            case 'int16': 'short'
-            case 'uint16': 'short'
-            case 'int32': 'int'
-            case 'uint32': 'int'
-            case 'int64': 'long'
-            case 'uint64': 'long'
-            default: '<UNKNOWN>'
-        }
-    }
-
-    def generateProtocol(Specification spec) {
-        val byteOrder = if((spec.byteOrder === null) ||
-                (spec.byteOrder.order == LITTLE_ENDIAN_BYTE_ORDER)) "LITTLE_ENDIAN" else "BIG_ENDIAN";
-        val packageName = spec.package.name + ".v" + spec.package.version
-
-        '''
-            package  «packageName»;
+            package  «javaCompiler.packageName»;
             
             import java.nio.ByteOrder;
             
-            public class Protocol {
-                public static final int SCHEMA_ID = «spec.package.id»;
-                public static final int SCHEMA_VERSION = «spec.package.version»;
-                public static final ByteOrder BYTE_ORDER = ByteOrder.«byteOrder»;
+            public class MessageSchema {
+                public static final int SCHEMA_ID = «javaCompiler.schemaId»;
+                public static final int SCHEMA_VERSION = «javaCompiler.schemaVersion»;
+                public static final ByteOrder BYTE_ORDER = «javaCompiler.byteOrderConstant»;
             }
         '''
     }
