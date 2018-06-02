@@ -5,6 +5,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.sbeLangDsl.Specification
 import org.sbelang.dsl.sbeLangDsl.Message
+import org.sbelang.dsl.sbeLangDsl.EnumType
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
@@ -22,17 +23,64 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             generateMessageSchema(spec, javaCompiler)
         )
         
+        javaCompiler.enumTypes.forEach[name, et | fsa.generateFile(
+            javaCompiler.packagePath + name.toFirstUpper + '.java',
+            generateEnumType(et, javaCompiler)
+        )]
+        
         javaCompiler.messages.forEach[name, msg|fsa.generateFile(
-            javaCompiler.packagePath + name + 'Encoder.java',
+            javaCompiler.packagePath + name.toFirstUpper + 'Encoder.java',
             generateEncoder(msg, javaCompiler)
         )]
 
+    }
+    
+    def generateEnumType(EnumType et, Parser javaCompiler) {
+        '''
+            package  «javaCompiler.packageName»;
+            
+            public enum «et.name.toFirstUpper»
+            {
+                «FOR v : et.values»
+                «v.name»( (short) «v.value» ),
+                «ENDFOR»
+                ;
+                
+                private final short value;
+                
+                «et.name.toFirstUpper»( short value )
+                {
+                    this.value = value;
+                }
+                
+                public short value()
+                {
+                    return value;
+                }
+                
+                public static «et.name.toFirstUpper» get(final short value)
+                {
+                    switch (value)
+                    {
+                        «FOR v : et.values»
+                        case «v.value»: return «v.name»;
+                        «ENDFOR»
+                    }
+            
+                    throw new IllegalArgumentException("Unknown value: " + value);
+                }
+            }
+        '''
     }
     
     def generateEncoder(ParsedMessage message, Parser javaCompiler) {
         val encoderName = message.name.toFirstUpper + "Encoder";
         '''
             package  «javaCompiler.packageName»;
+            
+            import java.nio.ByteOrder;
+            import org.agrona.MutableDirectBuffer;
+            
             public class «encoderName» {
                 
                 public static final int SCHEMA_ID = «javaCompiler.schemaId»;
@@ -53,10 +101,17 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 
                     return this;
                 }
+                
+                public void limit(final int limit)
+                {
+                    this.limit = limit;
+                }
+                
                 «FOR f : message.fields»
                 
                 int «f.name»EncodingOffset() {
                     return «f.offset»;
+                }
                 
                 int «f.name»EncodingLength() {
                     return «f.octetLength»;
