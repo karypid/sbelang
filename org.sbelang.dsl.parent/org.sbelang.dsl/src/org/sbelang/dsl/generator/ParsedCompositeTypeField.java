@@ -1,5 +1,6 @@
 package org.sbelang.dsl.generator;
 
+import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
 
@@ -50,7 +51,7 @@ public class ParsedCompositeTypeField implements CodecItemSpec
     @Override
     public boolean isPrimitive()
     {
-        return false;
+        return type instanceof EncodedDataType ? getOctetLength() == 1 : false;
     }
 
     @Override

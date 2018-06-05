@@ -31,14 +31,13 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         // all composite types
         javaCompiler.compositeTypes.forEach[name, ct | fsa.generateFile(
             javaCompiler.packagePath + name.toFirstUpper + 'Encoder.java',
-            generateCompositeType(ct, javaCompiler)
+            generateCodecEncoder(ct, javaCompiler)
         )]
 
         javaCompiler.messages.forEach[name, msg | fsa.generateFile(
             javaCompiler.packagePath + name.toFirstUpper + 'Encoder.java',
-            generateEncoder(msg, javaCompiler)
+            generateCodecEncoder(msg, javaCompiler)
         )]
-
     }
     
     def generateEnumType(EnumType et, Parser javaCompiler) {
@@ -79,7 +78,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         '''
     }
     
-    def generateCompositeType(ParsedCompositeType message, Parser javaCompiler) {
+    def generateCodecEncoder(CodecSpec message, Parser javaCompiler) {
         val encoderName = message.name.toFirstUpper + "Encoder";
         '''
             package  «javaCompiler.packageName»;
@@ -91,7 +90,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 
                 «IF message.templateId != -1»public static final int SCHEMA_ID = «javaCompiler.schemaId»;
                 public static final int SCHEMA_VERSION = «javaCompiler.schemaVersion»;
-                public static final int TEMPLATE_ID = «message.templateId»«ENDIF»
+                public static final int TEMPLATE_ID = «message.templateId»;«ENDIF»
                 public static final int BLOCK_LENGTH = «message.blockLength»;
                 public static final ByteOrder BYTE_ORDER = «javaCompiler.byteOrderConstant»;
                 
@@ -152,78 +151,6 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         '''
     }
     
-    def generateEncoder(ParsedMessage message, Parser javaCompiler) {
-        val encoderName = message.name.toFirstUpper + "Encoder";
-        '''
-            package  «javaCompiler.packageName»;
-            
-            import java.nio.ByteOrder;
-            import org.agrona.MutableDirectBuffer;
-            
-            public class «encoderName» {
-                
-                public static final int SCHEMA_ID = «javaCompiler.schemaId»;
-                public static final int SCHEMA_VERSION = «javaCompiler.schemaVersion»;
-                public static final int TEMPLATE_ID = «message.templateId»;
-                public static final int BLOCK_LENGTH = «message.blockLength»;
-                public static final ByteOrder BYTE_ORDER = «javaCompiler.byteOrderConstant»;
-                
-                private MutableDirectBuffer buffer;
-                protected int offset;
-                protected int limit;
-                
-                public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
-                {
-                    this.buffer = buffer;
-                    this.offset = offset;
-                    limit(offset + BLOCK_LENGTH);
-                
-                    return this;
-                }
-                
-                public void limit(final int limit)
-                {
-                    this.limit = limit;
-                }
-                
-                «FOR f : message.fields»
-                
-                int «f.name»EncodingOffset() {
-                    return «f.offset»;
-                }
-                
-                int «f.name»EncodingLength() {
-                    return «f.octetLength»;
-                }
-                
-                «IF f.isPrimitive»
-                «ELSEIF f.isCharArray»
-                public «encoderName» put«f.name.toFirstUpper»(final byte[] src, final int srcOffset, final int srcLen)
-                {
-                    final int length = «f.octetLength»;
-                    if (srcOffset < 0 || srcOffset > (src.length - length))
-                    {
-                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
-                    }
-                
-                    buffer.putBytes(this.offset + 0, src, srcOffset, length);
-                
-                    return this;
-                }
-                «ELSEIF f.isEnum»
-                public «encoderName» «f.name.toFirstLower»(final «f.enumFieldEncodingType.name.toFirstUpper» value)
-                {
-                    buffer.putByte(offset + 8, (byte)value.value());
-                    return this;
-                }
-                «ENDIF»
-                «ENDFOR»
-                «FOR f : message.dataFields»
-                «ENDFOR»
-            }
-          '''
-     }
-     
      // primitive, length == 1 ---> SIMPLE
      // char primitive, length > 1  ---> ARRAY of bytes
      // NON-char primitive, length > 1  ---> weird sbe-tool behavior

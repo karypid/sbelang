@@ -7,12 +7,12 @@ import java.util.stream.Collectors;
 import org.sbelang.dsl.sbeLangDsl.CompositeType;
 import org.sbelang.dsl.sbeLangDsl.TypesList;
 
-public class ParsedCompositeType
+public class ParsedCompositeType implements CodecSpec
 {
     public final CompositeType m;
 
     private final List<CodecItemSpec>          types;
-    private final List<ParsedMessageField> dataFields;
+    private final List<CodecItemSpec> dataFields;
 
     private final int templateId;
     private final int blockLength;
@@ -37,28 +37,33 @@ public class ParsedCompositeType
         this.dataFields = Collections.emptyList();
     }
 
+    @Override
     public String getName()
     {
         return m.getName();
     }
 
-    public List<CodecItemSpec> getFields()
+    @Override
+    public int getTemplateId()
     {
-        return types;
+        return templateId;
     }
 
-    public List<ParsedMessageField> getDataFields()
-    {
-        return dataFields;
-    }
-
+    @Override
     public int getBlockLength()
     {
         return blockLength;
     }
 
-    public int getTemplateId()
+    @Override
+    public List<CodecItemSpec> getFields()
     {
-        return templateId;
+        return types;
+    }
+
+    @Override
+    public List<CodecItemSpec> getDataFields()
+    {
+        return dataFields;
     }
 }
