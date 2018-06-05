@@ -11,7 +11,7 @@ public class ParsedCompositeType
 {
     public final CompositeType m;
 
-    private final List<CodecSpec>          types;
+    private final List<CodecItemSpec>          types;
     private final List<ParsedMessageField> dataFields;
 
     private final int templateId;
@@ -42,7 +42,7 @@ public class ParsedCompositeType
         return m.getName();
     }
 
-    public List<CodecSpec> getFields()
+    public List<CodecItemSpec> getFields()
     {
         return types;
     }

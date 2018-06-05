@@ -4,7 +4,7 @@ import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.Field;
 
-public class ParsedMessageField implements CodecSpec
+public class ParsedMessageField implements CodecItemSpec
 {
     public final Field f;
     public final int   octetLength;

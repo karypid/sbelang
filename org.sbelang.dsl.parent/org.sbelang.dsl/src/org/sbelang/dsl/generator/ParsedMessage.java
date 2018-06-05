@@ -12,7 +12,7 @@ public class ParsedMessage
 {
     public final Message m;
 
-    private final List<CodecSpec> fields;
+    private final List<CodecItemSpec> fields;
     private final List<ParsedMessageField> dataFields;
 
     private final int blockLength;
@@ -50,7 +50,7 @@ public class ParsedMessage
         return m.getId();
     }
 
-    public List<CodecSpec> getFields()
+    public List<CodecItemSpec> getFields()
     {
         return fields;
     }

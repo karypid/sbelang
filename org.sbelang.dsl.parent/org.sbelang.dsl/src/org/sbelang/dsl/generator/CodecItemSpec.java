@@ -2,7 +2,7 @@ package org.sbelang.dsl.generator;
 
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 
-public interface CodecSpec
+public interface CodecItemSpec
 {
 
     String getName();

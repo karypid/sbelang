@@ -3,7 +3,7 @@ package org.sbelang.dsl.generator;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
 
-public class ParsedCompositeTypeField implements CodecSpec
+public class ParsedCompositeTypeField implements CodecItemSpec
 {
     public final TypeDeclarationOrRef type;
     public final int   octetLength;
