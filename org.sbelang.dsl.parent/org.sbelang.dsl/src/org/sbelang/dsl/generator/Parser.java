@@ -11,7 +11,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeType;
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.Specification;
-import org.sbelang.dsl.sbeLangDsl.TypeDeclaration;
+import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
 
 public class Parser
 {
@@ -42,10 +42,10 @@ public class Parser
     public final ByteOrder     byteOrder;
 
     public final Map<String, EncodedDataType> encodedDataTypes;
-    public final Map<String, CompositeType>   compositeTypes;
     public final Map<String, EnumType>        enumTypes;
 
-    public final Map<String, ParsedMessage> messages;
+    public final Map<String, ParsedCompositeType> compositeTypes;
+    public final Map<String, ParsedMessage>       messages;
 
     public Parser(Specification spec)
     {
@@ -65,6 +65,7 @@ public class Parser
 
         compositeTypes = spec.getTypesList().getTypes().stream()
                         .filter(t -> t instanceof CompositeType).map(t -> (CompositeType) t)
+                        .map(t -> new ParsedCompositeType(t))
                         .collect(Collectors.toMap(t -> t.getName(), t -> t));
 
         enumTypes = spec.getTypesList().getTypes().stream().filter(t -> t instanceof EnumType)
@@ -90,7 +91,7 @@ public class Parser
                         : "ByteOrder.BIG_ENDIAN";
     }
 
-    public static int getOctetLength(TypeDeclaration type)
+    public static int getOctetLength(TypeDeclarationOrRef type)
     {
         if (type instanceof EncodedDataType)
         {

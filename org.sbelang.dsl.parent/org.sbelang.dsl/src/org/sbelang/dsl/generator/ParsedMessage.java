@@ -12,7 +12,7 @@ public class ParsedMessage
 {
     public final Message m;
 
-    private final List<ParsedMessageField> fields;
+    private final List<CodecSpec> fields;
     private final List<ParsedMessageField> dataFields;
 
     private final int blockLength;
@@ -37,7 +37,7 @@ public class ParsedMessage
                         : dataList.getDataFields().stream().map(f -> new ParsedMessageField(f, -1))
                                         .collect(Collectors.toList());
 
-        blockLength = fields.stream().mapToInt(f -> f.octetLength).sum();
+        blockLength = fields.stream().mapToInt(f -> f.getOctetLength()).sum();
     }
 
     public String getName()
@@ -50,7 +50,7 @@ public class ParsedMessage
         return m.getId();
     }
 
-    public List<ParsedMessageField> getFields()
+    public List<CodecSpec> getFields()
     {
         return fields;
     }

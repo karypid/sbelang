@@ -4,7 +4,7 @@ import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.Field;
 
-public class ParsedMessageField
+public class ParsedMessageField implements CodecSpec
 {
     public final Field f;
     public final int   octetLength;
@@ -18,26 +18,37 @@ public class ParsedMessageField
         this.octetLength = Parser.getOctetLength(f.getFieldEncodingType());
     }
 
+    @Override
     public String getName()
     {
         return f.getName();
     }
-    
+
+    @Override
     public int getOffset()
     {
         return offset;
     }
 
+    @Override
     public int getOctetLength()
     {
         return octetLength;
     }
 
+    @Override
     public boolean isEnum()
     {
         return f.getFieldEncodingType() instanceof EnumType;
     }
 
+    @Override
+    public EnumType getEnumFieldEncodingType()
+    {
+        return (EnumType) f.getFieldEncodingType();
+    }
+
+    @Override
     public boolean isCharArray()
     {
         if (!(f.getFieldEncodingType() instanceof EncodedDataType)) return false;
@@ -46,6 +57,7 @@ public class ParsedMessageField
         return getOctetLength() > 1;
     }
 
+    @Override
     public boolean isPrimitive()
     {
         return f.getFieldEncodingType() instanceof EncodedDataType ? getOctetLength() == 1 : false;

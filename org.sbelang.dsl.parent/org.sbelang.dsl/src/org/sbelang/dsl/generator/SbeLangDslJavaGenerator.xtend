@@ -3,9 +3,8 @@ package org.sbelang.dsl.generator
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.sbeLangDsl.Specification
-import org.sbelang.dsl.sbeLangDsl.Message
 import org.sbelang.dsl.sbeLangDsl.EnumType
+import org.sbelang.dsl.sbeLangDsl.Specification
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
@@ -17,18 +16,25 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         val spec = resource.getEObject("/") as Specification
         val Parser javaCompiler = new Parser(spec)
 
-        // metadata for overall message schema
+        // meta-data for overall message schema
         fsa.generateFile(
             javaCompiler.packagePath + 'MessageSchema.java',
             generateMessageSchema(spec, javaCompiler)
         )
         
+        // all enumeration types
         javaCompiler.enumTypes.forEach[name, et | fsa.generateFile(
             javaCompiler.packagePath + name.toFirstUpper + '.java',
             generateEnumType(et, javaCompiler)
         )]
         
-        javaCompiler.messages.forEach[name, msg|fsa.generateFile(
+        // all composite types
+        javaCompiler.compositeTypes.forEach[name, ct | fsa.generateFile(
+            javaCompiler.packagePath + name.toFirstUpper + 'Encoder.java',
+            generateCompositeType(ct, javaCompiler)
+        )]
+
+        javaCompiler.messages.forEach[name, msg | fsa.generateFile(
             javaCompiler.packagePath + name.toFirstUpper + 'Encoder.java',
             generateEncoder(msg, javaCompiler)
         )]
@@ -69,6 +75,79 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             
                     throw new IllegalArgumentException("Unknown value: " + value);
                 }
+            }
+        '''
+    }
+    
+    def generateCompositeType(ParsedCompositeType message, Parser javaCompiler) {
+        val encoderName = message.name.toFirstUpper + "Encoder";
+        '''
+            package  «javaCompiler.packageName»;
+            
+            import java.nio.ByteOrder;
+            import org.agrona.MutableDirectBuffer;
+            
+            public class «encoderName» {
+                
+                «IF message.templateId != -1»public static final int SCHEMA_ID = «javaCompiler.schemaId»;
+                public static final int SCHEMA_VERSION = «javaCompiler.schemaVersion»;
+                public static final int TEMPLATE_ID = «message.templateId»«ENDIF»
+                public static final int BLOCK_LENGTH = «message.blockLength»;
+                public static final ByteOrder BYTE_ORDER = «javaCompiler.byteOrderConstant»;
+                
+                private MutableDirectBuffer buffer;
+                protected int offset;«IF message.templateId != -1»
+                protected int limit;«ENDIF»
+                
+                public «encoderName» wrap(final MutableDirectBuffer buffer, final int offset)
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+                    «IF message.templateId != -1»
+                    limit(offset + BLOCK_LENGTH);
+                    «ENDIF»
+                    
+                    return this;
+                }«IF message.templateId != -1»
+                
+                public void limit(final int limit)
+                {
+                    this.limit = limit;
+                }«ENDIF»
+                «FOR f : message.fields»
+                
+                int «f.name»EncodingOffset() {
+                    return «f.offset»;
+                }
+                
+                int «f.name»EncodingLength() {
+                    return «f.octetLength»;
+                }
+                
+                «IF f.isPrimitive»
+                «ELSEIF f.isCharArray»
+                public «encoderName» put«f.name.toFirstUpper»(final byte[] src, final int srcOffset, final int srcLen)
+                {
+                    final int length = «f.octetLength»;
+                    if (srcOffset < 0 || srcOffset > (src.length - length))
+                    {
+                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                    }
+                
+                    buffer.putBytes(this.offset + 0, src, srcOffset, length);
+                
+                    return this;
+                }
+                «ELSEIF f.isEnum»
+                public «encoderName» «f.name.toFirstLower»(final «f.enumFieldEncodingType.name.toFirstUpper» value)
+                {
+                    buffer.putByte(offset + 8, (byte)value.value());
+                    return this;
+                }
+                «ENDIF»
+                «ENDFOR»
+                «FOR f : message.dataFields»
+                «ENDFOR»
             }
         '''
     }
@@ -132,7 +211,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                     return this;
                 }
                 «ELSEIF f.isEnum»
-                public «encoderName» «f.name.toFirstLower»(final «f.f.fieldEncodingType.name.toFirstUpper» value)
+                public «encoderName» «f.name.toFirstLower»(final «f.enumFieldEncodingType.name.toFirstUpper» value)
                 {
                     buffer.putByte(offset + 8, (byte)value.value());
                     return this;
