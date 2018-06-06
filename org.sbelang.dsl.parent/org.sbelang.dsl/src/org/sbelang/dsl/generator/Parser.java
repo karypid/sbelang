@@ -11,7 +11,6 @@ import org.sbelang.dsl.sbeLangDsl.CompositeType;
 import org.sbelang.dsl.sbeLangDsl.ConstantModifier;
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
-import org.sbelang.dsl.sbeLangDsl.PresenceModifier;
 import org.sbelang.dsl.sbeLangDsl.Specification;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
 
