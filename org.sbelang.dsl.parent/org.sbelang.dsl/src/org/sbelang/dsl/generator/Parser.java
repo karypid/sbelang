@@ -8,32 +8,47 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.sbelang.dsl.sbeLangDsl.CompositeType;
+import org.sbelang.dsl.sbeLangDsl.ConstantModifier;
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
+import org.sbelang.dsl.sbeLangDsl.PresenceModifier;
 import org.sbelang.dsl.sbeLangDsl.Specification;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
 
 public class Parser
 {
     public static final Map<String, Integer> PRIMITIVE_SIZES;
+    public static final Map<String, String>  PRIMITIVE_JAVA_TYPES;
 
     static
     {
-        Map<String, Integer> map = new LinkedHashMap<String, Integer>();
+        Map<String, Integer> primitiveSizesMap = new LinkedHashMap<String, Integer>();
+        primitiveSizesMap.put("char", 1);
+        primitiveSizesMap.put("int8", 1);
+        primitiveSizesMap.put("int16", 2);
+        primitiveSizesMap.put("int32", 4);
+        primitiveSizesMap.put("int64", 8);
+        primitiveSizesMap.put("uint8", 1);
+        primitiveSizesMap.put("uint16", 2);
+        primitiveSizesMap.put("uint32", 4);
+        primitiveSizesMap.put("uint64", 8);
+        primitiveSizesMap.put("float", 4);
+        primitiveSizesMap.put("double", 8);
+        PRIMITIVE_SIZES = Collections.unmodifiableMap(primitiveSizesMap);
 
-        map.put("char", 1);
-        map.put("int8", 1);
-        map.put("int16", 2);
-        map.put("int32", 4);
-        map.put("int64", 8);
-        map.put("uint8", 1);
-        map.put("uint16", 2);
-        map.put("uint32", 4);
-        map.put("uint64", 8);
-        map.put("float", 4);
-        map.put("double", 8);
-
-        PRIMITIVE_SIZES = Collections.unmodifiableMap(map);
+        Map<String, String> primitiveTypesMap = new LinkedHashMap<String, String>();
+        primitiveTypesMap.put("char", "char");
+        primitiveTypesMap.put("int8", "byte");
+        primitiveTypesMap.put("int16", "short");
+        primitiveTypesMap.put("int32", "int");
+        primitiveTypesMap.put("int64", "long");
+        primitiveTypesMap.put("uint8", "short");
+        primitiveTypesMap.put("uint16", "int");
+        primitiveTypesMap.put("uint32", "long");
+        // primitiveTypesMap.put("uint64", 8);
+        primitiveTypesMap.put("float", "float");
+        primitiveTypesMap.put("double", "double");
+        PRIMITIVE_JAVA_TYPES = Collections.unmodifiableMap(primitiveTypesMap);
     }
 
     public final Specification spec;
@@ -110,6 +125,24 @@ public class Parser
             return PRIMITIVE_SIZES.get(edt.getPrimitiveType());
         }
         return 0;
+    }
+
+    public static boolean isConstant(TypeDeclarationOrRef type)
+    {
+        if (type instanceof EncodedDataType)
+        {
+            EncodedDataType edt = (EncodedDataType) type;
+            if (edt.getPresence() == null) return false;
+            if (edt.getPresence() instanceof ConstantModifier) return true;
+        }
+        return false;
+    }
+
+    public static String getPresenceConstant(ConstantModifier cm)
+    {
+        if (cm.getConstant() != null) return cm.getConstant().trim();
+        String s = String.valueOf(cm.getConstantInt());
+        return cm.isNegative() ? "-" + s : s;
     }
 
     // --------------------------------------------------------------------------------

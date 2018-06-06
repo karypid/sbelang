@@ -42,7 +42,7 @@
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//Field">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//Field/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//Field/presence"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Field/presence"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Field/fieldEncodingType"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//Field/id"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//Field/semanticType"/>
@@ -61,11 +61,20 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//TypeDeclarationOrRef/name"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//EncodedDataType">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EncodedDataType/presence"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//EncodedDataType/presence"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EncodedDataType/primitiveType"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//EncodedDataType/range"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//EncodedDataType/length"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//EncodedDataType/semanticType"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//PresenceModifier"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//OptionalModifier">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//OptionalModifier/optional"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//ConstantModifier">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//ConstantModifier/constant"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//ConstantModifier/negative"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//ConstantModifier/constantInt"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//SemanitTypeModifier">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SemanitTypeModifier/description"/>

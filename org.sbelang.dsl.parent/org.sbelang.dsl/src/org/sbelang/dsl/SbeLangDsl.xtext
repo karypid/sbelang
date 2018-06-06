@@ -55,7 +55,13 @@ EncodedDataType:
     length=EncodedDataTypeLength? semanticType=SemanitTypeModifier?;
 
 PresenceModifier:
-    '?' | '=' (STRING | '-'? INT);
+    OptionalModifier | ConstantModifier;
+
+OptionalModifier:
+    optional='?';
+
+ConstantModifier:
+    '=' (constant=STRING | negative?='-'? constantInt=INT);
 
 SemanitTypeModifier:
     ',' description=STRING;

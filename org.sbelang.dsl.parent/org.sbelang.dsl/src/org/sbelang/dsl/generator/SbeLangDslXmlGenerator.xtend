@@ -18,6 +18,8 @@ import org.sbelang.dsl.sbeLangDsl.Group
 import org.sbelang.dsl.sbeLangDsl.Message
 import org.sbelang.dsl.sbeLangDsl.Specification
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceModifier
+import org.sbelang.dsl.sbeLangDsl.ConstantModifier
 
 /**
  * Generates XML from your model files on save.
@@ -90,11 +92,13 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         }
     }
     
-    def String getPresenceConstant(String presenceString) {
-        val trimmed = presenceString.trim
-        if (!trimmed.startsWith("="))
-            throw new IllegalStateException("Was expecting a presence constant!")
-        trimmed.substring(1).trim // ditch equals sign...
+    def String getPresenceConstant(PresenceModifier presence) {
+        if (presence instanceof ConstantModifier) {
+            val ConstantModifier cm = presence as ConstantModifier;
+            if (cm.constant !== null) return cm.constant.trim;
+            return cm.constantInt.toString;
+        }
+        return null;
     }
 
     def generateEnumValidValues(EList<EObject> enumValues) {

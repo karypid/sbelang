@@ -16,7 +16,13 @@ public interface CodecItemSpec
     boolean isCharArray();
 
     boolean isPrimitive();
+    
+    boolean isConstant();
 
     EnumType getEnumFieldEncodingType();
+    
+    String getPrimitiveJavaType();
+
+    String getConstantTerminal();
 
 }

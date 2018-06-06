@@ -115,15 +115,27 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 }«ENDIF»
                 «FOR f : message.fields»
                 
-                int «f.name»EncodingOffset() {
+                int «f.name.toFirstLower»EncodingOffset() {
                     return «f.offset»;
                 }
                 
-                int «f.name»EncodingLength() {
+                int «f.name.toFirstLower»EncodingLength() {
                     return «f.octetLength»;
                 }
                 
                 «IF f.isPrimitive»
+                    «IF f.isConstant»
+                    public «f.primitiveJavaType» «f.name.toFirstLower»()
+                    {
+                        return «f.constantTerminal»;
+                    }
+                    «ELSE»
+                    public «encoderName» «f.name.toFirstLower»(«f.primitiveJavaType» value)
+                    {
+                        buffer.put«f.primitiveJavaType.toFirstUpper»(offset + «f.offset», («f.primitiveJavaType»)value«IF f.octetLength > 1», BYTE_ORDER«ENDIF»);
+                        return this;
+                    }
+                    «ENDIF»
                 «ELSEIF f.isCharArray»
                 public «encoderName» put«f.name.toFirstUpper»(final byte[] src, final int srcOffset, final int srcLen)
                 {

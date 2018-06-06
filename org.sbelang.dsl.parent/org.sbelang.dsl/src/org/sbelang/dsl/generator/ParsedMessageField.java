@@ -1,5 +1,6 @@
 package org.sbelang.dsl.generator;
 
+import org.sbelang.dsl.sbeLangDsl.ConstantModifier;
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.Field;
@@ -61,5 +62,23 @@ public class ParsedMessageField implements CodecItemSpec
     public boolean isPrimitive()
     {
         return f.getFieldEncodingType() instanceof EncodedDataType ? getOctetLength() == 1 : false;
+    }
+
+    @Override
+    public String getPrimitiveJavaType()
+    {
+        return Parser.PRIMITIVE_JAVA_TYPES.get(((EncodedDataType) f.getFieldEncodingType()).getPrimitiveType());
+    }
+
+    @Override
+    public boolean isConstant()
+    {
+        return Parser.isConstant((EncodedDataType) f.getFieldEncodingType());
+    }
+    
+    @Override
+    public String getConstantTerminal()
+    {
+        return Parser.getPresenceConstant((ConstantModifier) ((EncodedDataType) f.getFieldEncodingType()).getPresence());
     }
 }

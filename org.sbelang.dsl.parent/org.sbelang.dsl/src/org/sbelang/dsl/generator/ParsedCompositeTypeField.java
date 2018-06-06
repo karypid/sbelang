@@ -1,5 +1,6 @@
 package org.sbelang.dsl.generator;
 
+import org.sbelang.dsl.sbeLangDsl.ConstantModifier;
 import org.sbelang.dsl.sbeLangDsl.EncodedDataType;
 import org.sbelang.dsl.sbeLangDsl.EnumType;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
@@ -7,15 +8,15 @@ import org.sbelang.dsl.sbeLangDsl.TypeDeclarationOrRef;
 public class ParsedCompositeTypeField implements CodecItemSpec
 {
     public final TypeDeclarationOrRef type;
-    public final int   octetLength;
-    public final int   offset;
+    public final int                  octetLength;
+    public final int                  offset;
 
     public ParsedCompositeTypeField(TypeDeclarationOrRef type, int offset)
     {
         super();
         this.type = type;
         this.offset = offset;
-        this.octetLength = Parser.getOctetLength(type );
+        this.octetLength = Parser.getOctetLength(type);
     }
 
     @Override
@@ -58,5 +59,23 @@ public class ParsedCompositeTypeField implements CodecItemSpec
     public EnumType getEnumFieldEncodingType()
     {
         return null;
+    }
+
+    @Override
+    public String getPrimitiveJavaType()
+    {
+        return Parser.PRIMITIVE_JAVA_TYPES.get(((EncodedDataType) type).getPrimitiveType());
+    }
+
+    @Override
+    public boolean isConstant()
+    {
+        return Parser.isConstant(type);
+    }
+    
+    @Override
+    public String getConstantTerminal()
+    {
+        return Parser.getPresenceConstant((ConstantModifier) ((EncodedDataType) type).getPresence());
     }
 }
