@@ -4,6 +4,7 @@
 package org.sbelang.dsl.tests
 
 import com.google.inject.Injector
+import java.io.File
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.GeneratorContext
