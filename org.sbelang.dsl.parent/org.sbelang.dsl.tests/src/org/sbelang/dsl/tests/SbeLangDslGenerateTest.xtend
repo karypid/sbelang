@@ -52,13 +52,29 @@ class SbeLangDslGenerateTest {
         g.doGenerate(resource, fsa, ctx)
         g.afterGenerate(resource, fsa, ctx)
 
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/MessageSchema.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/DATAEncoder.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/OptionalDecimalEncodingEncoder.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/MessageHeaderEncoder.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/BusinessMessageRejectEncoder.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/MONTH_YEAREncoder.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/NewOrderSingleEncoder.java"))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "org/Examples/v0/OptionalDecimalEncodingEncoder.java"))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/MessageSchema.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/DATAEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/MessageHeaderEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/BusinessMessageRejectEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/MONTH_YEAREncoder.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/NewOrderSingleEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(
+            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+                "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
     }
 }
