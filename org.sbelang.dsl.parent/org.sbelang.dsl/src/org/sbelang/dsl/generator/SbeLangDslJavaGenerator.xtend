@@ -7,12 +7,14 @@ import org.sbelang.dsl.sbeLangDsl.EnumType
 import org.sbelang.dsl.sbeLangDsl.Specification
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
-
-    override beforeGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
-        super.beforeGenerate(input, fsa, context)
-    }
-
+    
+    public static val genJava = Boolean.valueOf(
+        System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genJava", "true"))
+    public static val genJavaSlice = 
+        System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genJavaSlice", null)
+    
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        if (!genJava) return;
         val spec = resource.getEObject("/") as Specification
         val Parser javaCompiler = new Parser(spec)
 
@@ -149,6 +151,21 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 
                     return this;
                 }
+                «IF genJavaSlice !== null»
+                
+                public «encoderName» put«f.name.toFirstUpper»(final «genJavaSlice» src)
+                {
+                    final int length = «f.octetLength»;
+                    if (src.offset < 0 || src.offset > (src.length - length))
+                    {
+                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + src.offset);
+                    }
+                
+                    buffer.putBytes(this.offset + 0, src.bytes, src.offset, length);
+                
+                    return this;
+                }
+                «ENDIF»
                 «ELSEIF f.isEnum»
                 public «encoderName» «f.name.toFirstLower»(final «f.enumFieldEncodingType.name.toFirstUpper» value)
                 {

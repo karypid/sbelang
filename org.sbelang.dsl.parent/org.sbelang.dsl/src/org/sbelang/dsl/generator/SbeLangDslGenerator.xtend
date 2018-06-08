@@ -7,6 +7,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import com.google.inject.Inject
 
 /**
  * Generates code from your model files on save.
@@ -14,18 +15,23 @@ import org.eclipse.xtext.generator.IGeneratorContext
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class SbeLangDslGenerator extends AbstractGenerator {
-    val xmlGenerator = new SbeLangDslXmlGenerator
-    val javaGenerator = new SbeLangDslJavaGenerator
+
+    @Inject SbeLangDslXmlGenerator xmlGenerator
+    @Inject SbeLangDslJavaGenerator javaGenerator
 
     override beforeGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
         super.beforeGenerate(input, fsa, context)
+
         xmlGenerator.beforeGenerate(input, fsa, context)
+
         javaGenerator.beforeGenerate(input, fsa, context)
     }
 
     override afterGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
         super.afterGenerate(input, fsa, context)
+
         xmlGenerator.afterGenerate(input, fsa, context)
+
         javaGenerator.afterGenerate(input, fsa, context)
     }
 

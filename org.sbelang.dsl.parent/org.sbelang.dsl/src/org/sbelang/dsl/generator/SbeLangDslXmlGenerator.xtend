@@ -27,7 +27,13 @@ import org.sbelang.dsl.sbeLangDsl.ConstantModifier
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
+
+    public static val genXml = Boolean.valueOf(
+        System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genXml", "true"))
+
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        if (!genXml) return;
+
         val spec = resource.getEObject("/") as Specification
         val types = spec.typesList.types
         val messages = spec.messages

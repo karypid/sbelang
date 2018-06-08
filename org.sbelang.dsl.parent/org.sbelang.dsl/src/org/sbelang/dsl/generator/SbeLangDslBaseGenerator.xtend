@@ -4,10 +4,10 @@
 package org.sbelang.dsl.generator
 
 import org.eclipse.xtext.generator.AbstractGenerator
-import org.sbelang.dsl.sbeLangDsl.EncodedDataType
-import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.EnumType
 import org.sbelang.dsl.sbeLangDsl.CompositeType
+import org.sbelang.dsl.sbeLangDsl.EncodedDataType
+import org.sbelang.dsl.sbeLangDsl.EnumType
+import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 
 /**
  * Base class for SBE generators
