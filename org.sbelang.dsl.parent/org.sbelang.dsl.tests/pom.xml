@@ -46,6 +46,8 @@
                         </systemProperty>
                     </systemProperties>
                     <arguments>
+                        <argument>${project.basedir}/resources/AllFeatures.xml</argument>
+                        
                         <argument>${project.basedir}/resources/Examples.xml</argument>
                     </arguments>
                     <workingDirectory>${project.build.directory}/generated-sources/java</workingDirectory>

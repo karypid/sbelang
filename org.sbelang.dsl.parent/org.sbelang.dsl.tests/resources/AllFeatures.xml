@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" package="org.sbe.reference" id="91" version="0"
+    byteOrder="littleEndian" xsi:schemaLocation="http://fixprotocol.io/2016/sbe sbe.xsd">
+
+    <types>
+        <!--
+            THE FOLLOWING TYPES ARE PRE-DEFINED AND THEIR NAMES RESERVED
+            =============================================================
+
+            <type name="char" primitiveType="char" length=1 semanticType="US-ASCII character" />
+            minValue = 32 (space), maxValue = 126, nullValue=0
+
+            <type name="int8" primitiveType="int8" length=1 semanticType="Signed 8-bit" />
+            minValue = -127, maxValue = 127, nullValue=-128
+
+            <type name="int16" primitiveType="int16" length=1 semanticType="Signed 16-bit" />
+            minValue = -32767, maxValue = 32767, nullValue=-32768
+
+            <type name="int32" primitiveType="int32" length=1 semanticType="Signed 32-bit" />
+            minValue = -2147483647, maxValue = 2147483647, nullValue=-2147483648
+
+            <type name="int64" primitiveType="int64" length=1 semanticType="Signed 64-bit" />
+            minValue = -9223372036854775807, maxValue = 9223372036854775807, nullValue=-9223372036854775808
+
+            <type name="uint8" primitiveType="uint8" length=1 semanticType="Unsigned 8-bit" />
+            minValue = 0, maxValue = 254, nullValue=255
+
+            <type name="uint16" primitiveType="uint16" length=1 semanticType="Unsigned 16-bit" />
+            minValue = 0, maxValue = 65534, nullValue=65535
+
+            <type name="uint32" primitiveType="uint32" length=1 semanticType="Unsigned 32-bit" />
+            minValue = 0, maxValue = 4294967294, nullValue=4294967295
+
+            <type name="uint64" primitiveType="uint64" length=1 semanticType="Unsigned 64-bit" />
+            minValue = 0, maxValue = 18446744073709551614, nullValue=18446744073709551615
+
+            <type name="float" primitiveType="float" length=1 semanticType="IEEE 754-2008 float" />
+            minValue = 1.401298464324817E-45f, maxValue = 3.4028234663852886E38f, nullValue=Float.NaN
+
+            <type name="double" primitiveType="double" length=1 semanticType="IEEE 754-2008 double" />
+            minValue = 4.9E-324d, maxValue = 1.7976931348623157E308d, nullValue=Double.NaN
+        -->
+
+        <!-- ALL PRIMITIVES WITH ATTIBUTES -->
+
+        <!-- min/max range and custom null value with optional presence -->
+        <type name="f_int16_optional" primitiveType="int16" minValue="10" maxValue="20" presence="optional"
+            nullValue="42" semanticType="All attributes in use" />
+        <!-- constant value; SBE tool ignores min/max when a constant is set -->
+        <type name="f_uint16_constant" primitiveType="uint16" presence="constant" semanticType="Constant value">123</type>
+        <type name="f_int16_required" primitiveType="int16" minValue="100" maxValue="200" semanticType="Required within range" />
+
+        <!-- Only char primitive can define length: https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/issues/82 -->
+        <type name="char_array" primitiveType="char" length="42" minValue="a" maxValue="z" nullValue="."
+            presence="optional" semanticType="Fixed-length US-ASCII" />
+
+        <!-- presence = required -->
+        <!-- nullValue = N/A (mutually exclusive with presence=required -->
+
+        <composite name="messageHeader">
+            <type name="blockLength" primitiveType="uint16" />
+            <type name="templateId" primitiveType="uint16" />
+            <type name="schemaId" primitiveType="uint16" />
+            <type name="version" primitiveType="uint16" />
+        </composite>
+    </types>
+
+    <sbe:message name="AllPrimitivesWithDefaults" id="1"
+        semanticType="All primitives using default attributes">
+        <field name="f_char" id="1" type="char" />
+        <field name="f_int8" id="1" type="int8" />
+        <field name="f_int16" id="1" type="int16" />
+        <field name="f_int32" id="1" type="int32" />
+        <field name="f_int64" id="1" type="int64" />
+        <field name="f_uint8" id="1" type="int8" />
+        <field name="f_uint16" id="1" type="int16" />
+        <field name="f_uint32" id="1" type="int32" />
+        <field name="f_uint64" id="1" type="int64" />
+        <field name="f_float" id="1" type="float" />
+        <field name="f_double" id="1" type="double" />
+    </sbe:message>
+
+    <sbe:message name="AllPrimitivesWithAttrs" id="2" semanticType="All primitives using default attributes">
+
+        <!-- Fields using primitive types can NOT have a length and SBE tool ignores it.
+
+            e.g. the length here would be ignored
+            <field name="f_char" id="1" type="char" length="20" />
+
+            Instead, refer to a <type> that has its length specified.
+
+            ALSO: only character-arrays are allowed. Other primitives
+            such as integers/floats must use groups
+        -->
+        <field name="f_char" id="1" type="char_array" />
+
+        <!-- Now for the rest of the attributes -->
+        <field name="f_int16_optional" id="1" type="f_int16_optional" />
+        <field name="f_uint16_constant" id="1" type="f_uint16_constant" />
+
+        <!-- Override type attributes at field level -->
+        <field name="f_int16_optional_2_required_override" id="1" type="f_int16_optional" presence="required" />
+        <field name="f_uint16_constant_override" id="1" type="f_uint16_constant" presence="required" />
+        <field name="f_int16_required_2_optional_override" id="1" type="f_int16_required" presence="optional" nullValue="0"/>
+        <!-- You can NOT override length/minValue/maxValue.
+        
+        For example, SBE tool ignores the following length attribute:
+
+            <field name="f_char_override" id="1" type="char_array" length="7" />
+
+            and the following minValue/maxValue attributes:
+
+            <field name="f_int16_optional_override" id="1" type="f_int16_optional" presence="required" 
+               minValue="15" maxValue="20" />
+        -->
+
+    </sbe:message>
+
+</sbe:messageSchema>
