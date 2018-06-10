@@ -1,123 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="sbeLangDsl" nsURI="http://www.sbelang.org/dsl/SbeLangDsl" nsPrefix="sbeLangDsl">
-  <eClassifiers xsi:type="ecore:EClass" name="Specification">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="package" eType="#//PackageDecl"
+  <eClassifiers xsi:type="ecore:EClass" name="MessageSchema">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaDeclaration"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="byteOrder" eType="#//ByteOrderDecl"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="types" eType="#//TypeDeclarations"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="typesList" eType="#//TypesList"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="messages" upperBound="-1"
-        eType="#//Message" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="PackageDecl">
+  <eClassifiers xsi:type="ecore:EClass" name="SchemaDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="version" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="optionalAttrs" eType="#//OptionalSchemaAttrs"
+        containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ByteOrderDecl">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="order" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  <eClassifiers xsi:type="ecore:EClass" name="OptionalSchemaAttrs">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="headerType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bigEndian" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Message">
+  <eClassifiers xsi:type="ecore:EClass" name="TypeDeclarations">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="simpleTypes" upperBound="-1"
+        eType="#//SimpleTypeDeclaration" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="compositeTypes" upperBound="-1"
+        eType="#//CompositeTypeDeclaration" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SimpleTypeDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="semanticType" eType="#//SemanitTypeModifier"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="block" eType="#//BlockType"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="BlockType">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="fieldsList" eType="#//FieldsList"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="groupList" eType="#//GroupList"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="dataList" eType="#//DataList"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FieldsList">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="fields" upperBound="-1"
-        eType="#//Field" containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="GroupList">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="groups" upperBound="-1"
-        eType="#//Group" containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="DataList">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="dataFields" upperBound="-1"
-        eType="#//Field" containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Field">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifier"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="fieldEncodingType" eType="#//TypeDeclaration"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="semanticType" eType="#//SemanitTypeModifier"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Group">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="groupEncodingType" eType="#//TypeDeclaration"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="block" eType="#//BlockType"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TypesList">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="types" upperBound="-1"
-        eType="#//TypeDeclaration" containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TypeDeclaration" eSuperTypes="#//TypeDeclarationOrRef"/>
-  <eClassifiers xsi:type="ecore:EClass" name="TypeDeclarationOrRef">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EncodedDataType" eSuperTypes="#//TypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifier"
-        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="range" eType="#//EncodedDataTypeRange"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="length" eType="#//EncodedDataTypeLength"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="semanticType" eType="#//SemanitTypeModifier"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="versionModifiers" eType="#//VersionModifiers"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="PresenceModifier"/>
-  <eClassifiers xsi:type="ecore:EClass" name="OptionalModifier" eSuperTypes="#//PresenceModifier">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  <eClassifiers xsi:type="ecore:EClass" name="VersionModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sinceVersion" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecatedSinceVersion"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ConstantModifier" eSuperTypes="#//PresenceModifier">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constant" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="negative" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constantInt" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SemanitTypeModifier">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EncodedDataTypeLength">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EncodedDataTypeRange">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="minValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CompositeType" eSuperTypes="#//TypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="semanticType" eType="#//SemanitTypeModifier"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="typesList" eType="#//TypesList"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EnumType" eSuperTypes="#//TypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="enumEncodingType" eType="#//EncodedDataType"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="values" upperBound="-1"
-        eType="#//EnumValue" containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EnumValue">
+  <eClassifiers xsi:type="ecore:EClass" name="CompositeTypeDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="memberTypes" upperBound="-1"
+        eType="#//MemberTypeDeclaration" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SetType">
+  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="RefType" eSuperTypes="#//TypeDeclarationOrRef"/>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberCharTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberNumericTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//RangeModifiers"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//NumericPresenceModifiers"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RangeModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="min" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="max" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NumericPresenceModifiers"/>
+  <eClassifiers xsi:type="ecore:EClass" name="NumericConstantModifiers" eSuperTypes="#//NumericPresenceModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constantValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NumericOptionalModifiers" eSuperTypes="#//NumericPresenceModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+  </eClassifiers>
 </ecore:EPackage>

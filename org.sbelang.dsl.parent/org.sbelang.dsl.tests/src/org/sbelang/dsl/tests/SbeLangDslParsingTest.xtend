@@ -4,21 +4,19 @@
 package org.sbelang.dsl.tests
 
 import com.google.inject.Inject
-import java.nio.file.Files
-import java.nio.file.Paths
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.sbelang.dsl.sbeLangDsl.Specification
+import org.sbelang.dsl.sbeLangDsl.MessageSchema
 
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
 class SbeLangDslParsingTest {
     @Inject
-    ParseHelper<Specification> parseHelper
+    ParseHelper<MessageSchema> parseHelper
 
     @Test
     def void testPrimitives() {
@@ -40,25 +38,5 @@ class SbeLangDslParsingTest {
 
         val errors = result.eResource.errors
         Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
-
-        Assert.assertTrue(result.typesList.types.size == 3);
-        Assert.assertTrue(result.messages.size == 1);
-
-        val testMessage = result.messages.get(0)
-        val testMessageFields = testMessage.block.fieldsList
-        Assert.assertTrue(testMessageFields.fields.size == 3)
-        Assert.assertTrue(testMessageFields.fields.get(0).fieldEncodingType.name.equals("typeUint8"))
     }
-
-    @Test
-    def void testExamples() {
-        val String fileString = new String(Files.readAllBytes(Paths.get("./resources/Examples.sbelang")))
-
-        val model = parseHelper.parse(fileString)
-        Assert.assertNotNull(model)
-
-        val errors = model.eResource.errors
-        Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
-    }
-
 }

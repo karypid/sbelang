@@ -3,23 +3,18 @@
  */
 package org.sbelang.dsl.generator
 
-import org.eclipse.emf.common.util.EList
-import org.eclipse.emf.ecore.EObject
-import org.eclipse.emf.ecore.resource.Resource
+import java.nio.ByteOrder
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.sbeLangDsl.BlockType
-import org.sbelang.dsl.sbeLangDsl.CompositeType
-import org.sbelang.dsl.sbeLangDsl.EncodedDataType
-import org.sbelang.dsl.sbeLangDsl.EnumType
-import org.sbelang.dsl.sbeLangDsl.EnumValue
-import org.sbelang.dsl.sbeLangDsl.Field
-import org.sbelang.dsl.sbeLangDsl.Group
-import org.sbelang.dsl.sbeLangDsl.Message
-import org.sbelang.dsl.sbeLangDsl.Specification
-import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.PresenceModifier
-import org.sbelang.dsl.sbeLangDsl.ConstantModifier
+import org.sbelang.dsl.generator.intermediate.ImMessageSchema
+import org.sbelang.dsl.generator.xml.XmlMessageSchema
+import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberCharTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 
 /**
  * Generates XML from your model files on save.
@@ -31,150 +26,118 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     public static val genXml = Boolean.valueOf(
         System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genXml", "true"))
 
-    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-        if (!genXml) return;
+    override void compile(ImMessageSchema imSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        if(!genXml) return;
 
-        val spec = resource.getEObject("/") as Specification
-        val types = spec.typesList.types
-        val messages = spec.messages
-
-        val boAttr = if (spec.byteOrder === null) '''byteOrder="littleEndian"''' else '''byteOrder="«spec.byteOrder.order»"'''
+        val xmlSchema = new XmlMessageSchema(imSchema)
 
         fsa.generateFile(
-            resource.URI.lastSegment + '.xml',
+            imSchema.schemaName + '.xml',
             '''
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" package="«spec.package.name»" id="«spec.package.id»" version="«spec.package.version»"
-                    «boAttr» xsi:schemaLocation="http://fixprotocol.io/2016/sbe sbe.xsd">
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                    xsi:schemaLocation="http://fixprotocol.io/2016/sbe/sbe.xsd"
                     
-                    «IF types.size > 0»
+                    package="«imSchema.schemaName»"
+                    id="«imSchema.schemaId»" version="«imSchema.schemaVersion»"«optionalAttrs(xmlSchema)»>
+                    
                     <types>
-                        «generateTypeDeclarations(types)»
+                        «FOR type : imSchema.rawSchema.types.simpleTypes»
+                            «compile(type)»
+                        «ENDFOR»
+                        
+                        «FOR compositeType : imSchema.rawSchema.types.compositeTypes»
+                            «compile(compositeType)»
+                        «ENDFOR»
                     </types>
-                    «ENDIF»
-                    «IF messages.size > 0»
-                    «generateMessages(messages)»
-                    «ENDIF»
                     
                 </sbe:messageSchema>
             '''
         )
     }
-    
-    def String generateTypeDeclarations(EList<TypeDeclaration> typeDecls) {
+
+    private def compile(SimpleTypeDeclaration std) {
         '''
-            «FOR section : typeDecls»
-                «section.compile»
-            «ENDFOR»
+            <type name="«std.name»" primitiveType="«std.primitiveType»"«simpleTypeLength(std)»«versionAttrs(std)»/>
         '''
     }
 
-    def compile(TypeDeclaration typeDecl) {
-        switch typeDecl {
-            EncodedDataType:
-                if ((typeDecl.presence !== null) && (OPTIONAL_PRESENCE_MODIFIER != typeDecl.presence) )
-                // not null and not optional: is a constant
-                '''
-                    <type name="«typeDecl.name»" presence="constant" «IF typeDecl.length !== null»length="«typeDecl.length.length»" «ENDIF»primitiveType="«typeDecl.primitiveType»"«IF typeDecl.semanticType !== null» semanticType="«typeDecl.semanticType.description»"«ENDIF»>«getPresenceConstant(typeDecl.presence)»</type>
-                '''
-                else
-                // required (default) or optional
-                '''
-                    <type name="«typeDecl.name»" «IF OPTIONAL_PRESENCE_MODIFIER == typeDecl.presence»presence="optional" «ENDIF»«IF typeDecl.length !== null»length="«typeDecl.length.length»" «ENDIF»primitiveType="«typeDecl.primitiveType»"«IF typeDecl.semanticType !== null» semanticType="«typeDecl.semanticType.description»"«ENDIF» />
-                '''
-            CompositeType: '''
-                <composite name="«typeDecl.name»"«IF typeDecl.semanticType !== null» semanticType="«typeDecl.semanticType.description»"«ENDIF»>
-                    «generateTypeDeclarations(typeDecl.typesList.types)»
-                </composite>
-            '''
-            EnumType: '''
-                <enum name="«typeDecl.name»" encodingType="«typeDecl.enumEncodingType.name»">
-                    «generateEnumValidValues(typeDecl.eContents)»
-                </enum>
-            '''
-            default:
-                throw new IllegalStateException("Don't know how to handle: " + typeDecl.class)
+    private def simpleTypeLength(SimpleTypeDeclaration std) {
+        '''«IF std.length !== null» length="«std.length»"«ENDIF»'''
+    }
+
+    private def versionAttrs(SimpleTypeDeclaration std) {
+        if (std.versionModifiers !== null) {
+
+            val sinceV = std.versionModifiers.sinceVersion;
+            val depV = std.versionModifiers.deprecatedSinceVersion;
+
+            '''«IF sinceV !== null» sinceVersion="«sinceV»"«ENDIF»«IF depV !== null» deprecated="«depV»"«ENDIF»"'''
+        } else {
+            ""
         }
     }
-    
-    def String getPresenceConstant(PresenceModifier presence) {
-        if (presence instanceof ConstantModifier) {
-            val ConstantModifier cm = presence as ConstantModifier;
-            if (cm.constant !== null) return cm.constant.trim;
-            return cm.constantInt.toString;
+
+    private def optionalAttrs(XmlMessageSchema xmlSchema) {
+        '''«headerTypeAttr(xmlSchema.imSchema)»«byteOrderAttr(xmlSchema)»'''
+    }
+
+    private def headerTypeAttr(ImMessageSchema imSchema) {
+        '''«IF imSchema.headerTypeName !== null» headerType="«imSchema.headerTypeName»"«ENDIF»'''
+    }
+
+    private def byteOrderAttr(XmlMessageSchema xmlMessageSchema) {
+        '''«IF xmlMessageSchema.imSchema.schemaByteOrder !== ByteOrder.LITTLE_ENDIAN» byteOrder="«xmlMessageSchema.byteOrderAttribute»"«ENDIF»'''
+    }
+
+    private def compile(CompositeTypeDeclaration ctd) {
+        '''
+            <composite name="«ctd.name»">
+                «FOR mtd : ctd.memberTypes»
+                    <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
+                «ENDFOR»
+            </composite>
+        '''
+    }
+
+    private def memberTypeLength(MemberTypeDeclaration mtd) {
+        if (mtd instanceof MemberCharTypeDeclaration)
+            '''«IF mtd.length !== null» length="«mtd.length»"«ENDIF»'''
+        else
+            ""
+    }
+
+    private def memberTypeRange(MemberTypeDeclaration mtd) {
+        if (mtd instanceof MemberNumericTypeDeclaration) {
+            if (mtd.rangeModifiers !== null)
+                '''«IF mtd.rangeModifiers.min !== null» minValue="«mtd.rangeModifiers.min»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«mtd.rangeModifiers.max»"«ENDIF»'''
+        } else {
+            ""
         }
-        return null;
     }
 
-    def generateEnumValidValues(EList<EObject> enumValues) {
-        '''
-            «FOR v : enumValues.filter(EnumValue)»
-                <validValue name="«v.name»">«unQuote(v.value)»</validValue>
-            «ENDFOR»
-        '''
-    }
-
-    def unQuote(String enumValue) {
-        if (enumValue.length >= 3) {
-            if ((enumValue.charAt(0) == CHAR_LITERAL_DELIMITER) && (enumValue.charAt(2) == CHAR_LITERAL_DELIMITER)) {
-                return "" + enumValue.charAt(1)
+    private def memberTypePresence(MemberTypeDeclaration mtd) {
+        if (mtd instanceof MemberNumericTypeDeclaration) {
+            if (mtd.presence instanceof NumericOptionalModifiers) {
+                val NumericOptionalModifiers t = mtd.presence as NumericOptionalModifiers
+                if (t.
+                    isOptional) ''' presence="optional"''' else '''«IF t.nullValue !== null» presence="optional" nullValue="«t.nullValue»"«ENDIF»'''
+            } else if (mtd.presence instanceof NumericConstantModifiers) {
+                ''' presence="constant"'''
             }
+        } else {
+            ""
         }
-        return enumValue;
     }
-
-    def generateMessages(EList<Message> messages) {
-        '''
-        «FOR m : messages»
-
-        <sbe:message name="«m.name»" id="«m.id»"«IF m.semanticType !== null» semanticType="«m.semanticType.description»"«ENDIF»>
-            «generateBlock(m.block)»
-        </sbe:message>
-        «ENDFOR»
-        '''
-    }
-    
-    def String generateBlock(BlockType block) {
-        '''
-            «IF block.fieldsList !== null»
-            «FOR f : block.fieldsList.fields»
-                «generateField(f)»
-            «ENDFOR»
-            «ENDIF»
-            «IF block.groupList !== null»
-            
-            «FOR g : block.groupList.groups»
-                «generateGroup(g)»
-            «ENDFOR»
-            «ENDIF»
-            «IF block.dataList !== null»
-            
-            «FOR d : block.dataList.dataFields»
-                «generateDataField(d)»
-            «ENDFOR»
-            «ENDIF»
-        '''
-    }
-    
-    def generateField(Field f) {
-        // FIXME: optional presence modifier is ignored...
-        '''
-            <field name="«f.name»" id="«f.id»" type="«f.fieldEncodingType.name»"«IF f.semanticType !== null» semanticType="«f.semanticType.description»"«ENDIF» />
-        '''
-    }
-    
-    def generateGroup(Group g) {
-        '''
-            <group name="«g.name»" id="«g.id»" dimensionType="«g.groupEncodingType.name»">
-                «generateBlock(g.block)»
-            </group>
-        '''
-    }
-
-    def generateDataField(Field f) {
-        '''
-            <data name="«f.name»" type="«f.fieldEncodingType.name»" id="«f.id»"«IF f.semanticType !== null» semanticType="«f.semanticType.description»"«ENDIF» />
-        '''
+    private def closeTag(MemberTypeDeclaration mtd) {
+        if (mtd instanceof MemberNumericTypeDeclaration) {
+            if (mtd.presence instanceof NumericConstantModifiers) {
+                val NumericConstantModifiers t = mtd.presence as NumericConstantModifiers
+                '''>«t.constantValue»</type>'''
+            }
+        } else {
+            "/>"
+        }
     }
 }

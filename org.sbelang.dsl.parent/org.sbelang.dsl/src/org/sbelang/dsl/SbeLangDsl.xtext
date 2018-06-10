@@ -1,58 +1,78 @@
 grammar org.sbelang.dsl.SbeLangDsl with org.eclipse.xtext.common.Terminals
 
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 
-Specification:
-    package=PackageDecl
-    byteOrder=ByteOrderDecl?
-    ('types' '{' typesList=TypesList '}')? (messages+=Message)+;
+MessageSchema:
+    schema=SchemaDeclaration
+    types=TypeDeclarations
+    //    messages=MessageDeclarations
+;
 
-PackageDecl:
-    'package' name=QName '@' id=INT '/' version=INT;
+SchemaDeclaration:
+// schema org.sbelang.example id=1 version=1
+// schema org.sbelang.example id=1 version=1 bigEndian
+// schema org.sbelang.example id=1 version=1 headerType=org.sbelang.common.Header
+// schema org.sbelang.example id=1 version=1 headerType=org.sbelang.common.Header bigEndian
 
-ByteOrderDecl:
-    'byteOrder' order=('littleEndian' | 'bigEndian');
+// Each message schema corresponds to a java package [name]
+// The id maps a numeric identifier to the schema
+// The version is a monotonically increasing number
+    'schema' name=QName 'id' '=' id=INT 'version' '=' version=INT optionalAttrs=OptionalSchemaAttrs;
 
-Message:
-    'message' name=Name '@' id=INT semanticType=SemanitTypeModifier?
-    block=BlockType;
+OptionalSchemaAttrs:
+    {OptionalSchemaAttrs} ('headerType' '=' headerType=QName)? (bigEndian?='bigEndian'?);
 
-BlockType:
-    {BlockType} '{'
-    (fieldsList=FieldsList? groupList=GroupList? dataList=DataList?)
+TypeDeclarations:
+    'types' '{' simpleTypes+=SimpleTypeDeclaration+ (compositeTypes+=CompositeTypeDeclaration*) '}';
+
+SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttributes */:
+// length=INT characterEncoding=STRING for character types only
+    'simpleType' name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')?
+    versionModifiers=VersionModifiers;
+
+VersionModifiers:
+    {VersionModifiers}
+    ('sinceVersion' '=' sinceVersion=OptionalInt)?
+    ('deprecatedSinceVersion' '=' deprecatedSinceVersion=OptionalInt)?;
+
+CompositeTypeDeclaration:
+    'composite' name=Name '{'
+    memberTypes+=MemberTypeDeclaration+
     '}';
 
-FieldsList:
-    (fields+=Field)+;
+MemberTypeDeclaration:
+    MemberCharTypeDeclaration | MemberNumericTypeDeclaration;
 
-GroupList:
-    (groups+=Group)+;
+MemberCharTypeDeclaration:
+    name=Name ':' primitiveType=CharPrimitive ('[' length=OptionalInt ']')?;
 
-DataList:
-    'data' '{'
-    (dataFields+=Field)+
-    '}';
+MemberNumericTypeDeclaration:
+    name=Name ':' primitiveType=NumericPrimitive ('range' '=' rangeModifiers=RangeModifiers)?
+    presence=NumericPresenceModifiers?;
 
-Field:
-    name=Name presence=PresenceModifier? ':' fieldEncodingType=[TypeDeclaration] '@' id=INT
-    semanticType=SemanitTypeModifier?;
+RangeModifiers:
+    {RangeModifiers} '[' min=OptionalInt? ',' max=OptionalInt? ']';
 
-Group:
-    'group' name=Name ':' groupEncodingType=[TypeDeclaration] '@' id=INT
-    block=BlockType;
+NumericPresenceModifiers:
+    NumericConstantModifiers | NumericOptionalModifiers;
 
-TypesList:
-    (types+=TypeDeclaration)+;
+NumericConstantModifiers:
+    ('constant' '=' constantValue=INT);
 
-TypeDeclaration:
-    EncodedDataType | EnumType /* | SetType  */ | CompositeType;
+NumericOptionalModifiers:
+    (optional?='optional') |
+    ('nullValue' '=' nullValue=OptionalInt);
 
-TypeDeclarationOrRef:
-    TypeDeclaration | RefType;
+    /*
+MessageDeclarations:
+    'messages' '{' messages+=MessageDeclaration '}';
 
-EncodedDataType:
-    name=Name presence=PresenceModifier? ':' primitiveType=PrimitiveType range=EncodedDataTypeRange?
-    length=EncodedDataTypeLength? semanticType=SemanitTypeModifier?;
+MessageDeclaration:
+    'message' name=Name 'id' '=' id=INT '{' fields+=FieldDeclaration '}';
+
+FieldDeclaration:
+    name=Name ':' fieldEncodingType=[SimpleTypeDeclaration] '@' id=INT;
 
 PresenceModifier:
     OptionalModifier | ConstantModifier;
@@ -62,44 +82,23 @@ OptionalModifier:
 
 ConstantModifier:
     '=' (constant=STRING | negative?='-'? constantInt=INT);
+ */
 
-SemanitTypeModifier:
-    ',' description=STRING;
+// --------------------------------------------------------------------
+CharPrimitive:
+    'char';
 
-EncodedDataTypeLength:
-    {EncodedDataTypeLength}
-    '(' length=INT ')';
-
-EncodedDataTypeRange:
-// minValue + maxValue are defined as strings in XSD but we could use primitive type for strong typing
-    ':' '[' minValue=STRING '..' maxValue=STRING ']';
-
-CompositeType:
-    'composite' name=Name semanticType=SemanitTypeModifier? '{' typesList=TypesList '}';
-
-EnumType:
-    'enum' name=Name ':' enumEncodingType=[EncodedDataType] '{' (values+=EnumValue)+ '}'; // length must be 1
-
-EnumValue:
-    name=Name ':=' value=EnumLiteral;
-
-EnumLiteral:
-    INT | CHAR;
-
-terminal CHAR:
-    "'" . "'";
-
-SetType:
-    'set' name=Name;
-
-RefType:
-    'ref' name=Name;
+NumericPrimitive:
+    'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'float' | 'double';
 
 PrimitiveType:
-    'char' | 'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'float' | 'double';
+    CharPrimitive | NumericPrimitive;
 
 QName:
     ID ('.' ID)*;
 
 Name:
     ID;
+
+OptionalInt returns ecore::EIntegerObject:
+    INT;

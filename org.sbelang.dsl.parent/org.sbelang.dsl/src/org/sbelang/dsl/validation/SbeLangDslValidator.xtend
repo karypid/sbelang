@@ -3,23 +3,74 @@
  */
 package org.sbelang.dsl.validation
 
+import org.eclipse.xtext.validation.Check
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
+import org.sbelang.dsl.sbeLangDsl.MessageSchema
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class SbeLangDslValidator extends AbstractSbeLangDslValidator {
-	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					SbeLangDslPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
-	
+
+    public static val CHAR_PRIMITIVE = 'char'
+
+    @Check
+    def checkLengthAppliedToCharOnly(SimpleTypeDeclaration sdt) {
+        if (sdt.length !== null) {
+            if (sdt.primitiveType != CHAR_PRIMITIVE) {
+                error(
+                    'Fixed-length array only supported for [char] primitive type',
+                    SbeLangDslPackage.Literals.SIMPLE_TYPE_DECLARATION__LENGTH
+                )
+            }
+        }
+    }
+
+    @Check
+    def checkNoFutureVersionModifiers(MessageSchema messageSchema) {
+        messageSchema.types.simpleTypes.forEach(
+            std |
+                if (std.versionModifiers !== null) {
+                    if (std.versionModifiers.sinceVersion !== null) {
+                        if (std.versionModifiers.sinceVersion > messageSchema.schema.version) {
+                            error(
+                                '''The sinceVesrsion(«std.versionModifiers.sinceVersion») value can not be after the schema version(«messageSchema.schema.version»)''',
+                                std.versionModifiers,
+                                SbeLangDslPackage.Literals.VERSION_MODIFIERS__SINCE_VERSION
+                            )
+                        }
+                    }
+                    if (std.versionModifiers.deprecatedSinceVersion !== null) {
+                        if (std.versionModifiers.deprecatedSinceVersion > messageSchema.schema.version) {
+                            error(
+                                '''The deprecatedSinceVersion(«std.versionModifiers.deprecatedSinceVersion») value can not be after the schema version(«messageSchema.schema.version»)''',
+                                std.versionModifiers,
+                                SbeLangDslPackage.Literals.VERSION_MODIFIERS__SINCE_VERSION
+                            )
+                        }
+                    }
+                }
+        )
+    }
+
+    @Check
+    def checkVersionModifiers(SimpleTypeDeclaration sdt) {
+        if (sdt.versionModifiers !== null) {
+            if ((sdt.versionModifiers.sinceVersion !== null) && (sdt.versionModifiers.deprecatedSinceVersion !== null))
+                return // both undefined (hopefully)
+            else if ((sdt.versionModifiers.deprecatedSinceVersion !== null))
+                return // only since version defined (hopefully)
+            else if (sdt.versionModifiers.sinceVersion >= sdt.versionModifiers.deprecatedSinceVersion) {
+                error(
+                    '''The deprecatedSinceVersion («sdt.versionModifiers.deprecatedSinceVersion») must be after original definition sinceVersion («sdt.versionModifiers.sinceVersion»)''',
+                    sdt.versionModifiers,
+                    SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
+                )
+            }
+        }
+    }
+
 }
