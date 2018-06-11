@@ -39,6 +39,7 @@ VersionModifiers:
 CompositeTypeDeclaration:
     'composite' name=Name '{'
     memberTypes+=MemberTypeDeclaration+
+    (compositeTypes+=CompositeTypeDeclaration*)
     '}';
 
 MemberTypeDeclaration:
@@ -52,17 +53,17 @@ MemberNumericTypeDeclaration:
     presence=NumericPresenceModifiers?;
 
 RangeModifiers:
-    {RangeModifiers} '[' min=OptionalInt? ',' max=OptionalInt? ']';
+    {RangeModifiers} '[' min=OptionalSignedInt? ',' max=OptionalSignedInt? ']';
 
 NumericPresenceModifiers:
     NumericConstantModifiers | NumericOptionalModifiers;
 
 NumericConstantModifiers:
-    ('constant' '=' constantValue=INT);
+    ('constant' '=' constantValue=SignedInt);
 
 NumericOptionalModifiers:
     (optional?='optional') |
-    ('nullValue' '=' nullValue=OptionalInt);
+    ('nullValue' '=' nullValue=OptionalSignedInt);
 
     /*
 MessageDeclarations:
@@ -73,15 +74,6 @@ MessageDeclaration:
 
 FieldDeclaration:
     name=Name ':' fieldEncodingType=[SimpleTypeDeclaration] '@' id=INT;
-
-PresenceModifier:
-    OptionalModifier | ConstantModifier;
-
-OptionalModifier:
-    optional='?';
-
-ConstantModifier:
-    '=' (constant=STRING | negative?='-'? constantInt=INT);
  */
 
 // --------------------------------------------------------------------
@@ -102,3 +94,9 @@ Name:
 
 OptionalInt returns ecore::EIntegerObject:
     INT;
+
+OptionalSignedInt returns ecore::EIntegerObject:
+    SignedInt;
+
+SignedInt returns ecore::EInt:
+    '-'? INT;

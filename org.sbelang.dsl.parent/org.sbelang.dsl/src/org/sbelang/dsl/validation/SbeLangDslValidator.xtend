@@ -7,6 +7,9 @@ import org.eclipse.xtext.validation.Check
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
+import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 
 /**
  * This class contains custom validation rules. 
@@ -16,6 +19,31 @@ import org.sbelang.dsl.sbeLangDsl.MessageSchema
 class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val CHAR_PRIMITIVE = 'char'
+
+    @Check
+    def checkUniqueTypeNames (MessageSchema schema) {
+    }
+
+    @Check
+    def checkNumericRangeIsPropder(MemberNumericTypeDeclaration mntd) {
+        if(mntd.rangeModifiers === null) return; // no range can't be wrong
+        if (mntd.presence !== null) {
+            // if constant, range does not make sense...
+            if (mntd.presence instanceof NumericConstantModifiers)
+                error(
+                    "You can't specify a range for a constant!",
+                    SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+        }
+
+        if ((mntd.rangeModifiers.min !== null) && (mntd.rangeModifiers.max !== null)) {
+            if (mntd.rangeModifiers.max < mntd.rangeModifiers.min)
+                error(
+                    '''Minimum range of («mntd.rangeModifiers.min») cannot exceed maximum of («mntd.rangeModifiers.max»)''',
+                    SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+        }
+    }
 
     @Check
     def checkLengthAppliedToCharOnly(SimpleTypeDeclaration sdt) {

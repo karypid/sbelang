@@ -91,13 +91,23 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''«IF xmlMessageSchema.imSchema.schemaByteOrder !== ByteOrder.LITTLE_ENDIAN» byteOrder="«xmlMessageSchema.byteOrderAttribute»"«ENDIF»'''
     }
 
-    private def compile(CompositeTypeDeclaration ctd) {
+    private def String compile(CompositeTypeDeclaration ctd) {
         '''
             <composite name="«ctd.name»">
                 «FOR mtd : ctd.memberTypes»
-                    <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
-                «ENDFOR»
+                    «compile(mtd)»
+                «ENDFOR»«IF !ctd.compositeTypes.empty»
+                
+                «FOR compositeType : ctd.compositeTypes»
+                    «compile(compositeType)»
+                «ENDFOR»«ENDIF»
             </composite>
+        '''
+    }
+
+    private def compile(MemberTypeDeclaration mtd) {
+        '''
+            <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
         '''
     }
 
@@ -130,6 +140,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             ""
         }
     }
+
     private def closeTag(MemberTypeDeclaration mtd) {
         if (mtd instanceof MemberNumericTypeDeclaration) {
             if (mtd.presence instanceof NumericConstantModifiers) {
