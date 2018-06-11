@@ -42,21 +42,43 @@
             minValue = 4.9E-324d, maxValue = 1.7976931348623157E308d, nullValue=Double.NaN
         -->
 
-        <!-- ALL PRIMITIVES WITH ATTIBUTES -->
-
         <!-- min/max range and custom null value with optional presence -->
-        <type name="f_int16_optional" primitiveType="int16" minValue="10" maxValue="20" presence="optional"
+        <type name="t_int16_optional" primitiveType="int16" minValue="10" maxValue="20" presence="optional"
             nullValue="42" semanticType="All attributes in use" />
         <!-- constant value; SBE tool ignores min/max when a constant is set -->
-        <type name="f_uint16_constant" primitiveType="uint16" presence="constant" semanticType="Constant value">123</type>
-        <type name="f_int16_required" primitiveType="int16" minValue="100" maxValue="200" semanticType="Required within range" />
+        <type name="t_uint16_constant" primitiveType="uint16" presence="constant" semanticType="Constant value">123</type>
+        <!-- required value; presence = required / nullValue = N/A (mutually exclusive with presence=required -->
+        <type name="t_int16_required_range" primitiveType="int16" minValue="100" maxValue="200"
+            semanticType="Required within range" />
 
         <!-- Only char primitive can define length: https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/issues/82 -->
         <type name="char_array" primitiveType="char" length="42" minValue="a" maxValue="z" nullValue="."
             presence="optional" semanticType="Fixed-length US-ASCII" />
 
-        <!-- presence = required -->
-        <!-- nullValue = N/A (mutually exclusive with presence=required -->
+        <!--
+            An unsigned integer or character primitive type is selected to contain the number of choices. Implementations
+            MUST support char and uint8 types. They MAY additionally support other unsigned integer types to allow more choices.
+
+            SBE tool: char/uint8/uint16
+        -->
+
+        <enum name="t_enum_char" encodingType="char">
+            <validValue name="Ac">A</validValue>
+            <validValue name="Bc">a</validValue>
+            <validValue name="Cc">z</validValue>
+        </enum>
+
+        <enum name="t_enum_uint8" encodingType="uint8">
+            <validValue name="A8">0</validValue>
+            <validValue name="B8">1</validValue>
+            <validValue name="C8">255</validValue>
+        </enum>
+
+        <enum name="t_enum_uint16" encodingType="uint16">
+            <validValue name="A16">0</validValue>
+            <validValue name="B16">256</validValue>
+            <validValue name="C16">65535</validValue>
+        </enum>
 
         <composite name="messageHeader">
             <type name="blockLength" primitiveType="uint16" />
@@ -64,9 +86,18 @@
             <type name="schemaId" primitiveType="uint16" />
             <type name="version" primitiveType="uint16" />
         </composite>
+
+        <composite name="t_TopLevelComposite">
+            <type name="t_TopLevelComposite_int16" primitiveType="int16" minValue="1000" maxValue="2000"
+                presence="optional" nullValue="4242" semanticType="All attributes in use" />
+            <composite name="t_NestedComposite">
+                <type name="t_NestedComposite_int32" primitiveType="int32" minValue="10000" maxValue="20000"
+                    presence="optional" nullValue="424242" semanticType="All attributes in use" />
+            </composite>
+        </composite>
     </types>
 
-    <sbe:message name="AllPrimitivesWithDefaults" id="1"
+    <sbe:message name="MsgAllPrimitivesWithDefaults" id="1"
         semanticType="All primitives using default attributes">
         <field name="f_char" id="1" type="char" />
         <field name="f_int8" id="1" type="int8" />
@@ -81,7 +112,8 @@
         <field name="f_double" id="1" type="double" />
     </sbe:message>
 
-    <sbe:message name="AllPrimitivesWithAttrs" id="2" semanticType="All primitives using default attributes">
+    <sbe:message name="MsgAllPrimitivesWithAttrs" id="2"
+        semanticType="All primitives using default attributes">
 
         <!-- Fields using primitive types can NOT have a length and SBE tool ignores it.
 
@@ -95,26 +127,34 @@
         -->
         <field name="f_char" id="1" type="char_array" />
 
-        <!-- Now for the rest of the attributes -->
-        <field name="f_int16_optional" id="1" type="f_int16_optional" />
-        <field name="f_uint16_constant" id="1" type="f_uint16_constant" />
+        <!-- Fields using types with various combinations of attributes -->
+        <field name="f_int16_optional" id="1" type="t_int16_optional" />
+        <field name="f_uint16_constant" id="1" type="t_uint16_constant" />
+        <field name="f_int16_required_range" id="1" type="t_int16_required_range" />
 
-        <!-- Override type attributes at field level -->
-        <field name="f_int16_optional_2_required_override" id="1" type="f_int16_optional" presence="required" />
-        <field name="f_uint16_constant_override" id="1" type="f_uint16_constant" presence="required" />
-        <field name="f_int16_required_2_optional_override" id="1" type="f_int16_required" presence="optional" nullValue="0"/>
-        <!-- You can NOT override length/minValue/maxValue.
-        
-        For example, SBE tool ignores the following length attribute:
+        <!--
+            Practically, you can NOT override any attributes in fields:
 
-            <field name="f_char_override" id="1" type="char_array" length="7" />
+            You can NOT override length/minValue/maxValue/nullValue/presence
 
-            and the following minValue/maxValue attributes:
+            The specification at v1.0 was a little confusing because it allows for attributes to be specified in both type
+            and field level (also see v1.0 XSD schema), but in practice SBE tool ignores all overrides and uses the value
+            at the type definition. The only clarification made is that "presence must be the same at type and field level"
+            but in practice it is all of them.
 
-            <field name="f_int16_optional_override" id="1" type="f_int16_optional" presence="required" 
-               minValue="15" maxValue="20" />
+            In specification v2.0 this has changed to clarify: presence/minValue/maxValue/nullValue can only be defined at
+            the field level and the type just has the primitive type and length (for char primitives).
         -->
+    </sbe:message>
 
+    <sbe:message name="MsgComposites" id="3" semanticType="All primitives using default attributes">
+        <field name="f_TopLevelComposite" id="1" type="t_TopLevelComposite" />
+    </sbe:message>
+
+    <sbe:message name="MsgEnumerations" id="4" semanticType="All primitives using default attributes">
+        <field name="f_enum_char" id="1" type="t_enum_char" />
+        <field name="f_enum_uint8" id="1" type="t_enum_uint8" />
+        <field name="f_enum_uint16" id="1" type="t_enum_uint16" />
     </sbe:message>
 
 </sbe:messageSchema>

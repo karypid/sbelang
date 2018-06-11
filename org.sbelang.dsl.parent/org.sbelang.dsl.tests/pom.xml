@@ -34,7 +34,7 @@
                         </systemProperty>
                         <systemProperty>
                             <key>sbe.validation.xsd</key>
-                            <value>${project.basedir}/resources/sbe_1_0.xsd</value>
+                            <value>${project.basedir}/resources/sbe_V1-0-STANDARD.xsd</value>
                         </systemProperty>
                         <systemProperty>
                             <key>sbe.validation.warnings.fatal</key>
