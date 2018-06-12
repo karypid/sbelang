@@ -56,6 +56,9 @@
             presence="optional" semanticType="Fixed-length US-ASCII" />
 
         <!--
+            ENUMERATIONS
+            ====================================================
+
             An unsigned integer or character primitive type is selected to contain the number of choices. Implementations
             MUST support char and uint8 types. They MAY additionally support other unsigned integer types to allow more choices.
 
@@ -80,6 +83,31 @@
             <validValue name="C16">65535</validValue>
         </enum>
 
+        <!--
+            SETS
+            ====================================================
+
+            A multi-value choice is represented by a <set> element. It may contain a number of <choice> elements up to
+            the number of bits in the primitive encoding type. The largest number possible is 64 choices in a uint64 encoding.
+        -->
+
+        <set name="t_set_uint8" encodingType="uint8">
+            <choice name="choiceA">0</choice>
+            <choice name="choiceB">1</choice>
+            <choice name="choiceD">2</choice>
+        </set>
+
+        <!--
+            COMPOSITES
+            ====================================================
+
+            Composites are like macros: all members are expanded in place. For example: if you specify an enumeration using
+            a uint16 for encoding inside the composite, 2 octets are allocated for it and SBE tool generates access methods
+            in the encoder/decoder for them. The same goes for a nested composite.
+
+            Composites can be made optional but their presence is piggy-backed to their first member.
+            (see https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/issues/84)
+        -->
         <composite name="messageHeader">
             <type name="blockLength" primitiveType="uint16" />
             <type name="templateId" primitiveType="uint16" />
@@ -90,9 +118,20 @@
         <composite name="t_TopLevelComposite">
             <type name="t_TopLevelComposite_int16" primitiveType="int16" minValue="1000" maxValue="2000"
                 presence="optional" nullValue="4242" semanticType="All attributes in use" />
+
+            <enum name="t_enum_in_composite_uint8" encodingType="uint8">
+                <validValue name="A8">0</validValue>
+                <validValue name="B8">1</validValue>
+                <validValue name="C8">255</validValue>
+            </enum>
+
+            <refType name="ref_t_set_uint8" type="t_set_uint8" />
+
             <composite name="t_NestedComposite">
                 <type name="t_NestedComposite_int32" primitiveType="int32" minValue="10000" maxValue="20000"
                     presence="optional" nullValue="424242" semanticType="All attributes in use" />
+
+                <refType name="ref_t_enum_in_composite_uint8" type="t_enum_in_composite_uint8" />
             </composite>
         </composite>
     </types>
@@ -147,14 +186,17 @@
         -->
     </sbe:message>
 
-    <sbe:message name="MsgComposites" id="3" semanticType="All primitives using default attributes">
+    <sbe:message name="MsgComposites" id="3" semanticType="Composite types">
         <field name="f_TopLevelComposite" id="1" type="t_TopLevelComposite" />
     </sbe:message>
 
-    <sbe:message name="MsgEnumerations" id="4" semanticType="All primitives using default attributes">
+    <sbe:message name="MsgEnumerations" id="4" semanticType="Enumerations of various encoding types">
         <field name="f_enum_char" id="1" type="t_enum_char" />
         <field name="f_enum_uint8" id="1" type="t_enum_uint8" />
         <field name="f_enum_uint16" id="1" type="t_enum_uint16" />
     </sbe:message>
 
+    <sbe:message name="MsgSetChoices" id="5" semanticType="Sets of choices of various encoding types">
+        <field name="f_set_uint8" id="1" type="t_set_uint8" />
+    </sbe:message>
 </sbe:messageSchema>
