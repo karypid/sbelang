@@ -51,9 +51,25 @@
         <type name="t_int16_required_range" primitiveType="int16" minValue="100" maxValue="200"
             semanticType="Required within range" />
 
-        <!-- Only char primitive can define length: https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/issues/82 -->
-        <type name="char_array" primitiveType="char" length="42" minValue="a" maxValue="z" nullValue="."
+        <!-- 
+            FIXED LENGTH ARRAYS
+            =======================================================
+         -->
+        <type name="t_char_array_42" primitiveType="char" length="42" minValue="a" maxValue="z" nullValue="."
             presence="optional" semanticType="Fixed-length US-ASCII" />
+
+        <type name="t_int8_array_5" primitiveType="int8" length="5" semanticType="Fixed-length int8 of length 5" />
+        <type name="t_int16_array_4" primitiveType="int16" length="4" semanticType="Fixed-length int16 of length 4" />
+        <type name="t_int32_array_3" primitiveType="int32" length="3" semanticType="Fixed-length int32 of length 3" />
+        <type name="t_int64_array_2" primitiveType="int32" length="2" semanticType="Fixed-length int32 of length 2" />
+
+        <type name="t_uint8_array_5" primitiveType="uint8" length="5" semanticType="Fixed-length uint8 of length 5" />
+        <type name="t_uint16_array_4" primitiveType="uint16" length="4" semanticType="Fixed-length uint16 of length 4" />
+        <type name="t_uint32_array_3" primitiveType="uint32" length="3" semanticType="Fixed-length uint32 of length 3" />
+        <type name="t_uint64_array_2" primitiveType="uint32" length="2" semanticType="Fixed-length uint32 of length 2" />
+
+        <type name="t_float_array_3" primitiveType="float" length="3" semanticType="Fixed-length float of length 3" />
+        <type name="t_double_array_2" primitiveType="double" length="2" semanticType="Fixed-length double of length 2" />
 
         <!--
             ENUMERATIONS
@@ -125,13 +141,13 @@
                 <validValue name="C8">255</validValue>
             </enum>
 
-            <refType name="ref_t_set_uint8" type="t_set_uint8" />
+            <ref name="ref_t_set_uint8" type="t_set_uint8" />
 
             <composite name="t_NestedComposite">
                 <type name="t_NestedComposite_int32" primitiveType="int32" minValue="10000" maxValue="20000"
                     presence="optional" nullValue="424242" semanticType="All attributes in use" />
 
-                <refType name="ref_t_enum_in_composite_uint8" type="t_enum_in_composite_uint8" />
+                <ref name="ref_t_enum_uint16" type="t_enum_uint16" />
             </composite>
         </composite>
     </types>
@@ -151,20 +167,25 @@
         <field name="f_double" id="1" type="double" />
     </sbe:message>
 
-    <sbe:message name="MsgAllPrimitivesWithAttrs" id="2"
+    <sbe:message name="MsgAllPrimitivesWithLength" id="2">
+        <field name="f_char" id="1" type="t_char_array_42" />
+
+        <field name="f_int8_array_5" id="1" type="t_int8_array_5" />
+        <field name="f_int16_array_4" id="1" type="t_int16_array_4" />
+        <field name="f_int32_array_3" id="1" type="t_int32_array_3" />
+        <field name="f_int64_array_2" id="1" type="t_int64_array_2" />
+
+        <field name="f_uint8_array_5" id="1" type="t_uint8_array_5" />
+        <field name="f_uint16_array_4" id="1" type="t_uint16_array_4" />
+        <field name="f_uint32_array_3" id="1" type="t_uint32_array_3" />
+        <field name="f_uint64_array_2" id="1" type="t_uint64_array_2" />
+
+        <field name="f_float_array_3" id="1" type="t_float_array_3" />
+        <field name="f_double_array_2" id="1" type="t_double_array_2" />
+    </sbe:message>
+
+    <sbe:message name="MsgAllPrimitivesWithAttrs" id="3"
         semanticType="All primitives using default attributes">
-
-        <!-- Fields using primitive types can NOT have a length and SBE tool ignores it.
-
-            e.g. the length here would be ignored
-            <field name="f_char" id="1" type="char" length="20" />
-
-            Instead, refer to a <type> that has its length specified.
-
-            ALSO: only character-arrays are allowed. Other primitives
-            such as integers/floats must use groups
-        -->
-        <field name="f_char" id="1" type="char_array" />
 
         <!-- Fields using types with various combinations of attributes -->
         <field name="f_int16_optional" id="1" type="t_int16_optional" />
@@ -186,17 +207,17 @@
         -->
     </sbe:message>
 
-    <sbe:message name="MsgComposites" id="3" semanticType="Composite types">
+    <sbe:message name="MsgComposites" id="4" semanticType="Composite types">
         <field name="f_TopLevelComposite" id="1" type="t_TopLevelComposite" />
     </sbe:message>
 
-    <sbe:message name="MsgEnumerations" id="4" semanticType="Enumerations of various encoding types">
+    <sbe:message name="MsgEnumerations" id="5" semanticType="Enumerations of various encoding types">
         <field name="f_enum_char" id="1" type="t_enum_char" />
         <field name="f_enum_uint8" id="1" type="t_enum_uint8" />
         <field name="f_enum_uint16" id="1" type="t_enum_uint16" />
     </sbe:message>
 
-    <sbe:message name="MsgSetChoices" id="5" semanticType="Sets of choices of various encoding types">
+    <sbe:message name="MsgSetChoices" id="6" semanticType="Sets of choices of various encoding types">
         <field name="f_set_uint8" id="1" type="t_set_uint8" />
     </sbe:message>
 </sbe:messageSchema>
