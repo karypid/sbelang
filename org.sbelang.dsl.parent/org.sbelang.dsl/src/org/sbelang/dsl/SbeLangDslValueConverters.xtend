@@ -11,8 +11,7 @@ class SbeLangDslValueConverters extends DefaultTerminalConverters {
     static val char SINGLE_QUOTE = '\''
 
     @ValueConverter(rule="OptionalChar")
-    def IValueConverter<Character> ElementBound() {
-
+    def IValueConverter<Character> OptionalCharValueConverter() {
         return new IValueConverter<Character>() {
             override toString(Character value) throws ValueConverterException {
                 return "'" + value + "'";

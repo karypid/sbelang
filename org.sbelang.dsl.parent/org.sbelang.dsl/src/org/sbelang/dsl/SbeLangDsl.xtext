@@ -5,7 +5,9 @@ generate sbeLangDsl "http://www.sbelang.org/dsl/SbeLangDsl"
 
 MessageSchema:
     schema=SchemaDeclaration
-    types=TypeDeclarations
+    'types' '{'
+    typeDelcarations+=TypeDeclaration+
+    '}'
     //    messages=MessageDeclarations
 ;
 
@@ -23,32 +25,41 @@ SchemaDeclaration:
 OptionalSchemaAttrs:
     {OptionalSchemaAttrs} ('headerType' '=' headerType=QName)? (bigEndian?='bigEndian'?);
 
-TypeDeclarations:
-    'types' '{' 
-        simpleTypes+=SimpleTypeDeclaration+ 
-        (compositeTypes+=CompositeTypeDeclaration*)
-    '}';
+TypeDeclaration:
+    SimpleTypeDeclaration | EnumDeclaration | CompositeTypeDeclaration;
 
 SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttributes */:
 // length=INT characterEncoding=STRING for character types only
     'simpleType' name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')?
     versionModifiers=VersionModifiers;
 
+EnumDeclaration:
+    'enum' enumName=Name ':' encodingType=EnumEncodingType '{'
+    enumValues+=EnumValueDeclaration+
+    '}';
+
+CompositeTypeDeclaration:
+    'composite' name=Name '{'
+    compositeMembers+=CompositeMember+
+    '}';
+
+EnumValueDeclaration:
+    name=Name '(' value=EnumValue ')';
+
+EnumValue:
+    INT | CHAR;
+
 VersionModifiers:
     {VersionModifiers}
     ('sinceVersion' '=' sinceVersion=OptionalInt)?
     ('deprecatedSinceVersion' '=' deprecatedSinceVersion=OptionalInt)?;
 
-CompositeTypeDeclaration:
-    'composite' name=Name '{'
-        compositeMembers += CompositeMember+
-    '}';
 
 CompositeMember:
-    MemberTypeDeclaration | CompositeTypeDeclaration
-;
+    MemberTypeDeclaration | CompositeTypeDeclaration;
 
 MemberTypeDeclaration:
+    EnumDeclaration |
     MemberRefTypeDeclaration /* XSD "refType" */ |
     MemberCharTypeDeclaration /* XSD "memberDataType for characters */ |
     MemberNumericTypeDeclaration /* XSD "memberDataType for integers" */;
@@ -114,6 +125,9 @@ NumericPrimitive:
 
 PrimitiveType:
     CharPrimitive | NumericPrimitive;
+
+EnumEncodingType:
+    'char' | 'uint8' | 'uint16';
 
 QName:
     ID ('.' ID)*;

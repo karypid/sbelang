@@ -9,6 +9,7 @@ import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -20,7 +21,45 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     public static val CHAR_PRIMITIVE = 'char'
 
     @Check
-    def checkUniqueTypeNames (MessageSchema schema) {
+    def checkEnum(EnumDeclaration ed) {
+        var idx = 0
+        switch ed.encodingType {
+            case 'char':
+                for (ev : ed.enumValues) {
+                    val String v = ev.value.trim
+                    if (v.length !== 3 ) {
+                        error(
+                            '''Value is [«ev.value»], but must be exactly ONE character in single quotes!''',
+                            ev,
+                            SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
+                            idx
+                        )
+                    }
+                }
+            case 'uint8',
+            case 'uint16':
+                for (ev : ed.enumValues) {
+                    try {
+                        val int value = Integer.parseInt(ev.value);
+                        val max = if(ed.encodingType == 'uint8') 255 else 65535
+                        if ((value < 0) || (value > max))
+                            error(
+                                '''Value is [«ev.value»] which is outside the valid range [0,«max»]!''',
+                                ev,
+                                SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
+                                idx
+                            )
+                    } catch (Exception e) {
+                        error(
+                            '''Value is [«ev.value»], but must be a positive integer!''',
+                            ev,
+                            SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
+                            idx
+                        )
+                    }
+                    idx = idx + 1
+                }
+        }
     }
 
     @Check
@@ -46,7 +85,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkNoFutureVersionModifiers(MessageSchema messageSchema) {
-        messageSchema.types.simpleTypes.forEach(
+        messageSchema.typeDelcarations.filter(SimpleTypeDeclaration).forEach(
             std |
                 if (std.versionModifiers !== null) {
                     if (std.versionModifiers.sinceVersion !== null) {

@@ -58,10 +58,23 @@
         <type name="t_char_array_42" primitiveType="char" length="42" minValue="a" maxValue="z" nullValue="."
             presence="optional" semanticType="Fixed-length US-ASCII" />
 
+        <enum name="t_enum_char" encodingType="char">
+            <validValue name="Ac">A</validValue>
+            <validValue name="Bc">a</validValue>
+            <validValue name="Cc">z</validValue>
+        </enum>
+
         <type name="t_int8_array_5" primitiveType="int8" length="5" semanticType="Fixed-length int8 of length 5" />
         <type name="t_int16_array_4" primitiveType="int16" length="4" semanticType="Fixed-length int16 of length 4" />
         <type name="t_int32_array_3" primitiveType="int32" length="3" semanticType="Fixed-length int32 of length 3" />
         <type name="t_int64_array_2" primitiveType="int32" length="2" semanticType="Fixed-length int32 of length 2" />
+
+        <composite name="messageHeaderOTHER">
+            <type name="blockLength" primitiveType="uint16" />
+            <type name="templateId" primitiveType="uint16" />
+            <type name="schemaId" primitiveType="uint16" />
+            <type name="version" primitiveType="uint16" />
+        </composite>
 
         <type name="t_uint8_array_5" primitiveType="uint8" length="5" semanticType="Fixed-length uint8 of length 5" />
         <type name="t_uint16_array_4" primitiveType="uint16" length="4" semanticType="Fixed-length uint16 of length 4" />
@@ -80,12 +93,6 @@
 
             SBE tool: char/uint8/uint16
         -->
-
-        <enum name="t_enum_char" encodingType="char">
-            <validValue name="Ac">A</validValue>
-            <validValue name="Bc">a</validValue>
-            <validValue name="Cc">z</validValue>
-        </enum>
 
         <enum name="t_enum_uint8" encodingType="uint8">
             <validValue name="A8">0</validValue>

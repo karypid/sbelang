@@ -19,6 +19,7 @@ import org.sbelang.dsl.sbeLangDsl.CharOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 
 /**
  * Generates XML from your model files on save.
@@ -47,11 +48,15 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                     id="«imSchema.schemaId»" version="«imSchema.schemaVersion»"«optionalAttrs(xmlSchema)»>
                     
                     <types>
-                        «FOR type : imSchema.rawSchema.types.simpleTypes»
+                        «FOR type : imSchema.rawSchema.typeDelcarations.filter(SimpleTypeDeclaration)»
                             «compile(type)»
                         «ENDFOR»
                         
-                        «FOR compositeType : imSchema.rawSchema.types.compositeTypes»
+                        «FOR type : imSchema.rawSchema.typeDelcarations.filter(EnumDeclaration)»
+                            «compile(type)»
+                        «ENDFOR»
+                        
+                        «FOR compositeType : imSchema.rawSchema.typeDelcarations.filter(CompositeTypeDeclaration)»
                             «compile(compositeType)»
                         «ENDFOR»
                     </types>
@@ -107,25 +112,41 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(CompositeMember cm) {
         if (cm instanceof MemberTypeDeclaration)
-            compile(cm as MemberTypeDeclaration)
+            compile(cm /* as MemberTypeDeclaration */)
         else if (cm instanceof CompositeTypeDeclaration)
-            compile(cm as CompositeTypeDeclaration)
+            compile(cm /* as CompositeTypeDeclaration */)
         else 
             throw new IllegalStateException("Unsupported composite member: " + cm.class.name)
     }
 
-    private def compile(MemberTypeDeclaration mtd) {
-        val typeString = 
-            if (mtd instanceof MemberNumericTypeDeclaration)
-                '''primitiveType="«mtd.primitiveType»'''
-            else if (mtd instanceof MemberCharTypeDeclaration)
-                '''primitiveType="«mtd.primitiveType»'''
-            else if (mtd instanceof MemberRefTypeDeclaration)
-                '''type=«mtd.type.name»'''
+    private def compile(EnumDeclaration ed) {
+        '''
+            <enum name="«ed.enumName»" encodingType="«ed.encodingType»">
+                «FOR enumVal : ed.enumValues»
+                <validValue name="«enumVal.name»">«enumVal.value»</validValue>
+                «ENDFOR»
+            </enum>
+        '''
+    }
 
-        '''
-            <type name="«mtd.name»" "«typeString»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
-        '''
+    private def compile(MemberTypeDeclaration mtd) {
+        switch mtd {
+            MemberNumericTypeDeclaration:
+                '''
+                    <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
+                '''
+            MemberCharTypeDeclaration:
+                '''
+                    <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
+                '''
+            MemberRefTypeDeclaration:
+                '''
+                    <ref name="«mtd.name»" type="«mtd.type.name»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
+                '''
+            EnumDeclaration:
+                compile(mtd)
+            default: '''TODO'''
+        }
     }
 
     private def memberTypeLength(MemberTypeDeclaration mtd) {
@@ -174,6 +195,8 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             if (mtd.presence instanceof NumericConstantModifiers) {
                 val NumericConstantModifiers t = mtd.presence as NumericConstantModifiers
                 '''>«t.constantValue»</type>'''
+            } else {
+                "/>"
             }
         } else {
             "/>"
