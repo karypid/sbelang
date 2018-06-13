@@ -20,6 +20,7 @@ import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 /**
  * Generates XML from your model files on save.
@@ -68,7 +69,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(SimpleTypeDeclaration std) {
         '''
-            <type name="«std.name»" primitiveType="«std.primitiveType»"«simpleTypeLength(std)»«versionAttrs(std)»/>
+            <type name="«std.name»" primitiveType="«std.primitiveType»"«simpleTypeLength(std)»«versionAttrs(std.versionModifiers)»/>
         '''
     }
 
@@ -76,11 +77,11 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''«IF std.length !== null» length="«std.length»"«ENDIF»'''
     }
 
-    private def versionAttrs(SimpleTypeDeclaration std) {
-        if (std.versionModifiers !== null) {
+    private def versionAttrs(VersionModifiers vm) {
+        if (vm !== null) {
 
-            val sinceV = std.versionModifiers.sinceVersion;
-            val depV = std.versionModifiers.deprecatedSinceVersion;
+            val sinceV = vm.sinceVersion;
+            val depV = vm.deprecatedSinceVersion;
 
             '''«IF sinceV !== null» sinceVersion="«sinceV»"«ENDIF»«IF depV !== null» deprecated="«depV»"«ENDIF»"'''
         } else {
@@ -102,7 +103,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def String compile(CompositeTypeDeclaration ctd) {
         '''
-            <composite name="«ctd.name»">
+            <composite name="«ctd.name»"«versionAttrs(ctd.versionModifiers)»>
                 «FOR cm : ctd.compositeMembers»
                 «compile(cm)»
                 «ENDFOR»
@@ -121,7 +122,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(EnumDeclaration ed) {
         '''
-            <enum name="«ed.enumName»" encodingType="«ed.encodingType»">
+            <enum name="«ed.enumName»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
                 <validValue name="«enumVal.name»">«enumVal.value»</validValue>
                 «ENDFOR»

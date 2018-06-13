@@ -20,12 +20,13 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//OptionalSchemaAttrs/headerType"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//OptionalSchemaAttrs/bigEndian"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//TypeDeclaration"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//TypeDeclaration">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//TypeDeclaration/versionModifiers"/>
+    </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//SimpleTypeDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SimpleTypeDeclaration/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SimpleTypeDeclaration/primitiveType"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SimpleTypeDeclaration/length"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//SimpleTypeDeclaration/versionModifiers"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//EnumDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EnumDeclaration/enumName"/>

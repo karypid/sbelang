@@ -3,13 +3,14 @@
  */
 package org.sbelang.dsl.validation
 
+import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.validation.Check
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
-import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 /**
  * This class contains custom validation rules. 
@@ -27,7 +28,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             case 'char':
                 for (ev : ed.enumValues) {
                     val String v = ev.value.trim
-                    if (v.length !== 3 ) {
+                    if (v.length !== 3) {
                         error(
                             '''Value is [«ev.value»], but must be exactly ONE character in single quotes!''',
                             ev,
@@ -84,47 +85,36 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
-    def checkNoFutureVersionModifiers(MessageSchema messageSchema) {
-        messageSchema.typeDelcarations.filter(SimpleTypeDeclaration).forEach(
-            std |
-                if (std.versionModifiers !== null) {
-                    if (std.versionModifiers.sinceVersion !== null) {
-                        if (std.versionModifiers.sinceVersion > messageSchema.schema.version) {
-                            error(
-                                '''The sinceVesrsion(«std.versionModifiers.sinceVersion») value can not be after the schema version(«messageSchema.schema.version»)''',
-                                std.versionModifiers,
-                                SbeLangDslPackage.Literals.VERSION_MODIFIERS__SINCE_VERSION
-                            )
-                        }
-                    }
-                    if (std.versionModifiers.deprecatedSinceVersion !== null) {
-                        if (std.versionModifiers.deprecatedSinceVersion > messageSchema.schema.version) {
-                            error(
-                                '''The deprecatedSinceVersion(«std.versionModifiers.deprecatedSinceVersion») value can not be after the schema version(«messageSchema.schema.version»)''',
-                                std.versionModifiers,
-                                SbeLangDslPackage.Literals.VERSION_MODIFIERS__SINCE_VERSION
-                            )
-                        }
-                    }
-                }
-        )
-    }
+    def checkVersionModifiers(VersionModifiers vm) {
+        if(vm.sinceVersion !== null)
+        {
+            val ms = EcoreUtil.getRootContainer(vm) as MessageSchema
 
-    @Check
-    def checkVersionModifiers(SimpleTypeDeclaration sdt) {
-        if (sdt.versionModifiers !== null) {
-            if ((sdt.versionModifiers.sinceVersion !== null) && (sdt.versionModifiers.deprecatedSinceVersion !== null))
-                return // both undefined (hopefully)
-            else if ((sdt.versionModifiers.deprecatedSinceVersion !== null))
-                return // only since version defined (hopefully)
-            else if (sdt.versionModifiers.sinceVersion >= sdt.versionModifiers.deprecatedSinceVersion) {
+            if (vm.sinceVersion > ms.schema.version) {
                 error(
-                    '''The deprecatedSinceVersion («sdt.versionModifiers.deprecatedSinceVersion») must be after original definition sinceVersion («sdt.versionModifiers.sinceVersion»)''',
-                    sdt.versionModifiers,
+                    '''The sinceVersion(«vm.sinceVersion») value cannot be greater than the schema version(«ms.schema.version») value!''',
+                    vm,
                     SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
                 )
             }
+
+            if (vm.deprecatedSinceVersion !== null) {
+                if (vm.deprecatedSinceVersion > ms.schema.version) {
+                    error(
+                        '''The deprecatedSinceVersion(«vm.deprecatedSinceVersion») value cannot be greater than the schema version(«ms.schema.version») value!''',
+                        vm,
+                        SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
+                    )
+                }
+
+                if (vm.deprecatedSinceVersion <= vm.sinceVersion) {
+                    error(
+                        '''The deprecatedSinceVersion(«vm.deprecatedSinceVersion») value must be greater than the since version(«vm.sinceVersion») value!''',
+                        vm,
+                        SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
+                    )
+                }
+            }
         }
     }
-
 }

@@ -34,12 +34,12 @@ SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttri
     versionModifiers=VersionModifiers;
 
 EnumDeclaration:
-    'enum' enumName=Name ':' encodingType=EnumEncodingType '{'
+    'enum' enumName=Name ':' encodingType=EnumEncodingType versionModifiers=VersionModifiers '{'
     enumValues+=EnumValueDeclaration+
     '}';
 
 CompositeTypeDeclaration:
-    'composite' name=Name '{'
+    'composite' name=Name versionModifiers=VersionModifiers '{'
     compositeMembers+=CompositeMember+
     '}';
 
