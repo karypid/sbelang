@@ -24,7 +24,10 @@ OptionalSchemaAttrs:
     {OptionalSchemaAttrs} ('headerType' '=' headerType=QName)? (bigEndian?='bigEndian'?);
 
 TypeDeclarations:
-    'types' '{' simpleTypes+=SimpleTypeDeclaration+ (compositeTypes+=CompositeTypeDeclaration*) '}';
+    'types' '{' 
+        simpleTypes+=SimpleTypeDeclaration+ 
+        (compositeTypes+=CompositeTypeDeclaration*)
+    '}';
 
 SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttributes */:
 // length=INT characterEncoding=STRING for character types only
@@ -38,12 +41,22 @@ VersionModifiers:
 
 CompositeTypeDeclaration:
     'composite' name=Name '{'
-    memberTypes+=MemberTypeDeclaration+
-    (compositeTypes+=CompositeTypeDeclaration*)
+        compositeMembers += CompositeMember+
     '}';
 
+CompositeMember:
+    MemberTypeDeclaration | CompositeTypeDeclaration
+;
+
 MemberTypeDeclaration:
-    MemberCharTypeDeclaration | MemberNumericTypeDeclaration;
+    MemberRefTypeDeclaration /* XSD "refType" */ |
+    MemberCharTypeDeclaration /* XSD "memberDataType for characters */ |
+    MemberNumericTypeDeclaration /* XSD "memberDataType for integers" */;
+
+MemberRefTypeDeclaration:
+    name=Name ':' type=[SimpleTypeDeclaration]
+    ('range' '=' rangeModifiers=CharRangeModifiers)?
+    presence=CharPresenceModifiers?;
 
 MemberCharTypeDeclaration:
     name=Name ':' primitiveType=CharPrimitive ('[' length=OptionalInt ']')?

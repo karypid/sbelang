@@ -17,6 +17,8 @@ import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.CharOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
+import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.CompositeMember
 
 /**
  * Generates XML from your model files on save.
@@ -96,20 +98,33 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     private def String compile(CompositeTypeDeclaration ctd) {
         '''
             <composite name="«ctd.name»">
-                «FOR mtd : ctd.memberTypes»
-                    «compile(mtd)»
-                «ENDFOR»«IF !ctd.compositeTypes.empty»
-                
-                «FOR compositeType : ctd.compositeTypes»
-                    «compile(compositeType)»
-                «ENDFOR»«ENDIF»
+                «FOR cm : ctd.compositeMembers»
+                «compile(cm)»
+                «ENDFOR»
             </composite>
         '''
     }
 
+    private def compile(CompositeMember cm) {
+        if (cm instanceof MemberTypeDeclaration)
+            compile(cm as MemberTypeDeclaration)
+        else if (cm instanceof CompositeTypeDeclaration)
+            compile(cm as CompositeTypeDeclaration)
+        else 
+            throw new IllegalStateException("Unsupported composite member: " + cm.class.name)
+    }
+
     private def compile(MemberTypeDeclaration mtd) {
+        val typeString = 
+            if (mtd instanceof MemberNumericTypeDeclaration)
+                '''primitiveType="«mtd.primitiveType»'''
+            else if (mtd instanceof MemberCharTypeDeclaration)
+                '''primitiveType="«mtd.primitiveType»'''
+            else if (mtd instanceof MemberRefTypeDeclaration)
+                '''type=«mtd.type.name»'''
+
         '''
-            <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
+            <type name="«mtd.name»" "«typeString»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
         '''
     }
 

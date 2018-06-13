@@ -35,20 +35,26 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//VersionModifiers/deprecatedSinceVersion"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//CompositeTypeDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CompositeTypeDeclaration/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//CompositeTypeDeclaration/memberTypes"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//CompositeTypeDeclaration/compositeTypes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//CompositeTypeDeclaration/compositeMembers"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//MemberTypeDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberTypeDeclaration/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberTypeDeclaration/primitiveType"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberTypeDeclaration/length"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//CompositeMember">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CompositeMember/name"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//MemberTypeDeclaration"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//MemberRefTypeDeclaration">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberRefTypeDeclaration/type"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberRefTypeDeclaration/rangeModifiers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberRefTypeDeclaration/presence"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//MemberCharTypeDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberCharTypeDeclaration/primitiveType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberCharTypeDeclaration/length"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberCharTypeDeclaration/rangeModifiers"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberCharTypeDeclaration/presence"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//MemberNumericTypeDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberNumericTypeDeclaration/primitiveType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberNumericTypeDeclaration/length"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberNumericTypeDeclaration/rangeModifiers"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberNumericTypeDeclaration/presence"/>
     </genClasses>

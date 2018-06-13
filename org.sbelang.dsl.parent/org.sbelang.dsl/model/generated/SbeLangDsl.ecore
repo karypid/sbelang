@@ -36,25 +36,32 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecatedSinceVersion"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CompositeTypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="memberTypes" upperBound="-1"
-        eType="#//MemberTypeDeclaration" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="compositeTypes" upperBound="-1"
-        eType="#//CompositeTypeDeclaration" containment="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="CompositeTypeDeclaration" eSuperTypes="#//CompositeMember">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="compositeMembers" upperBound="-1"
+        eType="#//CompositeMember" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration">
+  <eClassifiers xsi:type="ecore:EClass" name="CompositeMember">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration" eSuperTypes="#//CompositeMember"/>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberRefTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//SimpleTypeDeclaration"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//CharRangeModifiers"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//CharPresenceModifiers"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MemberCharTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//CharRangeModifiers"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//CharPresenceModifiers"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MemberNumericTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//NumericRangeModifiers"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//NumericPresenceModifiers"
