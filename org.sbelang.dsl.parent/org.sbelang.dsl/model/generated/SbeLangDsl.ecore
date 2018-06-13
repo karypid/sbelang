@@ -46,17 +46,21 @@
   <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberCharTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberCharTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//CharRangeModifiers"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//CharPresenceModifiers"
+        containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MemberNumericTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//RangeModifiers"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//NumericRangeModifiers"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//NumericPresenceModifiers"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="RangeModifiers">
+  <eClassifiers xsi:type="ecore:EClass" name="NumericRangeModifiers">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="min" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="max" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
   </eClassifiers>
@@ -67,5 +71,17 @@
   <eClassifiers xsi:type="ecore:EClass" name="NumericOptionalModifiers" eSuperTypes="#//NumericPresenceModifiers">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CharRangeModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="min" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="max" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CharPresenceModifiers"/>
+  <eClassifiers xsi:type="ecore:EClass" name="CharConstantModifiers" eSuperTypes="#//CharPresenceModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constantValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CharOptionalModifiers" eSuperTypes="#//CharPresenceModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
   </eClassifiers>
 </ecore:EPackage>

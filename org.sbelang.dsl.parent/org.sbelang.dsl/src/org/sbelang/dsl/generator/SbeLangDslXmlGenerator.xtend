@@ -15,6 +15,8 @@ import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
+import org.sbelang.dsl.sbeLangDsl.CharOptionalModifiers
+import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
 
 /**
  * Generates XML from your model files on save.
@@ -122,6 +124,9 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         if (mtd instanceof MemberNumericTypeDeclaration) {
             if (mtd.rangeModifiers !== null)
                 '''«IF mtd.rangeModifiers.min !== null» minValue="«mtd.rangeModifiers.min»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«mtd.rangeModifiers.max»"«ENDIF»'''
+        } else if (mtd instanceof MemberCharTypeDeclaration) {
+            if (mtd.rangeModifiers !== null)
+                '''«IF mtd.rangeModifiers.min !== null» minValue="«mtd.rangeModifiers.min»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«mtd.rangeModifiers.max»"«ENDIF»'''
         } else {
             ""
         }
@@ -134,6 +139,14 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 if (t.
                     isOptional) ''' presence="optional"''' else '''«IF t.nullValue !== null» presence="optional" nullValue="«t.nullValue»"«ENDIF»'''
             } else if (mtd.presence instanceof NumericConstantModifiers) {
+                ''' presence="constant"'''
+            }
+        } else if (mtd instanceof MemberCharTypeDeclaration) {
+            if (mtd.presence instanceof CharOptionalModifiers) {
+                val CharOptionalModifiers t = mtd.presence as CharOptionalModifiers
+                if (t.
+                    isOptional) ''' presence="optional"''' else '''«IF t.nullValue !== null» presence="optional" nullValue="«t.nullValue»"«ENDIF»'''
+            } else if (mtd.presence instanceof CharConstantModifiers) {
                 ''' presence="constant"'''
             }
         } else {

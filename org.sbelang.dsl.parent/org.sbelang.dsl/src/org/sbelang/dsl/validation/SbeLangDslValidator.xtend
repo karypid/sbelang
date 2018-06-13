@@ -4,12 +4,11 @@
 package org.sbelang.dsl.validation
 
 import org.eclipse.xtext.validation.Check
-import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
-import org.sbelang.dsl.sbeLangDsl.MessageSchema
-import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
+import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -42,18 +41,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     '''Minimum range of («mntd.rangeModifiers.min») cannot exceed maximum of («mntd.rangeModifiers.max»)''',
                     SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
                 )
-        }
-    }
-
-    @Check
-    def checkLengthAppliedToCharOnly(SimpleTypeDeclaration sdt) {
-        if (sdt.length !== null) {
-            if (sdt.primitiveType != CHAR_PRIMITIVE) {
-                error(
-                    'Fixed-length array only supported for [char] primitive type',
-                    SbeLangDslPackage.Literals.SIMPLE_TYPE_DECLARATION__LENGTH
-                )
-            }
         }
     }
 

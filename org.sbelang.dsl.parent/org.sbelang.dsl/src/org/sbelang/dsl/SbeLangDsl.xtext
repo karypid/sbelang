@@ -46,14 +46,17 @@ MemberTypeDeclaration:
     MemberCharTypeDeclaration | MemberNumericTypeDeclaration;
 
 MemberCharTypeDeclaration:
-    name=Name ':' primitiveType=CharPrimitive ('[' length=OptionalInt ']')?;
+    name=Name ':' primitiveType=CharPrimitive ('[' length=OptionalInt ']')?
+    ('range' '=' rangeModifiers=CharRangeModifiers)?
+    presence=CharPresenceModifiers?;
 
 MemberNumericTypeDeclaration:
-    name=Name ':' primitiveType=NumericPrimitive ('range' '=' rangeModifiers=RangeModifiers)?
+    name=Name ':' primitiveType=NumericPrimitive ('[' length=OptionalInt ']')?
+    ('range' '=' rangeModifiers=NumericRangeModifiers)?
     presence=NumericPresenceModifiers?;
 
-RangeModifiers:
-    {RangeModifiers} '[' min=OptionalSignedInt? ',' max=OptionalSignedInt? ']';
+NumericRangeModifiers:
+    {NumericRangeModifiers} '[' min=OptionalSignedInt? ',' max=OptionalSignedInt? ']';
 
 NumericPresenceModifiers:
     NumericConstantModifiers | NumericOptionalModifiers;
@@ -64,6 +67,19 @@ NumericConstantModifiers:
 NumericOptionalModifiers:
     (optional?='optional') |
     ('nullValue' '=' nullValue=OptionalSignedInt);
+
+CharRangeModifiers:
+    {CharRangeModifiers} '[' (min=OptionalChar?) ',' (max=OptionalChar?) ']';
+
+CharPresenceModifiers:
+    CharConstantModifiers | CharOptionalModifiers;
+
+CharConstantModifiers:
+    ('constant' '=' (constantValue=OptionalChar));
+
+CharOptionalModifiers:
+    (optional?='optional') |
+    ('nullValue' '=' (nullValue=OptionalChar));
 
     /*
 MessageDeclarations:
@@ -100,3 +116,10 @@ OptionalSignedInt returns ecore::EIntegerObject:
 
 SignedInt returns ecore::EInt:
     '-'? INT;
+
+OptionalChar returns ecore::ECharacterObject:
+// A value converter extracts the proper character
+    CHAR;
+
+terminal CHAR:
+    "'" ('\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\' | "'")) "'";
