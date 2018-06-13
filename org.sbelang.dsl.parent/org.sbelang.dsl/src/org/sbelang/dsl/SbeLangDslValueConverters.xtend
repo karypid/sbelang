@@ -12,14 +12,13 @@ class SbeLangDslValueConverters extends DefaultTerminalConverters {
 
     @ValueConverter(rule="OptionalChar")
     def IValueConverter<Character> ElementBound() {
-        return new IValueConverter<Character>() {
 
+        return new IValueConverter<Character>() {
             override toString(Character value) throws ValueConverterException {
                 return "'" + value + "'";
             }
 
             override toValue(String string, INode node) throws ValueConverterException {
-                System.out.println("CONVERTER CALLED FOR: [" + string + "]")
                 if (Strings.isEmpty(string))
                     throw new ValueConverterException("Couldn't convert empty string to char", node, null);
 
@@ -30,5 +29,6 @@ class SbeLangDslValueConverters extends DefaultTerminalConverters {
                 return str.charAt(1);
             }
         };
+        
     }
 }
