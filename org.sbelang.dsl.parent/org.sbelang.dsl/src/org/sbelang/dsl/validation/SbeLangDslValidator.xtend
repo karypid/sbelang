@@ -11,6 +11,7 @@ import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
+import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -20,6 +21,30 @@ import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val CHAR_PRIMITIVE = 'char'
+
+    @Check
+    def checkSet(SetDeclaration sd) {
+        var idx = 0
+        val maxValidBitIdx = switch (sd.encodingType) {
+            case 'uint8': 7
+            case 'uint16': 15
+            case 'uint32': 31
+            case 'uint64': 63
+            default: -1
+        }
+
+        for (choice : sd.setChoices) {
+            if ((choice.value < 0) || (choice.value > maxValidBitIdx))
+                error(
+                    '''Value is [«choice.value»] is ousid the valid range of [0,«maxValidBitIdx»] for «sd.encodingType»!''',
+                    sd,
+                    SbeLangDslPackage.Literals.SET_DECLARATION__SET_CHOICES,
+                    idx
+                )
+
+            idx = idx + 1
+        }
+    }
 
     @Check
     def checkEnum(EnumDeclaration ed) {
@@ -86,8 +111,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkVersionModifiers(VersionModifiers vm) {
-        if(vm.sinceVersion !== null)
-        {
+        if (vm.sinceVersion !== null) {
             val ms = EcoreUtil.getRootContainer(vm) as MessageSchema
 
             if (vm.sinceVersion > ms.schema.version) {

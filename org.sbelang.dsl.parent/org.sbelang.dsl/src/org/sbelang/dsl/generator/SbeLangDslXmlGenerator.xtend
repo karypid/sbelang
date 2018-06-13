@@ -21,6 +21,7 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
+import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 
 /**
  * Generates XML from your model files on save.
@@ -54,6 +55,10 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                         «ENDFOR»
                         
                         «FOR type : imSchema.rawSchema.typeDelcarations.filter(EnumDeclaration)»
+                            «compile(type)»
+                        «ENDFOR»
+                        
+                        «FOR type : imSchema.rawSchema.typeDelcarations.filter(SetDeclaration)»
                             «compile(type)»
                         «ENDFOR»
                         
@@ -127,6 +132,16 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 <validValue name="«enumVal.name»">«enumVal.value»</validValue>
                 «ENDFOR»
             </enum>
+        '''
+    }
+
+    private def compile(SetDeclaration sd) {
+        '''
+            <set name="«sd.setName»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
+                «FOR setChoice : sd.setChoices»
+                <choice name="«setChoice.name»">«setChoice.value»</choice>
+                «ENDFOR»
+            </set>
         '''
     }
 

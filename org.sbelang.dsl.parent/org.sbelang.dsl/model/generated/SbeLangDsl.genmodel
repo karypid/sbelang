@@ -33,10 +33,6 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EnumDeclaration/encodingType"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//EnumDeclaration/enumValues"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//CompositeTypeDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CompositeTypeDeclaration/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//CompositeTypeDeclaration/compositeMembers"/>
-    </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//EnumValueDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EnumValueDeclaration/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EnumValueDeclaration/value"/>
@@ -44,6 +40,19 @@
     <genClasses ecoreClass="SbeLangDsl.ecore#//VersionModifiers">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//VersionModifiers/sinceVersion"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//VersionModifiers/deprecatedSinceVersion"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//SetDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SetDeclaration/setName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SetDeclaration/encodingType"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//SetDeclaration/setChoices"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//SetChoiceDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SetChoiceDeclaration/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SetChoiceDeclaration/value"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//CompositeTypeDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CompositeTypeDeclaration/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//CompositeTypeDeclaration/compositeMembers"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//CompositeMember"/>
     <genClasses ecoreClass="SbeLangDsl.ecore#//MemberTypeDeclaration"/>

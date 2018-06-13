@@ -26,7 +26,7 @@ OptionalSchemaAttrs:
     {OptionalSchemaAttrs} ('headerType' '=' headerType=QName)? (bigEndian?='bigEndian'?);
 
 TypeDeclaration:
-    SimpleTypeDeclaration | EnumDeclaration | CompositeTypeDeclaration;
+    SimpleTypeDeclaration | EnumDeclaration | SetDeclaration | CompositeTypeDeclaration;
 
 SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttributes */:
 // length=INT characterEncoding=STRING for character types only
@@ -36,11 +36,6 @@ SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttri
 EnumDeclaration:
     'enum' enumName=Name ':' encodingType=EnumEncodingType versionModifiers=VersionModifiers '{'
     enumValues+=EnumValueDeclaration+
-    '}';
-
-CompositeTypeDeclaration:
-    'composite' name=Name versionModifiers=VersionModifiers '{'
-    compositeMembers+=CompositeMember+
     '}';
 
 EnumValueDeclaration:
@@ -54,12 +49,25 @@ VersionModifiers:
     ('sinceVersion' '=' sinceVersion=OptionalInt)?
     ('deprecatedSinceVersion' '=' deprecatedSinceVersion=OptionalInt)?;
 
+SetDeclaration:
+    'set' setName=Name ':' encodingType=SetEncodingType versionModifiers=VersionModifiers '{'
+    setChoices+=SetChoiceDeclaration+
+    '}';
+
+SetChoiceDeclaration:
+    name=Name '(' value=INT ')';
+
+CompositeTypeDeclaration:
+    'composite' name=Name versionModifiers=VersionModifiers '{'
+    compositeMembers+=CompositeMember+
+    '}';
 
 CompositeMember:
     MemberTypeDeclaration | CompositeTypeDeclaration;
 
 MemberTypeDeclaration:
     EnumDeclaration |
+    SetDeclaration |
     MemberRefTypeDeclaration /* XSD "refType" */ |
     MemberCharTypeDeclaration /* XSD "memberDataType for characters */ |
     MemberNumericTypeDeclaration /* XSD "memberDataType for integers" */;
@@ -128,6 +136,9 @@ PrimitiveType:
 
 EnumEncodingType:
     'char' | 'uint8' | 'uint16';
+
+SetEncodingType:
+    'uint8' | 'uint16' | 'uint32' | 'uint64';
 
 QName:
     ID ('.' ID)*;
