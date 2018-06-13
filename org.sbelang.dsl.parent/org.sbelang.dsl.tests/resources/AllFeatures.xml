@@ -141,14 +141,14 @@
                 <validValue name="C8">255</validValue>
             </enum>
 
-            <ref name="ref_t_set_uint8" type="t_set_uint8" />
-
             <composite name="t_NestedComposite">
                 <type name="t_NestedComposite_int32" primitiveType="int32" minValue="10000" maxValue="20000"
                     presence="optional" nullValue="424242" semanticType="All attributes in use" />
 
                 <ref name="ref_t_enum_uint16" type="t_enum_uint16" />
             </composite>
+
+            <ref name="ref_t_set_uint8" type="t_set_uint8" />
         </composite>
     </types>
 
