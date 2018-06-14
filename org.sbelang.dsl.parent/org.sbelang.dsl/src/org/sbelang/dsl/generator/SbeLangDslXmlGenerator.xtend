@@ -24,7 +24,6 @@ import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
-import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 
