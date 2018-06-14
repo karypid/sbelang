@@ -4,24 +4,26 @@
 package org.sbelang.dsl.generator
 
 import java.nio.ByteOrder
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
 import org.sbelang.dsl.generator.xml.XmlMessageSchema
+import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
+import org.sbelang.dsl.sbeLangDsl.CharOptionalModifiers
+import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberCharTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
-import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
-import org.sbelang.dsl.sbeLangDsl.CharOptionalModifiers
-import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.CompositeMember
-import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
-import org.sbelang.dsl.sbeLangDsl.VersionModifiers
+import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
+import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 /**
  * Generates XML from your model files on save.
@@ -68,11 +70,11 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                     </types>
                     
                     «FOR message : imSchema.rawSchema.messageDeclarations»
-                    <message name="«message.block.name»" id="«message.block.id»">
-                        «FOR field : message.block.fieldDeclarations»
-                        <field name="«field.name»" id="«field.id»" type="«field.fieldType.name»" />
-                        «ENDFOR»
-                    </message>
+                        <message name="«message.block.name»" id="«message.block.id»">
+                            «FOR field : message.block.fieldDeclarations»
+                                «compile(field)»
+                            «ENDFOR»
+                        </message>
                     «ENDFOR»
                 </sbe:messageSchema>
             '''
@@ -117,7 +119,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <composite name="«ctd.name»"«versionAttrs(ctd.versionModifiers)»>
                 «FOR cm : ctd.compositeMembers»
-                «compile(cm)»
+                    «compile(cm)»
                 «ENDFOR»
             </composite>
         '''
@@ -125,10 +127,10 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(CompositeMember cm) {
         if (cm instanceof MemberTypeDeclaration)
-            compile(cm /* as MemberTypeDeclaration */)
+            compile(cm /* as MemberTypeDeclaration */ )
         else if (cm instanceof CompositeTypeDeclaration)
-            compile(cm /* as CompositeTypeDeclaration */)
-        else 
+            compile(cm /* as CompositeTypeDeclaration */ )
+        else
             throw new IllegalStateException("Unsupported composite member: " + cm.class.name)
     }
 
@@ -136,7 +138,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <enum name="«ed.name»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
-                <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«enumVal.value»</validValue>
+                    <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«enumVal.value»</validValue>
                 «ENDFOR»
             </enum>
         '''
@@ -146,7 +148,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <set name="«sd.name»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
                 «FOR setChoice : sd.setChoices»
-                <choice name="«setChoice.name»"«versionAttrs(setChoice.versionModifiers)»>«setChoice.value»</choice>
+                    <choice name="«setChoice.name»"«versionAttrs(setChoice.versionModifiers)»>«setChoice.value»</choice>
                 «ENDFOR»
             </set>
         '''
@@ -154,18 +156,15 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(MemberTypeDeclaration mtd) {
         switch mtd {
-            MemberNumericTypeDeclaration:
-                '''
-                    <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
-                '''
-            MemberCharTypeDeclaration:
-                '''
-                    <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
-                '''
-            MemberRefTypeDeclaration:
-                '''
-                    <ref name="«mtd.name»" type="«mtd.type.name»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag(mtd)»
-                '''
+            MemberNumericTypeDeclaration: '''
+                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag("type", mtd.presence)»
+            '''
+            MemberCharTypeDeclaration: '''
+                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag("type", mtd.presence)»
+            '''
+            MemberRefTypeDeclaration: '''
+                <ref name="«mtd.name»" type="«mtd.type.name»"«memberTypeLength(mtd)»«memberTypeRange(mtd)» />
+            '''
             EnumDeclaration:
                 compile(mtd)
             default: '''TODO'''
@@ -213,16 +212,30 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         }
     }
 
-    private def closeTag(MemberTypeDeclaration mtd) {
-        if (mtd instanceof MemberNumericTypeDeclaration) {
-            if (mtd.presence instanceof NumericConstantModifiers) {
-                val NumericConstantModifiers t = mtd.presence as NumericConstantModifiers
-                '''>«t.constantValue»</type>'''
-            } else {
-                "/>"
-            }
-        } else {
-            "/>"
+    def compile(FieldDeclaration field) {
+        '''
+            <field name="«field.name»" id="«field.id»" type="«field.fieldType.name»"«versionAttrs(field.versionModifiers)»«closeTag("field", null)»
+        '''
+    }
+
+    def closeTag(String tag, EObject presence) {
+        switch presence {
+            NumericConstantModifiers: '''>«presence.constantValue»</«tag»>'''
+            CharConstantModifiers: '''>«presence.constantValue»</«tag»>'''
+            // CharOptionalModifiers,
+            // NumericOptionalModifiers,
+            default: '''/>'''
+        }
+    }
+
+    def presenceAttrs(Object presence) {
+        switch presence {
+            case NumericOptionalModifiers,
+            case CharOptionalModifiers: '''presence="optional"'''
+            case NumericConstantModifiers,
+            case CharConstantModifiers: '''presence="constant"'''
+            default:
+                ""
         }
     }
 }
