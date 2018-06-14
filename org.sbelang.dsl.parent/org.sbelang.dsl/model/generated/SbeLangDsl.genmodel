@@ -76,6 +76,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MessageDeclaration/block"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//GroupDeclaration">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//GroupDeclaration/dimensionType"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//GroupDeclaration/block"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//BlockDeclaration">

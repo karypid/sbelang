@@ -85,7 +85,7 @@ MessageDeclaration:
     'message' block=BlockDeclaration;
 
 GroupDeclaration:
-    'group' block=BlockDeclaration;
+    'group' ('(' dimensionType=[CompositeTypeDeclaration] ')')? block=BlockDeclaration;
 
 BlockDeclaration:
     name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{'

@@ -9,10 +9,12 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
 import org.sbelang.dsl.generator.xml.XmlMessageSchema
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
+import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
@@ -67,15 +69,35 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                     </types>
                     
                     «FOR message : imSchema.rawSchema.messageDeclarations»
-                        <message name="«message.block.name»" id="«message.block.id»">
-                            «FOR field : message.block.fieldDeclarations»
-                                «compile(field)»
-                            «ENDFOR»
-                        </message>
+                        «compile("message", message.block)»
                     «ENDFOR»
                 </sbe:messageSchema>
             '''
         )
+    }
+
+    private def String compile(String tag, BlockDeclaration block) {
+        compile(tag, null, block)
+    }
+
+    private def String compile(String tag, String dimensionType, BlockDeclaration block) {
+        '''
+            <«tag» name="«block.name»" id="«block.id»"«IF dimensionType !== null» dimensionType="«dimensionType»"«ENDIF»>
+                «FOR field : block.fieldDeclarations»
+                    «compile(field)»
+                «ENDFOR»
+                «FOR group : block.groupDeclarations»
+                    «compile("group", dimensionTypeName(group), group.block)»
+                «ENDFOR»
+            </«tag»>
+        '''
+    }
+
+    private def dimensionTypeName(GroupDeclaration group) {
+        if (group.dimensionType === null)
+            null
+        else
+            group.dimensionType.name
     }
 
     private def compile(SimpleTypeDeclaration std) {
