@@ -59,30 +59,18 @@
     <genClasses ecoreClass="SbeLangDsl.ecore#//MemberRefTypeDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberRefTypeDeclaration/name"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberRefTypeDeclaration/type"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberRefTypeDeclaration/rangeModifiers"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberRefTypeDeclaration/presence"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//MemberCharTypeDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberCharTypeDeclaration/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberCharTypeDeclaration/primitiveType"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberCharTypeDeclaration/length"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberCharTypeDeclaration/rangeModifiers"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberCharTypeDeclaration/presence"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//MemberPrimitiveTypeDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberPrimitiveTypeDeclaration/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberPrimitiveTypeDeclaration/primitiveType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberPrimitiveTypeDeclaration/length"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberPrimitiveTypeDeclaration/rangeModifiers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberPrimitiveTypeDeclaration/presence"/>
     </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//MemberNumericTypeDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberNumericTypeDeclaration/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberNumericTypeDeclaration/primitiveType"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//MemberNumericTypeDeclaration/length"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberNumericTypeDeclaration/rangeModifiers"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MemberNumericTypeDeclaration/presence"/>
-    </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//NumericRangeModifiers">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//NumericRangeModifiers/min"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//NumericRangeModifiers/max"/>
-    </genClasses>
-    <genClasses ecoreClass="SbeLangDsl.ecore#//CharRangeModifiers">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CharRangeModifiers/min"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CharRangeModifiers/max"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//RangeModifiers">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//RangeModifiers/min"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//RangeModifiers/max"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//MessageDeclaration">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//MessageDeclaration/block"/>

@@ -68,29 +68,18 @@ MemberTypeDeclaration:
     EnumDeclaration |
     SetDeclaration |
     MemberRefTypeDeclaration /* XSD "refType" */ |
-    MemberCharTypeDeclaration /* XSD "memberDataType for characters */ |
-    MemberNumericTypeDeclaration /* XSD "memberDataType for integers" */;
+    MemberPrimitiveTypeDeclaration /* XSD "memberDataType" */;
 
 MemberRefTypeDeclaration:
-    name=Name ':' type=[SimpleTypeDeclaration]
-    ('range' '=' rangeModifiers=CharRangeModifiers)?
+    name=Name ':' type=[SimpleTypeDeclaration] presence=PresenceModifiers?;
+
+MemberPrimitiveTypeDeclaration:
+    name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')?
+    ('range' '=' rangeModifiers=RangeModifiers)?
     presence=PresenceModifiers?;
 
-MemberCharTypeDeclaration:
-    name=Name ':' primitiveType=CharPrimitive ('[' length=OptionalInt ']')?
-    ('range' '=' rangeModifiers=CharRangeModifiers)?
-    presence=PresenceModifiers?;
-
-MemberNumericTypeDeclaration:
-    name=Name ':' primitiveType=NumericPrimitive ('[' length=OptionalInt ']')?
-    ('range' '=' rangeModifiers=NumericRangeModifiers)?
-    presence=PresenceModifiers?;
-
-NumericRangeModifiers:
-    {NumericRangeModifiers} '[' min=OptionalSignedInt? ',' max=OptionalSignedInt? ']';
-
-CharRangeModifiers:
-    {CharRangeModifiers} '[' (min=OptionalChar?) ',' (max=OptionalChar?) ']';
+RangeModifiers:
+    {RangeModifiers} '[' (min=ValueLiteral?) ',' (max=ValueLiteral?) ']';
 
 MessageDeclaration:
     'message' block=BlockDeclaration;
@@ -114,23 +103,17 @@ PresenceModifiers:
     PresenceConstantModifier | PresenceOptionalModifier;
 
 PresenceConstantModifier:
-    ('constant' '=' (constantValue=PresenceValue));
+    ('constant' '=' (constantValue=ValueLiteral));
 
 PresenceOptionalModifier:
     (optional?='optional') |
-    ('nullValue' '=' (nullValue=PresenceValue));
+    ('nullValue' '=' (nullValue=ValueLiteral));
 
-PresenceValue:
+ValueLiteral:
     OptionalSignedInt | OptionalChar;
 
-CharPrimitive:
-    'char';
-
-NumericPrimitive:
-    'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'float' | 'double';
-
 PrimitiveType:
-    CharPrimitive | NumericPrimitive;
+    'char' | 'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'float' | 'double';
 
 EnumEncodingType:
     'char' | 'uint8' | 'uint16';

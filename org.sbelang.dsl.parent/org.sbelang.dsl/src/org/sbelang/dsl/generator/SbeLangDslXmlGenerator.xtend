@@ -13,8 +13,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberCharTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
@@ -155,10 +154,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     private def compile(MemberTypeDeclaration mtd) {
         // TODO: handle nullValue
         switch mtd {
-            MemberNumericTypeDeclaration: '''
-                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
-            '''
-            MemberCharTypeDeclaration: '''
+            MemberPrimitiveTypeDeclaration: '''
                 <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
             '''
             MemberRefTypeDeclaration: '''
@@ -171,17 +167,14 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     }
 
     private def memberTypeLength(MemberTypeDeclaration mtd) {
-        if (mtd instanceof MemberCharTypeDeclaration)
+        if (mtd instanceof MemberPrimitiveTypeDeclaration)
             '''«IF mtd.length !== null» length="«mtd.length»"«ENDIF»'''
         else
             ""
     }
 
     private def memberTypeRange(MemberTypeDeclaration mtd) {
-        if (mtd instanceof MemberNumericTypeDeclaration) {
-            if (mtd.rangeModifiers !== null)
-                '''«IF mtd.rangeModifiers.min !== null» minValue="«mtd.rangeModifiers.min»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«mtd.rangeModifiers.max»"«ENDIF»'''
-        } else if (mtd instanceof MemberCharTypeDeclaration) {
+        if (mtd instanceof MemberPrimitiveTypeDeclaration) {
             if (mtd.rangeModifiers !== null)
                 '''«IF mtd.rangeModifiers.min !== null» minValue="«mtd.rangeModifiers.min»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«mtd.rangeModifiers.max»"«ENDIF»'''
         } else {

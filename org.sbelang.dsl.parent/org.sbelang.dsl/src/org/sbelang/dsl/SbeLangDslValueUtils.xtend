@@ -30,7 +30,7 @@ class SbeLangDslValueUtils {
             case 'uint16',
             case 'uint32',
             case 'uint64': {
-                val i = parseNumber(literal).orElse(null)
+                val i = parseBigInteger(literal).orElse(null)
 
                 if (i !== null) {
                     val max = maxValue(primitiveType)
@@ -74,10 +74,24 @@ class SbeLangDslValueUtils {
         }
     }
 
-    private static def Optional<BigInteger> parseNumber(String toParse) {
-        try {
+    static def Optional<Character> parseCharacter(String toParse) {
+        if (isValidCharLiteral(toParse))
+            Optional.of(Character.valueOf(toParse.charAt(1)))
+        else
+            Optional.empty();
+    }
 
+    static def Optional<BigInteger> parseBigInteger(String toParse) {
+        try {
             return Optional.of(new BigInteger(toParse, 10));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+    }
+
+    static def Optional<BigDecimal> parseBigDecimal(String toParse) {
+        try {
+            return Optional.of(new BigDecimal(toParse));
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
