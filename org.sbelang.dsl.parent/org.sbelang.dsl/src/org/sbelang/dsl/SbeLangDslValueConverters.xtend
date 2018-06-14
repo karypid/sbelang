@@ -5,11 +5,10 @@ import org.eclipse.xtext.conversion.IValueConverter
 import org.eclipse.xtext.conversion.ValueConverter
 import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.nodemodel.INode
-import org.eclipse.xtext.util.Strings
+
+import static org.sbelang.dsl.SbeLangDslValueUtils.isValidCharLiteral
 
 class SbeLangDslValueConverters extends DefaultTerminalConverters {
-    static val char SINGLE_QUOTE = '\''
-
     @ValueConverter(rule="OptionalChar")
     def IValueConverter<Character> OptionalCharValueConverter() {
         return new IValueConverter<Character>() {
@@ -17,17 +16,11 @@ class SbeLangDslValueConverters extends DefaultTerminalConverters {
                 return "'" + value + "'";
             }
 
-            override toValue(String string, INode node) throws ValueConverterException {
-                if (Strings.isEmpty(string))
-                    throw new ValueConverterException("Couldn't convert empty string to char", node, null);
-
-                val str = string.trim();
-
-                if ((str.length() != 3) || (str.charAt(0) !== SINGLE_QUOTE) || (str.charAt(2) !== SINGLE_QUOTE))
+            override toValue(String literal, INode node) throws ValueConverterException {
+                if (!isValidCharLiteral(literal))
                     throw new ValueConverterException("Literal is malformed (not single-quoted character)", node, null);
-                return str.charAt(1);
+                return literal.charAt(1);
             }
         };
-        
     }
 }

@@ -117,7 +117,16 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//FieldDeclaration/name"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//FieldDeclaration/fieldType"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//FieldDeclaration/id"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//FieldDeclaration/presenceModifiers"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//FieldDeclaration/versionModifiers"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//PresenceModifiers"/>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//PresenceConstantModifier">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PresenceConstantModifier/constantValue"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//PresenceOptionalModifier">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PresenceOptionalModifier/optional"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PresenceOptionalModifier/nullValue"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

@@ -134,7 +134,17 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="fieldType" eType="#//TypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presenceModifiers" eType="#//PresenceModifiers"
+        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="versionModifiers" eType="#//VersionModifiers"
         containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PresenceModifiers"/>
+  <eClassifiers xsi:type="ecore:EClass" name="PresenceConstantModifier" eSuperTypes="#//PresenceModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constantValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PresenceOptionalModifier" eSuperTypes="#//PresenceModifiers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>

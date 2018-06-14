@@ -24,6 +24,9 @@ import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
+import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
+import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 
 /**
  * Generates XML from your model files on save.
@@ -214,7 +217,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     def compile(FieldDeclaration field) {
         '''
-            <field name="«field.name»" id="«field.id»" type="«field.fieldType.name»"«versionAttrs(field.versionModifiers)»«closeTag("field", null)»
+            <field name="«field.name»" id="«field.id»" type="«field.fieldType.name»"«presenceAttrs(field.presenceModifiers)»«versionAttrs(field.versionModifiers)»«closeTag("field", field.presenceModifiers)»
         '''
     }
 
@@ -222,18 +225,23 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         switch presence {
             NumericConstantModifiers: '''>«presence.constantValue»</«tag»>'''
             CharConstantModifiers: '''>«presence.constantValue»</«tag»>'''
+            PresenceConstantModifier: '''>«presence.constantValue»</«tag»>'''
             // CharOptionalModifiers,
             // NumericOptionalModifiers,
+            // PresenceOptionalModifier
             default: '''/>'''
         }
     }
 
     def presenceAttrs(Object presence) {
         switch presence {
-            case NumericOptionalModifiers,
-            case CharOptionalModifiers: '''presence="optional"'''
-            case NumericConstantModifiers,
-            case CharConstantModifiers: '''presence="constant"'''
+            PresenceOptionalModifier,
+            NumericOptionalModifiers,
+            CharOptionalModifiers: ''' presence="optional"'''
+            PresenceConstantModifier,
+            NumericConstantModifiers,
+            CharConstantModifiers: ''' presence="constant"'''
+                
             default:
                 ""
         }

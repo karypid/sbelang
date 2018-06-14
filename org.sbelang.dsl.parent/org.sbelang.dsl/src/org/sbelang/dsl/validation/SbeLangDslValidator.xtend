@@ -6,12 +6,19 @@ package org.sbelang.dsl.validation
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.validation.Check
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
+import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
-import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.VersionModifiers
+
+import static org.sbelang.dsl.SbeLangDslValueUtils.isValidLiteral
 
 /**
  * This class contains custom validation rules. 
@@ -21,6 +28,34 @@ import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val CHAR_PRIMITIVE = 'char'
+
+    @Check
+    def checkField(FieldDeclaration fd) {
+        val type = fd.fieldType
+        val presence = fd.presenceModifiers
+        checkPresence(presence, type)
+    }
+
+    def checkPresence(PresenceModifiers presenceModifiers, TypeDeclaration typeDeclaration) {
+        switch (presenceModifiers) {
+            PresenceConstantModifier:
+                validatePresenceConstant(presenceModifiers, typeDeclaration)
+        // TODO: PresenceOptionalModifier: any validation required for this?
+        }
+    }
+
+    def validatePresenceConstant(PresenceConstantModifier constantModifier, TypeDeclaration typeDeclaration) {
+        switch typeDeclaration {
+            SimpleTypeDeclaration:
+                if (! isValidLiteral(constantModifier.constantValue, typeDeclaration.primitiveType)) {
+                    error('''The value [«constantModifier.constantValue»] is not valid for the type [«typeDeclaration.primitiveType»]''',
+                        constantModifier, SbeLangDslPackage.Literals.PRESENCE_CONSTANT_MODIFIER__CONSTANT_VALUE)
+                }
+//            EnumDeclaration:
+//            SetDeclaration:
+//            CompositeTypeDeclaration:
+        }
+    }
 
     @Check
     def checkSet(SetDeclaration sd) {
@@ -49,42 +84,16 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     @Check
     def checkEnum(EnumDeclaration ed) {
         var idx = 0
-        switch ed.encodingType {
-            case 'char':
-                for (ev : ed.enumValues) {
-                    val String v = ev.value.trim
-                    if (v.length !== 3) {
-                        error(
-                            '''Value is [«ev.value»], but must be exactly ONE character in single quotes!''',
-                            ev,
-                            SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
-                            idx
-                        )
-                    }
-                }
-            case 'uint8',
-            case 'uint16':
-                for (ev : ed.enumValues) {
-                    try {
-                        val int value = Integer.parseInt(ev.value);
-                        val max = if(ed.encodingType == 'uint8') 255 else 65535
-                        if ((value < 0) || (value > max))
-                            error(
-                                '''Value is [«ev.value»] which is outside the valid range [0,«max»]!''',
-                                ev,
-                                SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
-                                idx
-                            )
-                    } catch (Exception e) {
-                        error(
-                            '''Value is [«ev.value»], but must be a positive integer!''',
-                            ev,
-                            SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
-                            idx
-                        )
-                    }
-                    idx = idx + 1
-                }
+        for (ev : ed.enumValues) {
+            if (!isValidLiteral(ev.value, ed.encodingType)) {
+                error(
+                    '''Value is [«ev.value»] which is outside the valid range for encoding typ [«ed.encodingType»]!''',
+                    ev,
+                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
+                    idx
+                )
+                idx = idx + 1
+            }
         }
     }
 
@@ -104,6 +113,20 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             if (mntd.rangeModifiers.max < mntd.rangeModifiers.min)
                 error(
                     '''Minimum range of («mntd.rangeModifiers.min») cannot exceed maximum of («mntd.rangeModifiers.max»)''',
+                    SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+        }
+        
+        if (!isValidLiteral(mntd.rangeModifiers.min.toString, mntd.primitiveType)) {
+                 error(
+                    '''Minimum range of («mntd.rangeModifiers.min») is not within range of type («mntd.primitiveType»)''',
+                    SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+        }
+        
+        if (!isValidLiteral(mntd.rangeModifiers.max.toString, mntd.primitiveType)) {
+                 error(
+                    '''Maximum range of («mntd.rangeModifiers.max») is not within range of type («mntd.primitiveType»)''',
                     SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
                 )
         }
