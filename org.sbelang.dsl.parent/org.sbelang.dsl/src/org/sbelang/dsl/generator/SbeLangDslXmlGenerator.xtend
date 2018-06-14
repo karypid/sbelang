@@ -67,6 +67,13 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                         «ENDFOR»
                     </types>
                     
+                    «FOR message : imSchema.rawSchema.messageDeclarations»
+                    <message name="«message.block.name»" id="«message.block.id»">
+                        «FOR field : message.block.fieldDeclarations»
+                        <field name="«field.name»" id="«field.id»" type="«field.fieldType.name»" />
+                        «ENDFOR»
+                    </message>
+                    «ENDFOR»
                 </sbe:messageSchema>
             '''
         )
@@ -127,7 +134,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(EnumDeclaration ed) {
         '''
-            <enum name="«ed.enumName»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
+            <enum name="«ed.name»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
                 <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«enumVal.value»</validValue>
                 «ENDFOR»
@@ -137,7 +144,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def compile(SetDeclaration sd) {
         '''
-            <set name="«sd.setName»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
+            <set name="«sd.name»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
                 «FOR setChoice : sd.setChoices»
                 <choice name="«setChoice.name»"«versionAttrs(setChoice.versionModifiers)»>«setChoice.value»</choice>
                 «ENDFOR»

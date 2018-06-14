@@ -8,8 +8,7 @@ MessageSchema:
     'types' '{'
     typeDelcarations+=TypeDeclaration+
     '}'
-    //    messages=MessageDeclarations
-;
+    messageDeclarations+=MessageDeclaration;
 
 SchemaDeclaration:
 // schema org.sbelang.example id=1 version=1
@@ -34,7 +33,7 @@ SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttri
     versionModifiers=VersionModifiers;
 
 EnumDeclaration:
-    'enum' enumName=Name ':' encodingType=EnumEncodingType versionModifiers=VersionModifiers '{'
+    'enum' name=Name ':' encodingType=EnumEncodingType versionModifiers=VersionModifiers '{'
     enumValues+=EnumValueDeclaration+
     '}';
 
@@ -50,7 +49,7 @@ VersionModifiers:
     ('deprecatedSinceVersion' '=' deprecatedSinceVersion=OptionalInt)?;
 
 SetDeclaration:
-    'set' setName=Name ':' encodingType=SetEncodingType versionModifiers=VersionModifiers '{'
+    'set' name=Name ':' encodingType=SetEncodingType versionModifiers=VersionModifiers '{'
     setChoices+=SetChoiceDeclaration+
     '}';
 
@@ -113,18 +112,21 @@ CharOptionalModifiers:
     (optional?='optional') |
     ('nullValue' '=' (nullValue=OptionalChar));
 
-    /*
-MessageDeclarations:
-    'messages' '{' messages+=MessageDeclaration '}';
-
 MessageDeclaration:
-    'message' name=Name 'id' '=' id=INT '{' fields+=FieldDeclaration '}';
+    'message' block=BlockDeclaration;
+
+GroupDeclaration:
+    'group' block=BlockDeclaration;
+
+BlockDeclaration:
+    name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{'
+    fieldDeclarations+=FieldDeclaration*
+    groupDeclarations+=GroupDeclaration*
+    '}';
 
 FieldDeclaration:
-    name=Name ':' fieldEncodingType=[SimpleTypeDeclaration] '@' id=INT;
- */
+    name=Name ':' fieldType=[TypeDeclaration] '@' id=INT;
 
-// --------------------------------------------------------------------
 CharPrimitive:
     'char';
 
