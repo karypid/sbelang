@@ -36,6 +36,7 @@
     <genClasses ecoreClass="SbeLangDsl.ecore#//EnumValueDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EnumValueDeclaration/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//EnumValueDeclaration/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//EnumValueDeclaration/versionModifiers"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//VersionModifiers">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//VersionModifiers/sinceVersion"/>
@@ -49,6 +50,7 @@
     <genClasses ecoreClass="SbeLangDsl.ecore#//SetChoiceDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SetChoiceDeclaration/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//SetChoiceDeclaration/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//SetChoiceDeclaration/versionModifiers"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//CompositeTypeDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//CompositeTypeDeclaration/name"/>

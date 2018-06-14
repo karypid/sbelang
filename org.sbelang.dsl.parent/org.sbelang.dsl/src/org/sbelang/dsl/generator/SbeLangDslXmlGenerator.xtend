@@ -129,7 +129,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <enum name="«ed.enumName»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
-                <validValue name="«enumVal.name»">«enumVal.value»</validValue>
+                <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«enumVal.value»</validValue>
                 «ENDFOR»
             </enum>
         '''
@@ -139,7 +139,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <set name="«sd.setName»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
                 «FOR setChoice : sd.setChoices»
-                <choice name="«setChoice.name»">«setChoice.value»</choice>
+                <choice name="«setChoice.name»"«versionAttrs(setChoice.versionModifiers)»>«setChoice.value»</choice>
                 «ENDFOR»
             </set>
         '''

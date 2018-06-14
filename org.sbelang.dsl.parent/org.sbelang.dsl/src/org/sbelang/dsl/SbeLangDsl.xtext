@@ -39,7 +39,7 @@ EnumDeclaration:
     '}';
 
 EnumValueDeclaration:
-    name=Name '(' value=EnumValue ')';
+    name=Name '(' value=EnumValue ')' versionModifiers=VersionModifiers;
 
 EnumValue:
     INT | CHAR;
@@ -55,7 +55,7 @@ SetDeclaration:
     '}';
 
 SetChoiceDeclaration:
-    name=Name '(' value=INT ')';
+    name=Name '(' value=INT ')' versionModifiers=VersionModifiers;
 
 CompositeTypeDeclaration:
     'composite' name=Name versionModifiers=VersionModifiers '{'
