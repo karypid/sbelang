@@ -7,9 +7,9 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.validation.Check
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberCharTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
-import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
@@ -36,6 +36,20 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         checkPresence(presence, type)
     }
 
+    @Check
+    def checkMemberType(MemberCharTypeDeclaration mtd) {
+        switch mtd.presence {
+            PresenceConstantModifier: validatePresenceConstant(mtd.presence as PresenceConstantModifier, mtd.primitiveType)
+        }
+    }
+
+    @Check
+    def checkMemberType(MemberNumericTypeDeclaration mtd) {
+        switch mtd.presence {
+            PresenceConstantModifier: validatePresenceConstant(mtd.presence as PresenceConstantModifier, mtd.primitiveType)
+        }
+    }
+
     def checkPresence(PresenceModifiers presenceModifiers, TypeDeclaration typeDeclaration) {
         switch (presenceModifiers) {
             PresenceConstantModifier:
@@ -47,13 +61,17 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     def validatePresenceConstant(PresenceConstantModifier constantModifier, TypeDeclaration typeDeclaration) {
         switch typeDeclaration {
             SimpleTypeDeclaration:
-                if (! isValidLiteral(constantModifier.constantValue, typeDeclaration.primitiveType)) {
-                    error('''The value [«constantModifier.constantValue»] is not valid for the type [«typeDeclaration.primitiveType»]''',
-                        constantModifier, SbeLangDslPackage.Literals.PRESENCE_CONSTANT_MODIFIER__CONSTANT_VALUE)
-                }
+                validatePresenceConstant(constantModifier, typeDeclaration.primitiveType)
 //            EnumDeclaration:
 //            SetDeclaration:
 //            CompositeTypeDeclaration:
+        }
+    }
+
+    def validatePresenceConstant(PresenceConstantModifier constantModifier, String primitiveType) {
+        if (! isValidLiteral(constantModifier.constantValue, primitiveType)) {
+            error('''The value [«constantModifier.constantValue»] is not valid for the type [«primitiveType»]''',
+                constantModifier, SbeLangDslPackage.Literals.PRESENCE_CONSTANT_MODIFIER__CONSTANT_VALUE)
         }
     }
 
@@ -102,7 +120,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         if(mntd.rangeModifiers === null) return; // no range can't be wrong
         if (mntd.presence !== null) {
             // if constant, range does not make sense...
-            if (mntd.presence instanceof NumericConstantModifiers)
+            if (mntd.presence instanceof PresenceConstantModifier)
                 error(
                     "You can't specify a range for a constant!",
                     SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
@@ -116,19 +134,19 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
                 )
         }
-        
+
         if (!isValidLiteral(mntd.rangeModifiers.min.toString, mntd.primitiveType)) {
-                 error(
-                    '''Minimum range of («mntd.rangeModifiers.min») is not within range of type («mntd.primitiveType»)''',
-                    SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
-                )
+            error(
+                '''Minimum range of («mntd.rangeModifiers.min») is not within range of type («mntd.primitiveType»)''',
+                SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
+            )
         }
-        
+
         if (!isValidLiteral(mntd.rangeModifiers.max.toString, mntd.primitiveType)) {
-                 error(
-                    '''Maximum range of («mntd.rangeModifiers.max») is not within range of type («mntd.primitiveType»)''',
-                    SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
-                )
+            error(
+                '''Maximum range of («mntd.rangeModifiers.max») is not within range of type («mntd.primitiveType»)''',
+                SbeLangDslPackage.Literals.MEMBER_NUMERIC_TYPE_DECLARATION__RANGE_MODIFIERS
+            )
         }
     }
 

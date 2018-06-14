@@ -9,8 +9,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
 import org.sbelang.dsl.generator.xml.XmlMessageSchema
-import org.sbelang.dsl.sbeLangDsl.CharConstantModifiers
-import org.sbelang.dsl.sbeLangDsl.CharOptionalModifiers
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
@@ -19,13 +17,11 @@ import org.sbelang.dsl.sbeLangDsl.MemberCharTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberNumericTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.NumericConstantModifiers
-import org.sbelang.dsl.sbeLangDsl.NumericOptionalModifiers
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
+import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
-import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
-import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 
 /**
  * Generates XML from your model files on save.
@@ -157,12 +153,13 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     }
 
     private def compile(MemberTypeDeclaration mtd) {
+        // TODO: handle nullValue
         switch mtd {
             MemberNumericTypeDeclaration: '''
-                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag("type", mtd.presence)»
+                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
             '''
             MemberCharTypeDeclaration: '''
-                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«memberTypePresence(mtd)»«closeTag("type", mtd.presence)»
+                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
             '''
             MemberRefTypeDeclaration: '''
                 <ref name="«mtd.name»" type="«mtd.type.name»"«memberTypeLength(mtd)»«memberTypeRange(mtd)» />
@@ -192,28 +189,6 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         }
     }
 
-    private def memberTypePresence(MemberTypeDeclaration mtd) {
-        if (mtd instanceof MemberNumericTypeDeclaration) {
-            if (mtd.presence instanceof NumericOptionalModifiers) {
-                val NumericOptionalModifiers t = mtd.presence as NumericOptionalModifiers
-                if (t.
-                    isOptional) ''' presence="optional"''' else '''«IF t.nullValue !== null» presence="optional" nullValue="«t.nullValue»"«ENDIF»'''
-            } else if (mtd.presence instanceof NumericConstantModifiers) {
-                ''' presence="constant"'''
-            }
-        } else if (mtd instanceof MemberCharTypeDeclaration) {
-            if (mtd.presence instanceof CharOptionalModifiers) {
-                val CharOptionalModifiers t = mtd.presence as CharOptionalModifiers
-                if (t.
-                    isOptional) ''' presence="optional"''' else '''«IF t.nullValue !== null» presence="optional" nullValue="«t.nullValue»"«ENDIF»'''
-            } else if (mtd.presence instanceof CharConstantModifiers) {
-                ''' presence="constant"'''
-            }
-        } else {
-            ""
-        }
-    }
-
     def compile(FieldDeclaration field) {
         '''
             <field name="«field.name»" id="«field.id»" type="«field.fieldType.name»"«presenceAttrs(field.presenceModifiers)»«versionAttrs(field.versionModifiers)»«closeTag("field", field.presenceModifiers)»
@@ -222,27 +197,17 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     def closeTag(String tag, EObject presence) {
         switch presence {
-            NumericConstantModifiers: '''>«presence.constantValue»</«tag»>'''
-            CharConstantModifiers: '''>«presence.constantValue»</«tag»>'''
             PresenceConstantModifier: '''>«presence.constantValue»</«tag»>'''
-            // CharOptionalModifiers,
-            // NumericOptionalModifiers,
             // PresenceOptionalModifier
             default: '''/>'''
         }
     }
 
-    def presenceAttrs(Object presence) {
+    private def presenceAttrs(Object presence) {
         switch presence {
-            PresenceOptionalModifier,
-            NumericOptionalModifiers,
-            CharOptionalModifiers: ''' presence="optional"'''
-            PresenceConstantModifier,
-            NumericConstantModifiers,
-            CharConstantModifiers: ''' presence="constant"'''
-                
-            default:
-                ""
+            PresenceOptionalModifier: ''' presence="optional"'''
+            PresenceConstantModifier: ''' presence="constant"'''
+            default: ''''''
         }
     }
 }

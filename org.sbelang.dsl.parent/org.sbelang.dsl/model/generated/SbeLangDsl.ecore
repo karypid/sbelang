@@ -67,7 +67,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//SimpleTypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//CharRangeModifiers"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//CharPresenceModifiers"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MemberCharTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
@@ -76,7 +76,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//CharRangeModifiers"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//CharPresenceModifiers"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MemberNumericTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
@@ -85,32 +85,16 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//NumericRangeModifiers"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//NumericPresenceModifiers"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="NumericRangeModifiers">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="min" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="max" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="NumericPresenceModifiers"/>
-  <eClassifiers xsi:type="ecore:EClass" name="NumericConstantModifiers" eSuperTypes="#//NumericPresenceModifiers">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constantValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="NumericOptionalModifiers" eSuperTypes="#//NumericPresenceModifiers">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
-  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="CharRangeModifiers">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="min" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="max" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CharPresenceModifiers"/>
-  <eClassifiers xsi:type="ecore:EClass" name="CharConstantModifiers" eSuperTypes="#//CharPresenceModifiers">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="constantValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CharOptionalModifiers" eSuperTypes="#//CharPresenceModifiers">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ECharacterObject"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MessageDeclaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="block" eType="#//BlockDeclaration"

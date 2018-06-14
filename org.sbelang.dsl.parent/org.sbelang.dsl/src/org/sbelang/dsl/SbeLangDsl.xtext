@@ -74,43 +74,23 @@ MemberTypeDeclaration:
 MemberRefTypeDeclaration:
     name=Name ':' type=[SimpleTypeDeclaration]
     ('range' '=' rangeModifiers=CharRangeModifiers)?
-    presence=CharPresenceModifiers?;
+    presence=PresenceModifiers?;
 
 MemberCharTypeDeclaration:
     name=Name ':' primitiveType=CharPrimitive ('[' length=OptionalInt ']')?
     ('range' '=' rangeModifiers=CharRangeModifiers)?
-    presence=CharPresenceModifiers?;
+    presence=PresenceModifiers?;
 
 MemberNumericTypeDeclaration:
     name=Name ':' primitiveType=NumericPrimitive ('[' length=OptionalInt ']')?
     ('range' '=' rangeModifiers=NumericRangeModifiers)?
-    presence=NumericPresenceModifiers?;
+    presence=PresenceModifiers?;
 
 NumericRangeModifiers:
     {NumericRangeModifiers} '[' min=OptionalSignedInt? ',' max=OptionalSignedInt? ']';
 
-NumericPresenceModifiers:
-    NumericConstantModifiers | NumericOptionalModifiers;
-
-NumericConstantModifiers:
-    ('constant' '=' constantValue=SignedInt);
-
-NumericOptionalModifiers:
-    (optional?='optional') |
-    ('nullValue' '=' nullValue=OptionalSignedInt);
-
 CharRangeModifiers:
     {CharRangeModifiers} '[' (min=OptionalChar?) ',' (max=OptionalChar?) ']';
-
-CharPresenceModifiers:
-    CharConstantModifiers | CharOptionalModifiers;
-
-CharConstantModifiers:
-    ('constant' '=' (constantValue=OptionalChar));
-
-CharOptionalModifiers:
-    (optional?='optional') |
-    ('nullValue' '=' (nullValue=OptionalChar));
 
 MessageDeclaration:
     'message' block=BlockDeclaration;
@@ -125,7 +105,7 @@ BlockDeclaration:
     '}';
 
 FieldDeclaration:
-    name=Name ':' fieldType=[TypeDeclaration] '@' id=INT 
+    name=Name ':' fieldType=[TypeDeclaration] '@' id=INT
     presenceModifiers=PresenceModifiers?
     // TODO: add "valueRef" - Constant value of a field as a valid value of an enumeration; Valid only if presence= ”constant”  
     versionModifiers=VersionModifiers;
@@ -141,8 +121,7 @@ PresenceOptionalModifier:
     ('nullValue' '=' (nullValue=PresenceValue));
 
 PresenceValue:
-    OptionalSignedInt|OptionalChar
-;
+    OptionalSignedInt | OptionalChar;
 
 CharPrimitive:
     'char';
