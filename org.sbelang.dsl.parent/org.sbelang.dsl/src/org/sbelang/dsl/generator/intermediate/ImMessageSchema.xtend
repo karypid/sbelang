@@ -13,6 +13,7 @@ class ImMessageSchema {
     public val int schemaId
     public val int schemaVersion
     public val ByteOrder schemaByteOrder
+    public val String schemaByteOrderConstant;
     public val String headerTypeName
 
     new(MessageSchema rawSchema) {
@@ -22,6 +23,7 @@ class ImMessageSchema {
         this.schemaId = rawSchema.schema.id
         this.schemaVersion = rawSchema.schema.version
         this.schemaByteOrder = parseByteOrder(rawSchema.schema.optionalAttrs)
+        this.schemaByteOrderConstant = if (schemaByteOrder === ByteOrder.BIG_ENDIAN) "BIG_ENDIAN" else "LITTLE_ENDIAN"
         this.headerTypeName = parseHeaderTypeName(rawSchema.schema.optionalAttrs)
     }
 
