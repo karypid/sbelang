@@ -38,6 +38,8 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val CHAR_PRIMITIVE = 'char'
 
+    public static val NULL_VAL = 'NULL_VAL'
+
     @Check
     def checkAllTypeNamesAreUnique(MessageSchema messageSchema) {
         validateAllTypeNamesAreUnique(messageSchema.typeDelcarations.map[t|new NameDeclaration(t.name, t)],
@@ -97,7 +99,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     def checkEnum(EnumDeclaration ed) {
         val Map<String, EnumValueDeclaration> names = new HashMap()
         val Map<String, EnumValueDeclaration> values = new HashMap()
-        var idx = 0
         for (ev : ed.enumValues) {
             val existingName = names.put(ev.name, ev)
             if (existingName !== null) {
@@ -115,19 +116,33 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                 error(
                     '''Duplicate value [«ev.value»]; previous declaration at line «existingNode.startLine»''',
                     ev,
-                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__NAME
+                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE
                 )
             }
 
             if (!isValidLiteral(ev.value, ed.encodingType)) {
                 error(
-                    '''Value is [«ev.value»] which is outside the valid range for encoding typ [«ed.encodingType»]!''',
+                    '''Value is [«ev.value»] which is outside the valid range for encoding type [«ed.encodingType»]!''',
                     ev,
-                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE,
-                    idx
+                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE
                 )
-                idx = idx + 1
             }
+
+            if (ev.value.toString == reservedNullValue(ed.encodingType).toString) {
+                if (NULL_VAL != ev.name)
+                    error(
+                        '''Value [«ev.value»] is reserved for null in [«ed.encodingType»]!''',
+                        ev,
+                        SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE
+                    )
+            }
+        }
+    }
+
+    def long reservedNullValue(String enumType) {
+        switch enumType {
+            case 'char': 0
+            default: SbeLangDslValueUtils.maxValue(enumType).toBigInteger.longValue
         }
     }
 
