@@ -91,6 +91,7 @@ BlockDeclaration:
     name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{'
     fieldDeclarations+=FieldDeclaration*
     groupDeclarations+=GroupDeclaration*
+    rawDataBlockDeclaration=RawDataBlockDeclaration?
     '}';
 
 FieldDeclaration:
@@ -108,6 +109,14 @@ PresenceConstantModifier:
 PresenceOptionalModifier:
     (optional?='optional') |
     ('nullValue' '=' (nullValue=ValueLiteral));
+
+RawDataBlockDeclaration:
+    'data' '{'
+    varDataDeclarations+=RawVariableDataDeclaration+
+    '}';
+
+RawVariableDataDeclaration:
+    name=Name ':' dataEncodingType=[CompositeTypeDeclaration] '@' id=INT;
 
 ValueLiteral:
     OptionalSignedInt | OptionalChar;

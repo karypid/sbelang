@@ -99,6 +99,8 @@
         eType="#//FieldDeclaration" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="groupDeclarations" upperBound="-1"
         eType="#//GroupDeclaration" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rawDataBlockDeclaration"
+        eType="#//RawDataBlockDeclaration" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="FieldDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -116,5 +118,14 @@
   <eClassifiers xsi:type="ecore:EClass" name="PresenceOptionalModifier" eSuperTypes="#//PresenceModifiers">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RawDataBlockDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="varDataDeclarations" upperBound="-1"
+        eType="#//RawVariableDataDeclaration" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RawVariableDataDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dataEncodingType" eType="#//CompositeTypeDeclaration"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
 </ecore:EPackage>

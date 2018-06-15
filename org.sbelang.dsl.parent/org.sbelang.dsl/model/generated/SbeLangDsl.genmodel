@@ -85,6 +85,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//BlockDeclaration/versionModifiers"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//BlockDeclaration/fieldDeclarations"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//BlockDeclaration/groupDeclarations"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//BlockDeclaration/rawDataBlockDeclaration"/>
     </genClasses>
     <genClasses ecoreClass="SbeLangDsl.ecore#//FieldDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//FieldDeclaration/name"/>
@@ -100,6 +101,14 @@
     <genClasses ecoreClass="SbeLangDsl.ecore#//PresenceOptionalModifier">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PresenceOptionalModifier/optional"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//PresenceOptionalModifier/nullValue"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//RawDataBlockDeclaration">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//RawDataBlockDeclaration/varDataDeclarations"/>
+    </genClasses>
+    <genClasses ecoreClass="SbeLangDsl.ecore#//RawVariableDataDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//RawVariableDataDeclaration/name"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//RawVariableDataDeclaration/dataEncodingType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//RawVariableDataDeclaration/id"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

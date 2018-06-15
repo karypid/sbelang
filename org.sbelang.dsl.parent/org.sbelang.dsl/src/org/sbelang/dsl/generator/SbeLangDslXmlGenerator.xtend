@@ -23,6 +23,7 @@ import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
+import org.sbelang.dsl.sbeLangDsl.RawDataBlockDeclaration
 
 /**
  * Generates XML from your model files on save.
@@ -89,7 +90,17 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 «FOR group : block.groupDeclarations»
                     «compile("group", dimensionTypeName(group), group.block)»
                 «ENDFOR»
+                «compile(block.rawDataBlockDeclaration)»
             </«tag»>
+        '''
+    }
+    
+    private def compile(RawDataBlockDeclaration dataBlock) {
+        if (dataBlock === null) return ''''''
+        '''
+            «FOR dataField : dataBlock.varDataDeclarations»
+            <data name="«dataField.name»" id="«dataField.id»" type="«dataField.dataEncodingType.name»">
+            «ENDFOR»
         '''
     }
 
