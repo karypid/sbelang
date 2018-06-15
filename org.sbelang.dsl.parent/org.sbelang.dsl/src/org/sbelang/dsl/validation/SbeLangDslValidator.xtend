@@ -95,18 +95,30 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkEnum(EnumDeclaration ed) {
+        val Map<String, EnumValueDeclaration> names = new HashMap()
         val Map<String, EnumValueDeclaration> values = new HashMap()
         var idx = 0
         for (ev : ed.enumValues) {
-            val existingValue = values.put(ev.name, ev)
-            if (existingValue !== null) {
-                val existingNode = NodeModelUtils.getNode(existingValue)
+            val existingName = names.put(ev.name, ev)
+            if (existingName !== null) {
+                val existingNode = NodeModelUtils.getNode(existingName)
                 error(
                     '''Duplicate (case-insensitive) name [«ev.name»]; previous declaration at line «existingNode.startLine»''',
                     ev,
                     SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__NAME
                 )
             }
+
+            val existingValue = values.put(ev.value, ev)
+            if (existingValue !== null) {
+                val existingNode = NodeModelUtils.getNode(existingValue)
+                error(
+                    '''Duplicate value [«ev.value»]; previous declaration at line «existingNode.startLine»''',
+                    ev,
+                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__NAME
+                )
+            }
+
             if (!isValidLiteral(ev.value, ed.encodingType)) {
                 error(
                     '''Value is [«ev.value»] which is outside the valid range for encoding typ [«ed.encodingType»]!''',

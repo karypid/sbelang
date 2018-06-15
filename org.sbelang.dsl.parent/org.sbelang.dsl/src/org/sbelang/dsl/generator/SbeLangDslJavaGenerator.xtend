@@ -4,7 +4,6 @@ import java.nio.file.Paths
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
-import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import java.io.File
 import java.nio.file.Path
 import java.nio.ByteOrder
