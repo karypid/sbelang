@@ -13,6 +13,7 @@ import org.eclipse.xtext.validation.Check
 import org.sbelang.dsl.SbeLangDslValueUtils
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
@@ -26,6 +27,7 @@ import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 import static org.sbelang.dsl.SbeLangDslValueUtils.isValidLiteral
+import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -68,7 +70,17 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             default: -1
         }
 
+        val Map<String, SetChoiceDeclaration> values = new HashMap()
         for (choice : sd.setChoices) {
+            val existingValue = values.put(choice.name, choice)
+            if (existingValue !== null) {
+                val existingNode = NodeModelUtils.getNode(existingValue)
+                error(
+                    '''Duplicate (case-insensitive) name [«choice.name»]; previous declaration at line «existingNode.startLine»''',
+                    choice,
+                    SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__NAME
+                )
+            }
             if ((choice.value < 0) || (choice.value > maxValidBitIdx))
                 error(
                     '''Value is [«choice.value»] is ousid the valid range of [0,«maxValidBitIdx»] for «sd.encodingType»!''',
@@ -83,8 +95,18 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkEnum(EnumDeclaration ed) {
+        val Map<String, EnumValueDeclaration> values = new HashMap()
         var idx = 0
         for (ev : ed.enumValues) {
+            val existingValue = values.put(ev.name, ev)
+            if (existingValue !== null) {
+                val existingNode = NodeModelUtils.getNode(existingValue)
+                error(
+                    '''Duplicate (case-insensitive) name [«ev.name»]; previous declaration at line «existingNode.startLine»''',
+                    ev,
+                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__NAME
+                )
+            }
             if (!isValidLiteral(ev.value, ed.encodingType)) {
                 error(
                     '''Value is [«ev.value»] which is outside the valid range for encoding typ [«ed.encodingType»]!''',
@@ -184,7 +206,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     // INTERNALS ------------------------------------------------------
-
     private def validatePresence(PresenceModifiers presenceModifiers, TypeDeclaration typeDeclaration) {
         switch (presenceModifiers) {
             PresenceConstantModifier:
@@ -219,7 +240,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             this.declaringObject = o
         }
     }
-    
+
     private def void validateAllTypeNamesAreUnique(List<NameDeclaration> nameDeclarations, Map<String, EObject> names) {
         nameDeclarations.forEach [ nd |
             val existing = names.put(nd.name, nd.declaringObject)
