@@ -3,11 +3,19 @@
  */
 package org.sbelang.dsl.validation
 
+import java.util.HashMap
+import java.util.List
+import java.util.Map
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.validation.Check
+import org.sbelang.dsl.SbeLangDslValueUtils
+import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
@@ -18,7 +26,6 @@ import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 import static org.sbelang.dsl.SbeLangDslValueUtils.isValidLiteral
-import org.sbelang.dsl.SbeLangDslValueUtils
 
 /**
  * This class contains custom validation rules. 
@@ -28,6 +35,59 @@ import org.sbelang.dsl.SbeLangDslValueUtils
 class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val CHAR_PRIMITIVE = 'char'
+
+    @Check
+    def checkAllTypeNamesAreUnique(MessageSchema messageSchema) {
+        validateAllTypeNamesAreUnique(messageSchema.typeDelcarations.map[t|new NameDeclaration(t.name, t)],
+            new HashMap<String, EObject>())
+    }
+
+    private static class NameDeclaration {
+        String name;
+        EObject declaringObject;
+
+        new(String n, EObject o) {
+            this.name = n
+            this.declaringObject = o
+        }
+    }
+
+    private def void validateAllTypeNamesAreUnique(List<NameDeclaration> nameDeclarations, Map<String, EObject> names) {
+        nameDeclarations.forEach [ nd |
+            val existing = names.put(nd.name, nd.declaringObject)
+            if (existing !== null) {
+                val existingNode = NodeModelUtils.getNode(existing)
+                val featureId = switch nd.declaringObject {
+                    MemberPrimitiveTypeDeclaration:
+                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
+                    default: // all others are descendants of type declaration
+                        SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
+                }
+                error(
+                    '''Duplicate (case-insensitive) name [«nd.name»]; previous declaration at line «existingNode.startLine»''',
+                    nd.declaringObject,
+                    featureId
+                )
+            }
+            if (nd.declaringObject instanceof CompositeTypeDeclaration) {
+                val composite = nd.declaringObject as CompositeTypeDeclaration
+                validateAllTypeNamesAreUnique(composite.compositeMembers.map [ cm |
+                    switch cm {
+                        MemberPrimitiveTypeDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        MemberRefTypeDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        SetDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        EnumDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        CompositeTypeDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                    }
+                ], names)
+            }
+        ]
+    }
 
     @Check
     def checkField(FieldDeclaration fd) {
