@@ -63,7 +63,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkSet(SetDeclaration sd) {
-        var idx = 0
         val maxValidBitIdx = switch (sd.encodingType) {
             case 'uint8': 7
             case 'uint16': 15
@@ -72,11 +71,12 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             default: -1
         }
 
-        val Map<String, SetChoiceDeclaration> values = new HashMap()
+        val Map<String, SetChoiceDeclaration> names = new HashMap()
+        val Map<Integer, SetChoiceDeclaration> values = new HashMap()
         for (choice : sd.setChoices) {
-            val existingValue = values.put(choice.name, choice)
-            if (existingValue !== null) {
-                val existingNode = NodeModelUtils.getNode(existingValue)
+            val existingName = names.put(choice.name, choice)
+            if (existingName !== null) {
+                val existingNode = NodeModelUtils.getNode(existingName)
                 error(
                     '''Duplicate (case-insensitive) name [«choice.name»]; previous declaration at line «existingNode.startLine»''',
                     choice,
@@ -85,13 +85,20 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             }
             if ((choice.value < 0) || (choice.value > maxValidBitIdx))
                 error(
-                    '''Value is [«choice.value»] is ousid the valid range of [0,«maxValidBitIdx»] for «sd.encodingType»!''',
-                    sd,
-                    SbeLangDslPackage.Literals.SET_DECLARATION__SET_CHOICES,
-                    idx
+                    '''Value is [«choice.value»] is ouside the valid range of [0,«maxValidBitIdx»] for «sd.encodingType»!''',
+                    choice,
+                    SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__VALUE
                 )
-
-            idx = idx + 1
+            
+            val existingValue = values.put(choice.value, choice)
+            if (existingValue !== null) {
+                val existingNode = NodeModelUtils.getNode(existingValue)
+                error(
+                    '''Value is [«choice.value»] collides with value of «existingValue.name» in line «existingNode.startLine»!''',
+                    choice,
+                    SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__VALUE
+                )
+            }
         }
     }
 
@@ -136,13 +143,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                         SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE
                     )
             }
-        }
-    }
-
-    def long reservedNullValue(String enumType) {
-        switch enumType {
-            case 'char': 0
-            default: SbeLangDslValueUtils.maxValue(enumType).toBigInteger.longValue
         }
     }
 
@@ -303,6 +303,13 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                 ], names)
             }
         ]
+    }
+
+    def long reservedNullValue(String enumType) {
+        switch enumType {
+            case 'char': 0
+            default: SbeLangDslValueUtils.maxValue(enumType).toBigInteger.longValue
+        }
     }
 
 }
