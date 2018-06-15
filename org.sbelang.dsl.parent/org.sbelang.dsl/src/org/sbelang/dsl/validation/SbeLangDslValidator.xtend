@@ -42,58 +42,11 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             new HashMap<String, EObject>())
     }
 
-    private static class NameDeclaration {
-        String name;
-        EObject declaringObject;
-
-        new(String n, EObject o) {
-            this.name = n
-            this.declaringObject = o
-        }
-    }
-
-    private def void validateAllTypeNamesAreUnique(List<NameDeclaration> nameDeclarations, Map<String, EObject> names) {
-        nameDeclarations.forEach [ nd |
-            val existing = names.put(nd.name, nd.declaringObject)
-            if (existing !== null) {
-                val existingNode = NodeModelUtils.getNode(existing)
-                val featureId = switch nd.declaringObject {
-                    MemberPrimitiveTypeDeclaration:
-                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
-                    default: // all others are descendants of type declaration
-                        SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
-                }
-                error(
-                    '''Duplicate (case-insensitive) name [«nd.name»]; previous declaration at line «existingNode.startLine»''',
-                    nd.declaringObject,
-                    featureId
-                )
-            }
-            if (nd.declaringObject instanceof CompositeTypeDeclaration) {
-                val composite = nd.declaringObject as CompositeTypeDeclaration
-                validateAllTypeNamesAreUnique(composite.compositeMembers.map [ cm |
-                    switch cm {
-                        MemberPrimitiveTypeDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        MemberRefTypeDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        SetDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        EnumDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        CompositeTypeDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                    }
-                ], names)
-            }
-        ]
-    }
-
     @Check
     def checkField(FieldDeclaration fd) {
         val type = fd.fieldType
         val presence = fd.presenceModifiers
-        checkPresence(presence, type)
+        validatePresence(presence, type)
     }
 
     @Check
@@ -101,31 +54,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         switch mtd.presence {
             PresenceConstantModifier:
                 validatePresenceConstant(mtd.presence as PresenceConstantModifier, mtd.primitiveType)
-        }
-    }
-
-    def checkPresence(PresenceModifiers presenceModifiers, TypeDeclaration typeDeclaration) {
-        switch (presenceModifiers) {
-            PresenceConstantModifier:
-                validatePresenceConstant(presenceModifiers, typeDeclaration)
-        // TODO: PresenceOptionalModifier: any validation required for this?
-        }
-    }
-
-    def validatePresenceConstant(PresenceConstantModifier constantModifier, TypeDeclaration typeDeclaration) {
-        switch typeDeclaration {
-            SimpleTypeDeclaration:
-                validatePresenceConstant(constantModifier, typeDeclaration.primitiveType)
-//            EnumDeclaration:
-//            SetDeclaration:
-//            CompositeTypeDeclaration:
-        }
-    }
-
-    def validatePresenceConstant(PresenceConstantModifier constantModifier, String primitiveType) {
-        if (! isValidLiteral(constantModifier.constantValue, primitiveType)) {
-            error('''The value [«constantModifier.constantValue»] is not valid for the type [«primitiveType»]''',
-                constantModifier, SbeLangDslPackage.Literals.PRESENCE_CONSTANT_MODIFIER__CONSTANT_VALUE)
         }
     }
 
@@ -254,4 +182,79 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             }
         }
     }
+
+    // INTERNALS ------------------------------------------------------
+
+    private def validatePresence(PresenceModifiers presenceModifiers, TypeDeclaration typeDeclaration) {
+        switch (presenceModifiers) {
+            PresenceConstantModifier:
+                validatePresenceConstant(presenceModifiers, typeDeclaration)
+        // TODO: PresenceOptionalModifier: any validation required for this?
+        }
+    }
+
+    private def validatePresenceConstant(PresenceConstantModifier constantModifier, TypeDeclaration typeDeclaration) {
+        switch typeDeclaration {
+            SimpleTypeDeclaration:
+                validatePresenceConstant(constantModifier, typeDeclaration.primitiveType)
+//            EnumDeclaration:
+//            SetDeclaration:
+//            CompositeTypeDeclaration:
+        }
+    }
+
+    private def validatePresenceConstant(PresenceConstantModifier constantModifier, String primitiveType) {
+        if (! isValidLiteral(constantModifier.constantValue, primitiveType)) {
+            error('''The value [«constantModifier.constantValue»] is not valid for the type [«primitiveType»]''',
+                constantModifier, SbeLangDslPackage.Literals.PRESENCE_CONSTANT_MODIFIER__CONSTANT_VALUE)
+        }
+    }
+
+    private static class NameDeclaration {
+        String name;
+        EObject declaringObject;
+
+        new(String n, EObject o) {
+            this.name = n
+            this.declaringObject = o
+        }
+    }
+    
+    private def void validateAllTypeNamesAreUnique(List<NameDeclaration> nameDeclarations, Map<String, EObject> names) {
+        nameDeclarations.forEach [ nd |
+            val existing = names.put(nd.name, nd.declaringObject)
+            if (existing !== null) {
+                val existingNode = NodeModelUtils.getNode(existing)
+                val featureId = switch nd.declaringObject {
+                    MemberPrimitiveTypeDeclaration:
+                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
+                    default: // all others are descendants of type declaration
+                        SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
+                }
+                error(
+                    '''Duplicate (case-insensitive) name [«nd.name»]; previous declaration at line «existingNode.startLine»''',
+                    nd.declaringObject,
+                    featureId
+                )
+            }
+            if (nd.declaringObject instanceof CompositeTypeDeclaration) {
+                val composite = nd.declaringObject as CompositeTypeDeclaration
+                validateAllTypeNamesAreUnique(composite.compositeMembers.map [ cm |
+                    switch cm {
+                        MemberPrimitiveTypeDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        MemberRefTypeDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        SetDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        EnumDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                        CompositeTypeDeclaration:
+                            new NameDeclaration(cm.name, cm)
+                    }
+                ], names)
+            }
+        ]
+    }
+
 }
