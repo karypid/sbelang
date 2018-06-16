@@ -18,6 +18,7 @@ import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
@@ -43,8 +44,12 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkAllTypeNamesAreUnique(MessageSchema messageSchema) {
-        validateAllTypeNamesAreUnique(messageSchema.typeDelcarations.map[t|new NameDeclaration(t.name, t)],
-            new HashMap<String, EObject>())
+        try {
+            validateAllTypeNamesAreUnique(messageSchema.typeDelcarations.map[t|new NameDeclaration(t.name, t)],
+                new HashMap<String, EObject>())
+        } catch (Exception e) {
+            e.printStackTrace
+        }
     }
 
     @Check
@@ -104,6 +109,35 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             if ((sd.versionModifiers !== null) && (choice.versionModifiers !== null)) {
                 validateVersionAgainstContainer(choice.versionModifiers, sd.versionModifiers, choice,
                     SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__VERSION_MODIFIERS)
+            }
+        }
+    }
+
+    @Check
+    def checkComposite(CompositeTypeDeclaration ctd) {
+        val Map<String, MemberTypeDeclaration> names = new HashMap()
+        for (cm : ctd.compositeMembers) {
+            if (cm instanceof MemberPrimitiveTypeDeclaration) {
+                val existingName = names.put(cm.name, cm)
+                if (existingName !== null) {
+                    val existingNode = NodeModelUtils.getNode(existingName)
+                    error(
+                        '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
+                        cm,
+                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
+                    )
+                }
+            }
+            if (cm instanceof MemberRefTypeDeclaration) {
+                val existingName = names.put(cm.name, cm)
+                if (existingName !== null) {
+                    val existingNode = NodeModelUtils.getNode(existingName)
+                    error(
+                        '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
+                        cm,
+                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
+                    )
+                }
             }
         }
     }
@@ -301,7 +335,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                 )
             }
         }
-        
+
         if (toValidate.deprecatedSinceVersion !== null) {
             if ((containerVersions.sinceVersion !== null) &&
                 (toValidate.deprecatedSinceVersion <= containerVersions.sinceVersion)) {
@@ -324,37 +358,45 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     private def void validateAllTypeNamesAreUnique(List<NameDeclaration> nameDeclarations, Map<String, EObject> names) {
         nameDeclarations.forEach [ nd |
-            val existing = names.put(nd.name, nd.declaringObject)
-            if (existing !== null) {
-                val existingNode = NodeModelUtils.getNode(existing)
-                val featureId = switch nd.declaringObject {
-                    MemberPrimitiveTypeDeclaration:
-                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
-                    default: // all others are descendants of type declaration
-                        SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
-                }
-                error(
-                    '''Duplicate (case-insensitive) name [«nd.name»]; previous declaration at line «existingNode.startLine»''',
-                    nd.declaringObject,
-                    featureId
-                )
-            }
-            if (nd.declaringObject instanceof CompositeTypeDeclaration) {
-                val composite = nd.declaringObject as CompositeTypeDeclaration
-                validateAllTypeNamesAreUnique(composite.compositeMembers.map [ cm |
-                    switch cm {
+            if (nd !== null) {
+                val existing = names.put(nd.name, nd.declaringObject)
+                if (existing !== null) {
+                    val existingNode = NodeModelUtils.getNode(existing)
+                    val featureId = switch nd.declaringObject {
                         MemberPrimitiveTypeDeclaration:
-                            new NameDeclaration(cm.name, cm)
+                            SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
                         MemberRefTypeDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        SetDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        EnumDeclaration:
-                            new NameDeclaration(cm.name, cm)
-                        CompositeTypeDeclaration:
-                            new NameDeclaration(cm.name, cm)
+                            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
+                        default: // all others are descendants of type declaration
+                            SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
                     }
-                ], names)
+                    error(
+                        '''Duplicate (case-insensitive) name [«nd.name»]; previous declaration at line «existingNode.startLine»''',
+                        nd.declaringObject,
+                        featureId
+                    )
+                }
+                if (nd.declaringObject instanceof CompositeTypeDeclaration) {
+                    val composite = nd.declaringObject as CompositeTypeDeclaration
+                    validateAllTypeNamesAreUnique(composite.compositeMembers.map [ cm |
+                        switch cm {
+                            // MemberPrimitiveTypeDeclaration and MemberRefTypeDeclaration are confined within composites
+                            // so they are more like fields: they are NOT reusable types. Uniqueness check should be local
+                            // ------------------------------------------------------------------------------------------------
+                            // MemberPrimitiveTypeDeclaration:
+                            // new NameDeclaration(cm.name, cm)
+                            // MemberRefTypeDeclaration:
+                            // new NameDeclaration(cm.name, cm)
+                            SetDeclaration:
+                                new NameDeclaration(cm.name, cm)
+                            EnumDeclaration:
+                                new NameDeclaration(cm.name, cm)
+                            CompositeTypeDeclaration:
+                                new NameDeclaration(cm.name, cm)
+                        }
+                    ], names)
+                }
+
             }
         ]
     }
