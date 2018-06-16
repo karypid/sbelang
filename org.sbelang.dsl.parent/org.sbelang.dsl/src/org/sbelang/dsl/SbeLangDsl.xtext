@@ -8,7 +8,7 @@ MessageSchema:
     'types' '{'
     typeDelcarations+=TypeDeclaration+
     '}'
-    messageDeclarations+=MessageDeclaration;
+    messageDeclarations+=MessageDeclaration*;
 
 SchemaDeclaration:
 // schema org.sbelang.example id=1 version=1
