@@ -25,6 +25,7 @@ Export-Package: org.sbelang.dsl.services,
  org.sbelang.dsl,
  org.sbelang.dsl.sbeLangDsl.util,
  org.sbelang.dsl.sbeLangDsl,
- org.sbelang.dsl.serializer
+ org.sbelang.dsl.serializer,
+ org.sbelang.dsl.formatting2
 Import-Package: org.apache.log4j
 Automatic-Module-Name: org.sbelang.dsl
