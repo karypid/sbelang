@@ -7,6 +7,7 @@ import java.util.HashMap
 import java.util.List
 import java.util.Map
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.validation.Check
@@ -21,13 +22,13 @@ import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
+import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 import static org.sbelang.dsl.SbeLangDslValueUtils.isValidLiteral
-import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -89,7 +90,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     choice,
                     SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__VALUE
                 )
-            
+
             val existingValue = values.put(choice.value, choice)
             if (existingValue !== null) {
                 val existingNode = NodeModelUtils.getNode(existingValue)
@@ -98,6 +99,11 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     choice,
                     SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__VALUE
                 )
+            }
+
+            if ((sd.versionModifiers !== null) && (choice.versionModifiers !== null)) {
+                validateVersionAgainstContainer(choice.versionModifiers, sd.versionModifiers, choice,
+                    SbeLangDslPackage.Literals.SET_CHOICE_DECLARATION__VERSION_MODIFIERS)
             }
         }
     }
@@ -142,6 +148,11 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                         ev,
                         SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VALUE
                     )
+            }
+
+            if ((ed.versionModifiers !== null) && (ev.versionModifiers !== null)) {
+                validateVersionAgainstContainer(ev.versionModifiers, ed.versionModifiers, ev,
+                    SbeLangDslPackage.Literals.ENUM_VALUE_DECLARATION__VERSION_MODIFIERS)
             }
         }
     }
@@ -200,27 +211,19 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
-    def checkVersionModifiers(VersionModifiers vm) {
-        if (vm.sinceVersion !== null) {
-            val ms = EcoreUtil.getRootContainer(vm) as MessageSchema
+    def checkVersionModifiersAgainstSchemaVersion(VersionModifiers vm) {
+        val ms = EcoreUtil.getRootContainer(vm) as MessageSchema
 
+        if (vm.sinceVersion !== null) {
             if (vm.sinceVersion > ms.schema.version) {
                 error(
                     '''The sinceVersion(«vm.sinceVersion») value cannot be greater than the schema version(«ms.schema.version») value!''',
                     vm,
-                    SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
+                    SbeLangDslPackage.Literals.VERSION_MODIFIERS__SINCE_VERSION
                 )
             }
 
             if (vm.deprecatedSinceVersion !== null) {
-                if (vm.deprecatedSinceVersion > ms.schema.version) {
-                    error(
-                        '''The deprecatedSinceVersion(«vm.deprecatedSinceVersion») value cannot be greater than the schema version(«ms.schema.version») value!''',
-                        vm,
-                        SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
-                    )
-                }
-
                 if (vm.deprecatedSinceVersion <= vm.sinceVersion) {
                     error(
                         '''The deprecatedSinceVersion(«vm.deprecatedSinceVersion») value must be greater than the since version(«vm.sinceVersion») value!''',
@@ -228,6 +231,16 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                         SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
                     )
                 }
+            }
+        }
+
+        if (vm.deprecatedSinceVersion !== null) {
+            if (vm.deprecatedSinceVersion > ms.schema.version) {
+                error(
+                    '''The deprecatedSinceVersion(«vm.deprecatedSinceVersion») value cannot be greater than the schema version(«ms.schema.version») value!''',
+                    vm,
+                    SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
+                )
             }
         }
     }
@@ -265,6 +278,47 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         new(String n, EObject o) {
             this.name = n
             this.declaringObject = o
+        }
+    }
+
+    private def validateVersionAgainstContainer(VersionModifiers toValidate, VersionModifiers containerVersions,
+        EObject errorTarget, EStructuralFeature errorTargetAttr) {
+        if (toValidate.sinceVersion !== null) {
+            if ((containerVersions.sinceVersion !== null) &&
+                (toValidate.sinceVersion < containerVersions.sinceVersion)) {
+                error(
+                    '''Can not have a [sinceVersion=«toValidate.sinceVersion»] in the past relative to container's [sinceVersion=«containerVersions.sinceVersion»]''',
+                    errorTarget,
+                    errorTargetAttr
+                )
+            }
+            if ((containerVersions.deprecatedSinceVersion !== null) &&
+                (toValidate.sinceVersion >= containerVersions.deprecatedSinceVersion)) {
+                error(
+                    '''Can not have a [sinceVersion=«toValidate.sinceVersion»] after container is already deprecated [deprecatedSinceVersion=«containerVersions.deprecatedSinceVersion»]''',
+                    errorTarget,
+                    errorTargetAttr
+                )
+            }
+        }
+        
+        if (toValidate.deprecatedSinceVersion !== null) {
+            if ((containerVersions.sinceVersion !== null) &&
+                (toValidate.deprecatedSinceVersion <= containerVersions.sinceVersion)) {
+                error(
+                    '''The [deprecatedSinceVersion=«toValidate.deprecatedSinceVersion»] must be after the container's [sinceVersion=«containerVersions.sinceVersion»]''',
+                    errorTarget,
+                    errorTargetAttr
+                )
+            }
+            if ((containerVersions.deprecatedSinceVersion !== null) &&
+                (toValidate.deprecatedSinceVersion > containerVersions.deprecatedSinceVersion)) {
+                error(
+                    '''Can not have a [deprecatedSinceVersion=«toValidate.deprecatedSinceVersion»] after container is already deprecated [deprecatedSinceVersion=«containerVersions.deprecatedSinceVersion»]''',
+                    errorTarget,
+                    errorTargetAttr
+                )
+            }
         }
     }
 
