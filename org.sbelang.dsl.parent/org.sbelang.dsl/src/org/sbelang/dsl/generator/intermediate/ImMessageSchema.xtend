@@ -3,6 +3,10 @@ package org.sbelang.dsl.generator.intermediate
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import java.nio.ByteOrder
 import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs
+import java.nio.file.Paths
+import java.nio.file.Path
+import java.io.File
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 
 class ImMessageSchema {
     static val DEFAULT_HEADER_TYPE_NAME = "org.sbelang.DefaultHeader"
@@ -16,6 +20,8 @@ class ImMessageSchema {
     public val String schemaByteOrderConstant;
     public val String headerTypeName
 
+    public val Path packagePath
+
     new(MessageSchema rawSchema) {
         this.rawSchema = rawSchema
 
@@ -23,8 +29,22 @@ class ImMessageSchema {
         this.schemaId = rawSchema.schema.id
         this.schemaVersion = rawSchema.schema.version
         this.schemaByteOrder = parseByteOrder(rawSchema.schema.optionalAttrs)
-        this.schemaByteOrderConstant = if (schemaByteOrder === ByteOrder.BIG_ENDIAN) "BIG_ENDIAN" else "LITTLE_ENDIAN"
+        this.schemaByteOrderConstant = if(schemaByteOrder === ByteOrder.BIG_ENDIAN) "BIG_ENDIAN" else "LITTLE_ENDIAN"
         this.headerTypeName = parseHeaderTypeName(rawSchema.schema.optionalAttrs)
+
+        this.packagePath = {
+            val String[] components = schemaName.split("\\.")
+            val schemaPath = Paths.get(".", components)
+            Paths.get(".").relativize(schemaPath).normalize
+        }
+    }
+
+    def filename(String filename) {
+        packagePath.toString + File.separatorChar + filename
+    }
+    
+    def getEnumDeclarations() {
+        rawSchema.typeDelcarations.filter(EnumDeclaration)
     }
 
     private def parseByteOrder(OptionalSchemaAttrs attrs) {
