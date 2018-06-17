@@ -24,6 +24,7 @@ import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 import org.sbelang.dsl.sbeLangDsl.RawDataBlockDeclaration
+import org.sbelang.dsl.SbeLangDslValueUtils
 
 /**
  * Generates XML from your model files on save.
@@ -94,12 +95,12 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             </«tag»>
         '''
     }
-    
+
     private def compile(RawDataBlockDeclaration dataBlock) {
-        if (dataBlock === null) return ''''''
+        if(dataBlock === null) return ''''''
         '''
             «FOR dataField : dataBlock.varDataDeclarations»
-            <data name="«dataField.name»" id="«dataField.id»" type="«dataField.dataEncodingType.name»">
+                <data name="«dataField.name»" id="«dataField.id»" type="«dataField.dataEncodingType.name»" />
             «ENDFOR»
         '''
     }
@@ -127,7 +128,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             val sinceV = vm.sinceVersion;
             val depV = vm.deprecatedSinceVersion;
 
-            '''«IF sinceV !== null» sinceVersion="«sinceV»"«ENDIF»«IF depV !== null» deprecated="«depV»"«ENDIF»"'''
+            '''«IF sinceV !== null» sinceVersion="«sinceV»"«ENDIF»«IF depV !== null» deprecated="«depV»"«ENDIF»'''
         } else {
             ""
         }
@@ -168,7 +169,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <enum name="«ed.name»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
-                    <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«enumVal.value»</validValue>
+                    <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
                 «ENDFOR»
             </enum>
         '''
@@ -209,7 +210,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     private def memberTypeRange(MemberTypeDeclaration mtd) {
         if (mtd instanceof MemberPrimitiveTypeDeclaration) {
             if (mtd.rangeModifiers !== null)
-                '''«IF mtd.rangeModifiers.min !== null» minValue="«mtd.rangeModifiers.min»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«mtd.rangeModifiers.max»"«ENDIF»'''
+                '''«IF mtd.rangeModifiers.min !== null» minValue="«constLiteral(mtd.rangeModifiers.min)»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«constLiteral(mtd.rangeModifiers.max)»"«ENDIF»'''
         } else {
             ""
         }
@@ -223,9 +224,27 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     def closeTag(String tag, EObject presence) {
         switch presence {
-            PresenceConstantModifier: '''>«presence.constantValue»</«tag»>'''
+            PresenceConstantModifier: {
+                val constant = constLiteral(presence.constantValue)
+                '''>«constant»</«tag»>'''
+            }
             // PresenceOptionalModifier
             default: '''/>'''
+        }
+    }
+
+    private def constLiteral(String value) {
+        val oc = SbeLangDslValueUtils.parseCharacter(value)
+        if (oc.present)
+            oc.get.toString
+        else {
+            val oi = SbeLangDslValueUtils.parseBigInteger(value)
+            if (oi.present)
+                oi.get.toString
+            else {
+                val od = SbeLangDslValueUtils.parseBigDecimal(value)
+                od.get.toString
+            }
         }
     }
 
