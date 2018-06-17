@@ -169,12 +169,21 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         '''
             <enum name="«ed.name»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
-                    <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
+                    «IF "NULL_VAL" == enumVal.name»
+                        <!--
+                        WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+                        an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+                        
+                        <validValue name="NULL_VAL"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
+                        -->
+                    «ELSE»
+                        <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
+                    «ENDIF»
                 «ENDFOR»
             </enum>
         '''
     }
-
+    
     private def compile(SetDeclaration sd) {
         '''
             <set name="«sd.name»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
