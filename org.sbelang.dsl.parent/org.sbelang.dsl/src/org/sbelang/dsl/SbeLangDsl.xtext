@@ -41,7 +41,7 @@ EnumValueDeclaration:
     name=Name '(' value=EnumValue ')' versionModifiers=VersionModifiers;
 
 EnumValue:
-    INT | CHAR;
+    INT | CHAR | CHAR_OCTAL;
 
 VersionModifiers:
     {VersionModifiers}
@@ -149,5 +149,8 @@ OptionalChar returns ecore::ECharacterObject:
 // A value converter extracts the proper character
     CHAR;
 
+terminal CHAR_OCTAL:
+    "'" '\\' ('0'..'9') ('0'..'9') ('0'..'9') "'";
+    
 terminal CHAR:
     "'" ('\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\' | "'")) "'";

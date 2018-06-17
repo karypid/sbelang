@@ -84,29 +84,69 @@
             <validValue name="NO">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FIVE">255</validValue>
         </enum>
+        <enum name="e_Char_nvd" encodingType="char">
+            <validValue name="ONE">1</validValue>
+            <validValue name="TWO">2</validValue>
+            <!--
+            WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+            an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+            
+            <validValue name="NULL_VAL"> </validValue>
+            -->
+        </enum>
         <enum name="e_Uint8_nvd" encodingType="uint8">
             <validValue name="ZERO">0</validValue>
             <validValue name="ONE">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FOUR">254</validValue>
+            <!--
+            WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+            an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+            
             <validValue name="NULL_VAL">255</validValue>
+            -->
         </enum>
         <enum name="e_Uint16_nvd" encodingType="uint16">
             <validValue name="YES">0</validValue>
             <validValue name="NO">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FIVE">255</validValue>
+            <!--
+            WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+            an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+            
             <validValue name="NULL_VAL">65535</validValue>
+            -->
+        </enum>
+        <enum name="e_Char_nvo" encodingType="char">
+            <validValue name="ONE">1</validValue>
+            <validValue name="TWO">2</validValue>
+            <!--
+            WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+            an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+            
+            <validValue name="NULL_VAL"> </validValue>
+            -->
         </enum>
         <enum name="e_Uint8_nvo" encodingType="uint8">
             <validValue name="ZERO">0</validValue>
             <validValue name="ONE">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FOUR">254</validValue>
+            <!--
+            WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+            an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+            
             <validValue name="NULL_VAL">42</validValue>
+            -->
         </enum>
         <enum name="e_Uint16_nvo" encodingType="uint16">
             <validValue name="YES">0</validValue>
             <validValue name="NO">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FIVE">255</validValue>
+            <!--
+            WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
+            an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
+            
             <validValue name="NULL_VAL">42</validValue>
+            -->
         </enum>
         
         <set name="s_uint8" encodingType="uint8">
@@ -199,22 +239,16 @@
         </composite>
     </types>
     
-    <message name="TestMessage" id="1">
-        <field name="fChar" id="1" type="t_char"/>
-        <field name="fUint8" id="2" type="t_uint8"/>
-        <field name="fInt8" id="3" type="t_int8"/>
-        <field name="fInt8Array" id="4" type="t_int16Array" sinceVersion="1" deprecated="2"/>
-        <field name="fEnumChar" id="5" type="e_Char"/>
-        <field name="fSetUint8" id="6" type="s_uint8"/>
-        <field name="fTestComposite" id="7" type="TestComposite"/>
-        <group name="TestGroup" id="8">
-            <field name="gfDoubleArray" id="1" type="t_doubleArray"/>
-            <field name="gfEnumTopLevelUint8" id="2" type="e_Uint8"/>
-            <field name="gfSetTopLevelUint16" id="3" type="s_uint16"/>
-            <field name="gfTestCompositeAttrs" id="4" type="TestCompositeAttrs" sinceVersion="2"/>
-        </group>
-        <data name="fVarRawData1" id="9" type="DATA" />
-        <data name="fVarRawData2" id="9" type="DATA" />
+    <message name="MsgEnumerations" id="1">
+        <field name="f_e_Char" id="1" type="e_Char" presence="optional"/>
+        <field name="f_e_Char_nvd" id="2" type="e_Char_nvd" presence="optional"/>
+        <field name="f_e_Char_nvo" id="3" type="e_Char_nvo" presence="optional"/>
+        <field name="f_e_Uint8" id="4" type="e_Uint8"/>
+        <field name="f_e_Uint8_nvd" id="5" type="e_Uint8_nvd"/>
+        <field name="f_e_Uint8_nvo" id="6" type="e_Uint8_nvo"/>
+        <field name="f_e_Uint16" id="7" type="e_Uint16"/>
+        <field name="f_e_Uint16_nvd" id="8" type="e_Uint16_nvd"/>
+        <field name="f_e_Uint16_nvo" id="9" type="e_Uint16_nvo"/>
     </message>
     <message name="TestMessage2" id="2">
         <field name="fChar" id="1" type="t_char"/>

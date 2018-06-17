@@ -7,15 +7,19 @@ import java.util.Optional
 
 class SbeLangDslValueUtils {
     public static val char SINGLE_QUOTE = '\''
+    public static val char BACKSLASH = '\\'
 
     static def isValidCharLiteral(String literal) {
         if (literal === null)
             false
-        else if ((literal.length() !== 3) || (literal.charAt(0) !== SINGLE_QUOTE) ||
-            (literal.charAt(2) !== SINGLE_QUOTE))
-            false
-        else
+        else if ((literal.length() == 3) && (literal.charAt(0) === SINGLE_QUOTE) &&
+            (literal.charAt(2) === SINGLE_QUOTE))
             true
+        else if ((literal.length() == 6) && (literal.charAt(0) === SINGLE_QUOTE) && (literal.charAt(1) === BACKSLASH) &&
+            (literal.charAt(5) === SINGLE_QUOTE))
+            true
+        else
+            false
     }
 
     static def isValidLiteral(String literal, String primitiveType) {
@@ -75,10 +79,19 @@ class SbeLangDslValueUtils {
     }
 
     static def Optional<Character> parseCharacter(String toParse) {
-        if (isValidCharLiteral(toParse))
-            Optional.of(Character.valueOf(toParse.charAt(1)))
-        else
-            Optional.empty();
+        if (toParse === null)
+            Optional.empty
+        else if ((toParse.length === 3) && (toParse.charAt(0) === SINGLE_QUOTE) && (toParse.charAt(2) === SINGLE_QUOTE))
+            Optional.of(toParse.charAt(1))
+        else if ((toParse.length() == 6) && (toParse.charAt(0) === SINGLE_QUOTE) && (toParse.charAt(1) === BACKSLASH) &&
+            (toParse.charAt(5) === SINGLE_QUOTE)) {
+            val byte ascii = Byte.valueOf(toParse.substring(2, 5))
+            // TODO: how on earth does xtend cast to char primitive?
+            val byte[] input = #[ascii]
+            val char c = new String(input).charAt(0)
+            Optional.of(c)
+        } else
+            Optional.empty
     }
 
     static def Optional<BigInteger> parseBigInteger(String toParse) {
