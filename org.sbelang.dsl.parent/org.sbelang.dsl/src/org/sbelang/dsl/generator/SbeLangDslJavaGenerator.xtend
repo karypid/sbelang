@@ -4,6 +4,8 @@ import java.nio.ByteOrder
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
+import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
+import org.eclipse.emf.common.util.EList
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
@@ -22,42 +24,69 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         generateEnums(fsa, schema)
     }
 
-    private def javaType(String sbePrimitive) {
+    private def enumJavaType(String sbePrimitive) {
         switch sbePrimitive {
-            case 'char',
-            case 'float',
-            case 'double' : sbePrimitive
-            case 'int8': 'byte'
-            case 'int16': 'short'
-            case 'int32': 'int'
-            case 'int64': 'long'
-            case 'uint8': 'byte'
-            case 'uint16': 'short'
-            case 'uint32': 'int'
-            case 'uint64': 'long'
-            default: throw new IllegalArgumentException('No mapping for: ' + sbePrimitive)
+            case 'char' : 'byte'
+            case 'uint8': 'short'
+            case 'uint16': 'int'
+            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
         }
     }
 
     private def generateEnums(IFileSystemAccess2 fsa, ImMessageSchema imSchema) {
         imSchema.enumDeclarations.forEach [ ed |
-            val enumValueJavaType = javaType(ed.encodingType)
+            val enumValueJavaType = enumJavaType(ed.encodingType)
+            val enumName = ed.name
             fsa.generateFile(imSchema.filename(ed.name + ".java"), '''
                 package  «imSchema.schemaName»;
-                public enum «ed.name» {
+                public enum «enumName»
+                {
                     «FOR ev : ed.enumValues»
-                        «ev.name»(«ev.value»),
-                    «ENDFOR»
+                        «ev.name»( («enumValueJavaType») «ev.value» ),
+                    «ENDFOR»«IF !hasExplicitNull(ed.enumValues)»
+                        NULL_VAL ( («enumValueJavaType») «defaultNullValue(ed.encodingType)» )
+                    «ENDIF»
                     ;
                     
                     public final «enumValueJavaType» value;
                     
-                    private «ed.name»(«enumValueJavaType» value) {
+                    private «ed.name»(«enumValueJavaType» value)
+                    {
                         this.value = value;
+                    }
+                    
+                    public «enumValueJavaType» value()
+                    {
+                        return value;
+                    }
+                    
+                    public static «enumName» get ( «enumValueJavaType» value )
+                    {
+                        switch ( value )
+                        {
+                            «FOR ev : ed.enumValues»
+                            case «ev.value»: return «ev.name»;
+                            «ENDFOR»
+                            default:
+                                throw new IllegalArgumentException ( "Unknown value: " + value );
+                        }
                     }
                 }
             ''')
         ]
+    }
+
+    private def defaultNullValue(String enumEncodingType) {
+        switch (enumEncodingType) {
+            case 'char': '0'
+            case 'uint8': '255'
+            case 'uint16': '65535'
+            default: throw new IllegalStateException("Encoding not supported for enums: " + enumEncodingType)
+        }
+    }
+
+    private def boolean hasExplicitNull(EList<EnumValueDeclaration> enumValues) {
+        enumValues.exists[evd|evd.name == "NULL_VAL"]
     }
 
     private def generateMessageSchema(ImMessageSchema imSchema) {
