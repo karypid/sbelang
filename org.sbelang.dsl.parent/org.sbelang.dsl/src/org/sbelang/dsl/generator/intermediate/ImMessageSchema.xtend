@@ -1,12 +1,17 @@
 package org.sbelang.dsl.generator.intermediate
 
-import org.sbelang.dsl.sbeLangDsl.MessageSchema
-import java.nio.ByteOrder
-import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs
-import java.nio.file.Paths
-import java.nio.file.Path
+import com.google.common.collect.Iterables
 import java.io.File
+import java.nio.ByteOrder
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.Collections
+import java.util.HashMap
+import java.util.Map
+import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.MessageSchema
+import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs
 
 class ImMessageSchema {
     static val DEFAULT_HEADER_TYPE_NAME = "org.sbelang.DefaultHeader"
@@ -21,6 +26,9 @@ class ImMessageSchema {
     public val String headerTypeName
 
     public val Path packagePath
+
+    public val Map<String, EnumDeclaration> fqnEnumsMap = new HashMap();
+    public val Map<String, CompositeTypeDeclaration> fqnCompositesMap = new HashMap();
 
     new(MessageSchema rawSchema) {
         this.rawSchema = rawSchema
@@ -37,14 +45,43 @@ class ImMessageSchema {
             val schemaPath = Paths.get(".", components)
             Paths.get(".").relativize(schemaPath).normalize
         }
+
+        rawSchema.typeDelcarations.filter(EnumDeclaration).forEach [ ed |
+            fqnEnumsMap.put(schemaName + "." + ed.name, ed)
+        ]
+
+        val topLevelComposites = rawSchema.typeDelcarations.filter(CompositeTypeDeclaration)
+        collectComposites(topLevelComposites, schemaName + ".", fqnCompositesMap)
+    }
+
+    private def void collectComposites(Iterable<CompositeTypeDeclaration> declarations, String prefix,
+        Map<String, CompositeTypeDeclaration> map) {
+        declarations.forEach [ ctd |
+            val compositeName = ctd.name.toFirstUpper
+            fqnCompositesMap.put(prefix + compositeName, ctd)
+            collectComposites(ctd.compositeMembers.filter(CompositeTypeDeclaration), prefix + compositeName + ".", map)
+        ]
     }
 
     def filename(String filename) {
         packagePath.toString + File.separatorChar + filename
     }
-    
+
     def getEnumDeclarations() {
         rawSchema.typeDelcarations.filter(EnumDeclaration)
+    }
+
+    def getCompositeTypeDeclarations() {
+        val topLevelCompositeTypes = rawSchema.typeDelcarations.filter(CompositeTypeDeclaration)
+        expandNestedComposites(topLevelCompositeTypes)
+    }
+
+    private def Iterable<CompositeTypeDeclaration> expandNestedComposites(
+        Iterable<CompositeTypeDeclaration> declarations) {
+        declarations.flatMap [ c |
+            val nestedComposites = c.compositeMembers.filter(CompositeTypeDeclaration)
+            Iterables.concat(Collections.singleton(c), expandNestedComposites(nestedComposites))
+        ]
     }
 
     private def parseByteOrder(OptionalSchemaAttrs attrs) {
