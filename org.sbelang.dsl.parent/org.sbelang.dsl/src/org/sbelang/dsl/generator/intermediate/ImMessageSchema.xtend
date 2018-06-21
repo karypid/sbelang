@@ -54,34 +54,8 @@ class ImMessageSchema {
         collectComposites(topLevelComposites, schemaName + ".", fqnCompositesMap)
     }
 
-    private def void collectComposites(Iterable<CompositeTypeDeclaration> declarations, String prefix,
-        Map<String, CompositeTypeDeclaration> map) {
-        declarations.forEach [ ctd |
-            val compositeName = ctd.name.toFirstUpper
-            fqnCompositesMap.put(prefix + compositeName, ctd)
-            collectComposites(ctd.compositeMembers.filter(CompositeTypeDeclaration), prefix + compositeName + ".", map)
-        ]
-    }
-
     def filename(String filename) {
         packagePath.toString + File.separatorChar + filename
-    }
-
-    def getEnumDeclarations() {
-        rawSchema.typeDelcarations.filter(EnumDeclaration)
-    }
-
-    def getCompositeTypeDeclarations() {
-        val topLevelCompositeTypes = rawSchema.typeDelcarations.filter(CompositeTypeDeclaration)
-        expandNestedComposites(topLevelCompositeTypes)
-    }
-
-    private def Iterable<CompositeTypeDeclaration> expandNestedComposites(
-        Iterable<CompositeTypeDeclaration> declarations) {
-        declarations.flatMap [ c |
-            val nestedComposites = c.compositeMembers.filter(CompositeTypeDeclaration)
-            Iterables.concat(Collections.singleton(c), expandNestedComposites(nestedComposites))
-        ]
     }
 
     private def parseByteOrder(OptionalSchemaAttrs attrs) {
@@ -91,6 +65,15 @@ class ImMessageSchema {
             ByteOrder.BIG_ENDIAN
         else
             ByteOrder.LITTLE_ENDIAN
+    }
+
+    private def void collectComposites(Iterable<CompositeTypeDeclaration> declarations, String prefix,
+        Map<String, CompositeTypeDeclaration> map) {
+        declarations.forEach [ ctd |
+            val compositeName = ctd.name.toFirstUpper
+            fqnCompositesMap.put(prefix + compositeName, ctd)
+            collectComposites(ctd.compositeMembers.filter(CompositeTypeDeclaration), prefix + compositeName + ".", map)
+        ]
     }
 
     private def parseHeaderTypeName(OptionalSchemaAttrs attrs) {
