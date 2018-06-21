@@ -5,9 +5,11 @@ import org.eclipse.emf.common.util.EList
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
-import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
-import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
@@ -30,7 +32,8 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
         imSchema.fqnCompositesMap.forEach [ compositeName, ctd |
             System.out.println(compositeName + ": " + ctd.name)
-            fsa.generateFile(imSchema.filename(ctd.name.toFirstUpper + ".java"), compileComposite(imSchema, ctd))
+            fsa.generateFile(imSchema.filename(ctd.name.toFirstUpper + "Encoder.java"),
+                compileCompositeEncoder(imSchema, ctd))
         ]
     }
 
@@ -39,6 +42,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         val enumValueJavaType = enumJavaType(ed.encodingType)
         '''
             package  «imSchema.schemaName»;
+            
             public enum «enumName»
             {
                 «FOR ev : ed.enumValues»
@@ -75,14 +79,78 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         '''
     }
 
-    private def compileComposite(ImMessageSchema imSchema, CompositeTypeDeclaration ctd) {
-        val compositeName = ctd.name.toFirstUpper
+    private def compileCompositeEncoder(ImMessageSchema imSchema, CompositeTypeDeclaration ctd) {
+        val compositeName = ctd.name.toFirstUpper + 'Encoder'
         '''
             package  «imSchema.schemaName»;
+            
+            import org.agrona.MutableDirectBuffer;
+            
             public class «compositeName»
             {
-                // TODO
+                public static final int ENCODED_LENGTH = (-1 /* TODO */);
+                
+                private int offset;
+                private MutableDirectBuffer buffer;
+
+                public «compositeName» wrap(final MutableDirectBuffer buffer, final int offset)
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+            
+                    return this;
+                }
+            
+                public MutableDirectBuffer buffer()
+                {
+                    return buffer;
+                }
+            
+                public int offset()
+                {
+                    return offset;
+                }
+            
+                public int encodedLength()
+                {
+                    return ENCODED_LENGTH;
+                }
+
+                «FOR cm : ctd.compositeMembers»
+                    «compileEncoderFor(cm)»
+                «ENDFOR»
             }
+        '''
+    }
+
+    private def compileEncoderFor(CompositeMember cm) {
+        switch cm {
+            CompositeTypeDeclaration:
+                compileEncoderFor(cm)
+            MemberTypeDeclaration:
+                compileEncoderFor(cm)
+            default: '''// Not implemented yet'''
+        }
+    }
+
+    private def compileEncoderFor(CompositeTypeDeclaration cm) {
+        val encoderClassSimpleName = cm.name.toFirstUpper + 'Encoder'
+        val encoderVarName = cm.name
+        '''
+            // «encoderClassSimpleName»
+            private «encoderClassSimpleName» «encoderVarName» = new «encoderClassSimpleName»();
+            
+            public «encoderClassSimpleName» «encoderVarName»()
+            {
+                «encoderVarName».wrap(buffer, offset + (-1 /* TODO */) );
+                return «encoderVarName»;
+            }
+            
+        '''
+    }
+
+    private def compileEncoderFor(MemberTypeDeclaration cm) {
+        '''
         '''
     }
 

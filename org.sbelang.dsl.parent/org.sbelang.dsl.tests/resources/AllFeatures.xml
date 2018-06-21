@@ -223,8 +223,11 @@
                 <validValue name="NESTED_NO">0</validValue>
                 <validValue name="NESTED_YES">1</validValue>
             </enum>
-            <composite name="NestedComposite">
+            <composite name="TestCompositeNested">
                 <type name="nestedInt8" primitiveType="int8"/>
+                <composite name="TestCompositeNestedNested">
+                    <type name="nestedNestedInt8" primitiveType="int8"/>
+                </composite>
             </composite>
             <type name="cCharMinMax" primitiveType="char" minValue="a" maxValue="d" presence="optional"/>
             <type name="cInt8Min" primitiveType="int8" minValue="-128" maxValue="127"/>
@@ -236,6 +239,9 @@
             <type name="cInt32MaxOpt" primitiveType="int32" maxValue="100" presence="optional"/>
             <type name="cInt32MinMaxOpt" primitiveType="int32" minValue="-111" maxValue="-9" presence="optional"/>
             <type name="cInt32MinConst" primitiveType="int32" presence="constant">2</type>
+            <composite name="TestCompositeSecondNested">
+                <type name="nestedInt8" primitiveType="int8"/>
+            </composite>
         </composite>
     </types>
     
