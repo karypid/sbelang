@@ -1,11 +1,9 @@
 package org.sbelang.dsl.generator.intermediate
 
-import com.google.common.collect.Iterables
 import java.io.File
 import java.nio.ByteOrder
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.Collections
 import java.util.HashMap
 import java.util.Map
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
