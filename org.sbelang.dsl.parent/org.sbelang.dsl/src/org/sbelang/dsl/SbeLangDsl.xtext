@@ -71,11 +71,6 @@ MemberTypeDeclaration:
     MemberPrimitiveTypeDeclaration /* XSD "memberDataType" */;
 
 MemberRefTypeDeclaration:
-// TODO: reference can point to an enum/set or other composite
-// the SBE 2.0 schema has a symbolic name with a comment that
-// excludes other composites; need to check and confirm that
-
-// XSD comment: A reference to any existing encoding type (simple type, enum or set)
     name=Name ':' type=[TypeDeclaration] presence=PresenceModifiers?;
 
 
