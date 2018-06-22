@@ -117,30 +117,31 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 }
 
                 «FOR cm : ctd.compositeMembers»
-                    «compileEncoderFor(cm)»
+                    «compileEncoderFor(imSchema, ctd, cm)»
                 «ENDFOR»
             }
         '''
     }
 
-    private def compileEncoderFor(CompositeMember cm) {
+    private def compileEncoderFor(ImMessageSchema imSchema, CompositeTypeDeclaration ctd, CompositeMember cm) {
         switch cm {
             CompositeTypeDeclaration:
-                compileEncoderFor(cm)
+                compileEncoderFor(imSchema, ctd, cm)
             MemberTypeDeclaration:
                 compileEncoderFor(cm)
             default: '''// Not implemented yet'''
         }
     }
 
-    private def compileEncoderFor(CompositeTypeDeclaration cm) {
+    private def compileEncoderFor(ImMessageSchema imSchema, CompositeTypeDeclaration ctd, CompositeTypeDeclaration cm) {
         val encoderClassSimpleName = cm.name.toFirstUpper + 'Encoder'
         val encoderVarNameL = cm.name.toFirstLower
+        val fieldIndex = imSchema.getFieldIndex(ctd.name)
         '''
             // «encoderClassSimpleName»
             public static int «encoderVarNameL»EncodingOffset()
             {
-                return (-1 /* TODO */);
+                return («fieldIndex.getOffset(cm.name)»);
             }
             
             public static int «encoderVarNameL»EncodingLength()

@@ -46,7 +46,7 @@
                         </systemProperty>
                     </systemProperties>
                     <arguments>
-                        <argument>${project.basedir}/src/org/sbelang/dsl/tests/AllFeatures.xml</argument>
+                        <argument>${project.basedir}/resources/AllFeatures.xml</argument>
                     </arguments>
                     <workingDirectory>${project.build.directory}/generated-sources/java</workingDirectory>
                 </configuration>
