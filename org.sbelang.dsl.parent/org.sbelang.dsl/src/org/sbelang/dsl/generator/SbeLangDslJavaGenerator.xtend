@@ -135,15 +135,25 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
     private def compileEncoderFor(CompositeTypeDeclaration cm) {
         val encoderClassSimpleName = cm.name.toFirstUpper + 'Encoder'
-        val encoderVarName = cm.name
+        val encoderVarNameL = cm.name.toFirstLower
         '''
             // «encoderClassSimpleName»
-            private «encoderClassSimpleName» «encoderVarName» = new «encoderClassSimpleName»();
-            
-            public «encoderClassSimpleName» «encoderVarName»()
+            public static int «encoderVarNameL»EncodingOffset()
             {
-                «encoderVarName».wrap(buffer, offset + (-1 /* TODO */) );
-                return «encoderVarName»;
+                return (-1 /* TODO */);
+            }
+            
+            public static int «encoderVarNameL»EncodingLength()
+            {
+                return (-1 /* TODO */);
+            }
+            
+            private «encoderClassSimpleName» «encoderVarNameL» = new «encoderClassSimpleName»();
+            
+            public «encoderClassSimpleName» «encoderVarNameL»()
+            {
+                «encoderVarNameL».wrap(buffer, offset + (-1 /* TODO */) );
+                return «encoderVarNameL»;
             }
             
         '''
