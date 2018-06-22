@@ -42,7 +42,6 @@ class SbeLangDslGenerateTest {
         g.doGenerate(sbeLangFileResource, fsa, ctx)
         g.afterGenerate(sbeLangFileResource, fsa, ctx)
 
-        System.out.println(fsa.textFiles.keySet)
         val CharSequence xmlOutput = fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
             "org.sbelang.examples.v2.ExampleSchema.xml");
         Assert.assertNotNull(xmlOutput)
@@ -72,7 +71,6 @@ class SbeLangDslGenerateTest {
         g.doGenerate(resource, fsa, ctx)
         g.afterGenerate(resource, fsa, ctx)
 
-        // System.out.println(fsa.textFiles.keySet)
         Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('MessageSchema')))
         Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('DATAEncoder')))
     }

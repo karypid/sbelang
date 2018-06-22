@@ -1,6 +1,5 @@
 package org.sbelang.dsl.generator.intermediate
 
-import java.io.File
 import java.nio.ByteOrder
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -37,7 +36,7 @@ class ImMessageSchema {
     // this map is populated using the same key as all global types
     // (upper case name) for types that manifest blocks of fields
     // (composites, messages) in order to keep track of field offsets
-    // and lengths within each of them
+    // and lengths within each such structure
     val Map<String, FieldIndex> allFieldIndexesByUname = new HashMap()
 
     public val Map<String, EnumDeclaration> fqnEnumsMap = new HashMap();
@@ -60,9 +59,8 @@ class ImMessageSchema {
         }
 
         buildTypesIndex()
-        System.out.println(allGlobalTypesByUname.keySet)
     }
-    
+
     def getFieldIndex(String name) {
         return allFieldIndexesByUname.get(name.toUpperCase)
     }
@@ -136,10 +134,6 @@ class ImMessageSchema {
         ]
     }
 
-    def filename(String filename) {
-        packagePath.toString + File.separatorChar + filename
-    }
-
     private def parseByteOrder(OptionalSchemaAttrs attrs) {
         if (rawSchema.schema.optionalAttrs === null)
             ByteOrder.LITTLE_ENDIAN
@@ -155,5 +149,5 @@ class ImMessageSchema {
         else
             rawSchema.schema.optionalAttrs.headerType;
     }
-    
+
 }

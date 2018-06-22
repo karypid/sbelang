@@ -71,12 +71,16 @@ MemberTypeDeclaration:
     MemberPrimitiveTypeDeclaration /* XSD "memberDataType" */;
 
 MemberRefTypeDeclaration:
+// TODO: reference can point to an enum/set or other composite
+// the SBE 2.0 schema has a symbolic name with a comment that
+// excludes other composites; need to check and confirm that
+
+// XSD comment: A reference to any existing encoding type (simple type, enum or set)
     name=Name ':' type=[SimpleTypeDeclaration] presence=PresenceModifiers?;
 
 MemberPrimitiveTypeDeclaration:
-    name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')?
-    ('range' '=' rangeModifiers=RangeModifiers)?
-    presence=PresenceModifiers?;
+    name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')? ('range' '='
+    rangeModifiers=RangeModifiers)? presence=PresenceModifiers?;
 
 RangeModifiers:
     {RangeModifiers} '[' (min=ValueLiteral?) ',' (max=ValueLiteral?) ']';
@@ -88,15 +92,11 @@ GroupDeclaration:
     'group' ('(' dimensionType=[CompositeTypeDeclaration] ')')? block=BlockDeclaration;
 
 BlockDeclaration:
-    name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{'
-    fieldDeclarations+=FieldDeclaration*
-    groupDeclarations+=GroupDeclaration*
-    rawDataBlockDeclaration=RawDataBlockDeclaration?
-    '}';
+    name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{' fieldDeclarations+=FieldDeclaration*
+    groupDeclarations+=GroupDeclaration* rawDataBlockDeclaration=RawDataBlockDeclaration? '}';
 
 FieldDeclaration:
-    name=Name ':' fieldType=[TypeDeclaration] '@' id=INT
-    presenceModifiers=PresenceModifiers?
+    name=Name ':' fieldType=[TypeDeclaration] '@' id=INT presenceModifiers=PresenceModifiers?
     // TODO: add "valueRef" - Constant value of a field as a valid value of an enumeration; Valid only if presence= ”constant”  
     versionModifiers=VersionModifiers;
 
@@ -107,13 +107,10 @@ PresenceConstantModifier:
     ('constant' '=' (constantValue=ValueLiteral));
 
 PresenceOptionalModifier:
-    (optional?='optional') |
-    ('nullValue' '=' (nullValue=ValueLiteral));
+    (optional?='optional') | ('nullValue' '=' (nullValue=ValueLiteral));
 
 RawDataBlockDeclaration:
-    'data' '{'
-    varDataDeclarations+=RawVariableDataDeclaration+
-    '}';
+    'data' '{' varDataDeclarations+=RawVariableDataDeclaration+ '}';
 
 RawVariableDataDeclaration:
     name=Name ':' dataEncodingType=[CompositeTypeDeclaration] '@' id=INT;
@@ -151,6 +148,6 @@ OptionalChar returns ecore::ECharacterObject:
 
 terminal CHAR_OCTAL:
     "'" '\\' ('0'..'9') ('0'..'9') ('0'..'9') "'";
-    
+
 terminal CHAR:
     "'" ('\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\' | "'")) "'";
