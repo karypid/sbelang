@@ -55,15 +55,14 @@ class SbeLangDslGenerateTest {
         var char nullChar // we do not set a value as it defaults to zero
         val strippedNullChars = xmlOutput.toString.replace(nullChar, ' ')
 
-    Assert.assertEquals
-    (expectedXmlOutput, strippedNullChars);
-}
+        Assert.assertEquals(expectedXmlOutput, strippedNullChars);
+    }
 
-@Test
+    @Test
     def void testJavaGenerate() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
-        val Resource resource = resourceSet.getResource(URI.createURI("resources/Examples.sbelang"), true);
+        val Resource resource = resourceSet.getResource(URI.createURI("resources/AllFeatures.sbelang"), true);
 
         val InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess
         val IGeneratorContext ctx = new GeneratorContext
@@ -73,21 +72,15 @@ class SbeLangDslGenerateTest {
         g.doGenerate(resource, fsa, ctx)
         g.afterGenerate(resource, fsa, ctx)
 
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/MessageSchema.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/DATAEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/MessageHeaderEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/BusinessMessageRejectEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/MONTH_YEAREncoder.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/NewOrderSingleEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
+        // System.out.println(fsa.textFiles.keySet)
+        Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('MessageSchema')))
+        Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('DATAEncoder')))
     }
+
+    private def getPackageFilename(String className) {
+        IFileSystemAccess.DEFAULT_OUTPUT + EXPECTED_PACKAGE_PATH + className + '.java';
+    }
+
+    static val EXPECTED_PACKAGE_PATH = "org/sbelang/examples/v2/ExampleSchema/".replace('/', File.separatorChar)
+
 }

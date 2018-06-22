@@ -21,17 +21,23 @@ class SbeLangDslParsingTest {
     @Test
     def void testPrimitives() {
         val result = parseHelper.parse('''
-            package PrimitivesTest @ 1 / 0
+            schema org.sbelang.examples.v2.ExampleSchema 
+                id = 1 version = 100
+            //  headerType = a.b.c.D
+            //  bigEndian
+            
             types {
-                typeUint8 : uint8
-                typeUint16 : uint16
-                typeUint32 : uint32
+                simpleType t_Uint8 : uint8
+                simpleType t_Uint16 : uint16
+                simpleType t_Uint32 : uint32
+                simpleType t_Uint64 : uint64
             }
             
-            message TestMessage @ 1 {
-                fieldOfTypeUint8 : typeUint8 @ 1001
-                fieldOfTypeUint16 : typeUint16 @ 1002
-                fieldOfTypeUint32 : typeUint32 @ 1003
+            message TestPrimitivesMessage id = 1 {
+                f8 : t_Uint8 @ 1001
+                f16 : t_Uint16 @ 1002
+                f32 : t_Uint32 @ 1003
+                f64 : t_Uint64 @ 1004
             }
         ''')
         Assert.assertNotNull(result)
