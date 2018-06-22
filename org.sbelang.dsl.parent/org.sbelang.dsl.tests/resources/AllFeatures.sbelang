@@ -1,0 +1,352 @@
+schema org.sbelang.examples.v2.ExampleSchema 
+    id = 1 version = 100
+//  headerType = a.b.c.D
+//  bigEndian
+
+types
+{
+    // all simple types with NO attributes
+    simpleType t_char : char
+    simpleType t_int8 : int8
+    simpleType t_int16 : int16
+    simpleType t_int32 : int32
+    simpleType t_int64 : int64
+    simpleType t_uint8 : uint8
+    simpleType t_uint16 : uint16
+    simpleType t_uint32 : uint32
+    simpleType t_uint64 : uint64
+    simpleType t_float : float
+    simpleType t_double : double
+    // all simple types with attributes (only length and since/deprecated versions) - LENGTH 1
+    simpleType t_char_s : char[1] sinceVersion=1
+    simpleType t_char_d : char deprecatedSinceVersion=2
+    simpleType t_char_sd : char sinceVersion=1 deprecatedSinceVersion=2
+    // simpleType t_char_sd_ERR : char sinceVersion=1000 deprecatedSinceVersion=500
+    simpleType t_int8_s : int8[1] sinceVersion=2
+    simpleType t_int8_d : int8 deprecatedSinceVersion=3
+    simpleType t_int8_sd : int8 sinceVersion=3 deprecatedSinceVersion=4
+    simpleType t_int16_s : int16[1] sinceVersion=3
+    simpleType t_int16_d : int16 deprecatedSinceVersion=4
+    simpleType t_int16_sd : int16 sinceVersion=5 deprecatedSinceVersion=6
+    simpleType t_int32_s : int32[1] sinceVersion=4
+    simpleType t_int32_d : int32 deprecatedSinceVersion=5
+    simpleType t_int32_sd : int32 sinceVersion=7 deprecatedSinceVersion=8
+    simpleType t_int64_s : int64[1] sinceVersion=5
+    simpleType t_int64_d : int64 deprecatedSinceVersion=6
+    simpleType t_int64_sd : int64 sinceVersion=9 deprecatedSinceVersion=10
+    simpleType t_uint8_s : uint8[1] sinceVersion=6
+    simpleType t_uint8_d : uint8 deprecatedSinceVersion=7
+    simpleType t_uint8_sd : uint8 sinceVersion=11 deprecatedSinceVersion=12
+    simpleType t_uint16_s : uint16[1] sinceVersion=7
+    simpleType t_uint16_d : uint16 deprecatedSinceVersion=8
+    simpleType t_uint16_sd : uint16 sinceVersion=13 deprecatedSinceVersion=14
+    simpleType t_uint32_s : uint32[1] sinceVersion=8
+    simpleType t_uint32_d : uint32 deprecatedSinceVersion=9
+    simpleType t_uint32_sd : uint32 sinceVersion=15 deprecatedSinceVersion=16
+    simpleType t_uint64_s : uint64[1] sinceVersion=9
+    simpleType t_uint64_d : uint64 deprecatedSinceVersion=10
+    simpleType t_uint64_sd : uint64 sinceVersion=17 deprecatedSinceVersion=18
+    simpleType t_float_s : float[1] sinceVersion=10
+    simpleType t_float_d : float deprecatedSinceVersion=11
+    simpleType t_float_sd : float sinceVersion=19 deprecatedSinceVersion=20
+    simpleType t_double_s : double[1] sinceVersion=11
+    simpleType t_double_d : double deprecatedSinceVersion=12
+    simpleType t_double_sd : double sinceVersion=21 deprecatedSinceVersion=22
+    // all simple types as array (length greater than one)
+    simpleType t_charArray : char[42]
+    simpleType t_int8Array : int8[2]
+    simpleType t_int16Array : int16[3]
+    simpleType t_int32Array : int32[4]
+    simpleType t_int64Array : int64[5]
+    simpleType t_uint8Array : uint8[2]
+    simpleType t_uint16Array : uint16[3]
+    simpleType t_uint32Array : uint32[4]
+    simpleType t_uint64Array : uint64[5]
+    simpleType t_floatArray : float[2]
+    simpleType t_doubleArray : double[3]
+    // some simple types as arrays (length greater than one) with versions
+    simpleType t_charArray_sd : char[42] sinceVersion=1 deprecatedSinceVersion=2
+    simpleType t_int16Array_s : int16[3] sinceVersion=1
+    simpleType t_int32Array_d : int32[4] deprecatedSinceVersion=2
+
+    // enumerations --------------------------------------------------
+    enum e_Char : char sinceVersion=10 deprecatedSinceVersion=20
+    {
+        YES('Y')
+        // YES('y') // invalid because the name collides with YES('Y')
+        // YES_DUPLICATE('Y') // invalid because the value collides with YES
+        THINK_YES('y')
+        NO('N')
+        THINK_NO('n') sinceVersion=11
+        MAYBE('M') deprecatedSinceVersion=20
+        NOT_SURE('?') sinceVersion=11 deprecatedSinceVersion=19
+    // illegal versions compared to entire schema version (can't talk about the future)
+    // -------------------------------------------------------
+    // AFTER_SCHEMA_VERSION_ERROR_SINCE('v') sinceVersion=101
+    // AFTER_SCHEMA_VERSION_ERROR_DEPRECATED('w') deprecatedSinceVersion=101
+    // illegal in itself: you must deprecate some time after initially adding
+    // -------------------------------------------------------
+    // MUST_DEPRECATE_AFTER_SINCE_ERROR('w') sinceVersion=10 deprecatedSinceVersion=10
+    // illegal versions compared to this enum version (can't be older than enum itself)
+    // -------------------------------------------------------
+    // VALUE_VERSION_BEFORE_ENUM_DEFINED_ERROR('d') sinceVersion=9
+    // VALUE_VERSION_AFTER_ENUM_ALREADY_DEPRECATED_ERROR('d') sinceVersion=20
+    // VALUE_DEPRECATED_NOT_AFTER_ENUM_DEFINED_ERROR('e') deprecatedSinceVersion=10
+    // VALUE_DEPRECATED_NOT_AFTER_ENUM_DEPRECATED_ERROR('f') deprecatedSinceVersion=21
+    }
+
+    enum e_Uint8 : uint8 sinceVersion=1
+    {
+        ZERO(0)
+        ONE(1)
+        TWO_HUNDRED_AND_FIFTY_FOUR(254)
+    // RESERVED_FOR_NULL(255) // invalid as 255 is uint8 nullValue
+    // OUT_OF_RANGE(256) // invalid as 256 outside value range of uint8
+    }
+
+    enum e_Uint16 : uint16 deprecatedSinceVersion=2
+    {
+        YES(0)
+        NO(1)
+        TWO_HUNDRED_AND_FIFTY_FIVE(255)
+    // RESERVED_FOR_NULL(65535) // invalid as 65535 is uint16 nullValue
+    // OUT_OF_RANGE(65536) // invalid as 65536 outside value range of uint16
+    }
+
+    // enums with explicit null value which matches default
+    enum e_Char_nvd : char
+    {
+        ONE('1')
+        TWO('2')
+        NULL_VAL('\000')
+    }
+
+    enum e_Uint8_nvd : uint8
+    {
+        ZERO(0)
+        ONE(1)
+        TWO_HUNDRED_AND_FIFTY_FOUR(254)
+        NULL_VAL(255)
+    }
+
+    enum e_Uint16_nvd : uint16
+    {
+        YES(0)
+        NO(1)
+        TWO_HUNDRED_AND_FIFTY_FIVE(255)
+        NULL_VAL(65535)
+    }
+
+    // enums with explicit null value which matches which overrides default
+    enum e_Char_nvo : char
+    {
+        ONE('1')
+        TWO('2')
+        NULL_VAL(' ')
+    }
+
+    enum e_Uint8_nvo : uint8
+    {
+        ZERO(0)
+        ONE(1)
+        TWO_HUNDRED_AND_FIFTY_FOUR(254)
+        NULL_VAL(42)
+    // RESERVED_FOR_NULL(255) // invalid as 255 remains reserved for uint8 nullValue
+    }
+
+    enum e_Uint16_nvo : uint16
+    {
+        YES(0)
+        NO(1)
+        TWO_HUNDRED_AND_FIFTY_FIVE(255)
+        NULL_VAL(42)
+    // RESERVED_FOR_NULL(65535) // invalid as 65535 remains reserved for uint16 nullValue
+    }
+
+    // sets of choices ------------------------------------------------
+    set s_uint8 : uint8
+    {
+        BIT_0(0)
+        BIT_1(1)
+        // BIT_1(3) // invalid because the name collides with BIT_1(1)
+        // BIT_2(1)  // invalid because value collides with BIT_1(1)
+        BIT_7(7)
+    // OUT_OF_RANGE(8) // invalid as 8 outside value range of uint8
+    }
+
+    set s_uint16 : uint16 sinceVersion=1
+    {
+        BIT_0(0)
+        BIT_1(1)
+        // BIT_1(3) // invalid because the name collides with BIT_1(1)
+        // BIT_2(1)  // invalid because value collides with BIT_1(1)
+        BIT_8(8)
+        BIT_15(15)
+    // OUT_OF_RANGE(16) // invalid as 8 outside value range of uint16
+    }
+
+    set s_uint32 : uint32 deprecatedSinceVersion=2
+    {
+        BIT_0(0)
+        BIT_1(1)
+        // BIT_1(3) // invalid because the name collides with BIT_1(1)
+        // BIT_2(1)  // invalid because value collides with BIT_1(1)
+        BIT_8(8)
+        BIT_16(16)
+        BIT_31(31)
+    // OUT_OF_RANGE(33) // invalid as 8 outside value range of uint32
+    }
+
+    set s_uint64 : uint64 sinceVersion=10 deprecatedSinceVersion=20
+    {
+        BIT_0(0)
+        BIT_1(1)
+        // BIT_1(3) // invalid because the name collides with BIT_1(1)
+        // BIT_2(1)  // invalid because value collides with BIT_1(1)
+        // VERSION_ERRORS(42) sinceVersion=1000 deprecatedSinceVersion=500
+        BIT_8(8) sinceVersion=10
+        BIT_32(32) deprecatedSinceVersion=11
+        BIT_63(63) sinceVersion=10 deprecatedSinceVersion=20
+    // OUT_OF_RANGE(64) // invalid as 8 outside value range of uint64
+    // illegal versions compared to entire schema version (can't talk about the future)
+    // -------------------------------------------------------
+    // AFTER_SCHEMA_VERSION_ERROR_SINCE(20) sinceVersion=101
+    // AFTER_SCHEMA_VERSION_ERROR_DEPRECATED(21) deprecatedSinceVersion=101
+    // illegal in itself: you must deprecate some time after initially adding
+    // -------------------------------------------------------
+    // MUST_DEPRECATE_AFTER_SINCE_ERROR(22) sinceVersion=10 deprecatedSinceVersion=10
+    // illegal versions compared to this set version (can't be older than set itself)
+    // -------------------------------------------------------
+    // VALUE_VERSION_BEFORE_SET_DEFINED_ERROR(23) sinceVersion=9
+    // VALUE_VERSION_AFTER_SET_ALREADY_DEPRECATED_ERROR(24) sinceVersion=20
+    // VALUE_DEPRECATED_NOT_AFTER_SET_DEFINED_ERROR(25) deprecatedSinceVersion=10
+    // VALUE_DEPRECATED_NOT_AFTER_SET_DEPRECATED_ERROR(26) deprecatedSinceVersion=21
+    }
+
+    // composites ------------------------------------------------------------
+    composite messageHeader
+    {
+        blockLength : uint16
+        templateId : uint16
+        schemaId : uint16
+        ^version : uint16
+        numGroups : uint16
+        numVarDataFields : uint16
+    }
+
+    composite groupSizeEncoding
+    {
+        blockLength : uint16
+        numInGroup : uint16
+        numGroups : uint16
+        numVarDataFields2 : uint16
+    }
+
+    composite DATA
+    {
+        length : uint16
+        varData : uint8[0]
+    }
+
+    composite TestCompositeAttrs sinceVersion=1 deprecatedSinceVersion=2
+    {
+        cChar : char
+        // cChar : uint32 // duplicate name inside this composite
+        refE : t_char
+    // refE : t_char
+    }
+
+    composite TestComposite
+    {
+        cChar : char
+        cConstantChar : char constant = 'a'
+        refE : t_char
+        cInt8 : int8 constant = -128
+        cInt16 : int16 optional
+        cInt32 : int32 range=[-1,1]
+        cInt64 : int64
+        cUInt8 : uint8 constant = 1
+        cUInt16 : uint16
+        cUInt32 : uint32
+        cUInt64 : uint64
+        rFloatArray : t_floatArray
+        cCharArray : char[42]
+        cInt8Array : int8[16]
+        cInt16Array : int16[8] range=[1,]
+        cInt32Array : int32[4] range=[,10]
+        cInt64Array : int64[2] range=[1,10]
+        cUInt8Array : uint8[16]
+        cUInt16Array : uint16[8] optional
+        cUInt32Array : uint32[4] nullValue=-42
+        cUInt64Array : uint64[2]
+
+        enum ce_Uint16 : uint16
+        {
+            NESTED_NO(0)
+            NESTED_YES(1)
+        }
+
+        composite TestCompositeNested
+        {
+            nestedInt8 : int8
+
+            composite TestCompositeNestedNested
+            {
+                nestedNestedInt8 : int8
+            }
+        }
+        cCharMinMax : char range=['a','d'] nullValue='a'
+        cInt8Min : int8 range = [-128,127]
+        cUInt8Min : uint8 range = [0,127]
+        cInt32Min : int8 range = [-1,]
+        cInt32Max : int32 range = [,100]
+        cInt32MinMax : int32 range = [11 , 99]
+        cInt32MinOpt : int32 range = [1,] optional
+        cInt32MaxOpt : int32 range = [,100] nullValue = 0
+        cInt32MinMaxOpt : int32 range = [-111 , -9] nullValue = -1
+        cInt32MinConst : int32 constant = 2 // negative constant required
+
+        composite TestCompositeSecondNested
+        {
+            nestedInt8 : int8
+        }
+    }
+}
+
+message MsgEnumerations id=1
+{
+    f_e_Char : e_Char @ 1 optional
+    f_e_Char_nvd : e_Char_nvd @ 2 optional
+    f_e_Char_nvo : e_Char_nvo @ 3 optional
+    f_e_Uint8 : e_Uint8 @ 4
+    f_e_Uint8_nvd : e_Uint8_nvd @ 5
+    f_e_Uint8_nvo : e_Uint8_nvo @ 6
+    f_e_Uint16 : e_Uint16 @ 7
+    f_e_Uint16_nvd : e_Uint16_nvd @ 8
+    f_e_Uint16_nvo : e_Uint16_nvo @ 9
+}
+
+message TestMessage2 id=2
+{
+    fChar : t_char @ 1 // Not supported by SBE tool yet: constant = 'a'
+    fUint8 : t_uint8 @ 2 // Not supported by SBE tool yet: constant = 1
+    fInt8 : t_int8 @ 3 // Not supported by SBE tool yet: constant = 127
+    fInt8Array : t_int16Array @ 4 sinceVersion = 1 deprecatedSinceVersion = 2
+    fEnumChar : e_Char @ 5 // constant = TODO: support reference to enum value
+    fSetUint8 : s_uint8 @ 6
+    fTestComposite : TestComposite @ 7
+
+    group TestGroup id = 8
+    {
+        gfDoubleArray : t_doubleArray @ 1
+        gfEnumTopLevelUint8 : e_Uint8 @ 2
+        gfSetTopLevelUint16 : s_uint16 @ 3
+        gfTestCompositeAttrs : TestCompositeAttrs @ 4 sinceVersion = 2
+    }
+
+    data
+    {
+        fVarRawData1 : DATA @ 9
+        fVarRawData2 : DATA @ 9
+    }
+}

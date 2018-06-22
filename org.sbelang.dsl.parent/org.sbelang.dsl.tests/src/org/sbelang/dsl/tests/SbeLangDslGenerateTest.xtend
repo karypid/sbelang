@@ -5,6 +5,8 @@ package org.sbelang.dsl.tests
 
 import com.google.inject.Injector
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.GeneratorContext
@@ -14,11 +16,12 @@ import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.sbelang.dsl.SbeLangDslStandaloneSetup
-import org.sbelang.dsl.generator.SbeLangDslXmlGenerator
 import org.sbelang.dsl.generator.SbeLangDslJavaGenerator
+import org.sbelang.dsl.generator.SbeLangDslXmlGenerator
 
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
@@ -27,19 +30,36 @@ class SbeLangDslGenerateTest {
     def void testXmlGenerate() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
-        val Resource resource = resourceSet.getResource(URI.createURI("resources/Examples.sbelang"), true);
+
+        val Resource sbeLangFileResource = resourceSet.getResource(URI.createURI("resources/AllFeatures.sbelang"),
+            true);
 
         val InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess
         val IGeneratorContext ctx = new GeneratorContext
 
         val SbeLangDslXmlGenerator g = new SbeLangDslXmlGenerator
-        g.beforeGenerate(resource, fsa, ctx)
-        g.doGenerate(resource, fsa, ctx)
-        g.afterGenerate(resource, fsa, ctx)
-        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT + "Examples.sbelang.xml"))
-    }
+        g.beforeGenerate(sbeLangFileResource, fsa, ctx)
+        g.doGenerate(sbeLangFileResource, fsa, ctx)
+        g.afterGenerate(sbeLangFileResource, fsa, ctx)
 
-    @Test
+        System.out.println(fsa.textFiles.keySet)
+        val CharSequence xmlOutput = fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org.sbelang.examples.v2.ExampleSchema.xml");
+        Assert.assertNotNull(xmlOutput)
+
+        val String expectedXmlOutput = new String(
+            Files.readAllBytes(Paths.get(new File("resources/AllFeatures.xml").getAbsolutePath())));
+        // the XML output has a null (zero) character; we want to strip that out
+        // as it is illegal for XML; in the expected output it has been replaced
+        // with a space character so we do the same here
+        var char nullChar // we do not set a value as it defaults to zero
+        val strippedNullChars = xmlOutput.toString.replace(nullChar, ' ')
+
+    Assert.assertEquals
+    (expectedXmlOutput, strippedNullChars);
+}
+
+@Test
     def void testJavaGenerate() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
@@ -53,29 +73,21 @@ class SbeLangDslGenerateTest {
         g.doGenerate(resource, fsa, ctx)
         g.afterGenerate(resource, fsa, ctx)
 
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/MessageSchema.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/DATAEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/MessageHeaderEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/BusinessMessageRejectEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/MONTH_YEAREncoder.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/NewOrderSingleEncoder.java".replace('/', File.separatorChar)))
-        System.out.println(
-            fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-                "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/MessageSchema.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/DATAEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/MessageHeaderEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/BusinessMessageRejectEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/MONTH_YEAREncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/NewOrderSingleEncoder.java".replace('/', File.separatorChar)))
+        System.out.println(fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
+            "org/Examples/v0/OptionalDecimalEncodingEncoder.java".replace('/', File.separatorChar)))
     }
 }
