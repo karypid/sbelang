@@ -248,6 +248,16 @@ types
         varData : uint8[0]
     }
 
+    // test references 
+    composite TestReferencesComposite
+    {
+        ref_st_double : t_double
+        ref_st_doubleArray : t_doubleArray
+        ref_enum : e_Uint16
+        ref_set : s_uint32
+        ref_composite : messageHeader
+    }
+
     composite TestCompositeAttrs sinceVersion=1 deprecatedSinceVersion=2
     {
         cChar : char

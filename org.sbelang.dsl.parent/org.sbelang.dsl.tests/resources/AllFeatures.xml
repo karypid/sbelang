@@ -193,6 +193,13 @@
             <type name="length" primitiveType="uint16"/>
             <type name="varData" primitiveType="uint8" length="0"/>
         </composite>
+        <composite name="TestReferencesComposite">
+            <ref name="ref_st_double" type="t_double" />
+            <ref name="ref_st_doubleArray" type="t_doubleArray" />
+            <ref name="ref_enum" type="e_Uint16" />
+            <ref name="ref_set" type="s_uint32" />
+            <ref name="ref_composite" type="messageHeader" />
+        </composite>
         <composite name="TestCompositeAttrs" sinceVersion="1" deprecated="2">
             <type name="cChar" primitiveType="char"/>
             <ref name="refE" type="t_char" />

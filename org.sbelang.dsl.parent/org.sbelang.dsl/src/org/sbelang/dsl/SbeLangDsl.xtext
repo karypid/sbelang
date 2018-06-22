@@ -76,7 +76,8 @@ MemberRefTypeDeclaration:
 // excludes other composites; need to check and confirm that
 
 // XSD comment: A reference to any existing encoding type (simple type, enum or set)
-    name=Name ':' type=[SimpleTypeDeclaration] presence=PresenceModifiers?;
+    name=Name ':' type=[TypeDeclaration] presence=PresenceModifiers?;
+
 
 MemberPrimitiveTypeDeclaration:
     name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')? ('range' '='
