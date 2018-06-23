@@ -11,14 +11,6 @@ MessageSchema:
     messageDeclarations+=MessageDeclaration*;
 
 SchemaDeclaration:
-// schema org.sbelang.example id=1 version=1
-// schema org.sbelang.example id=1 version=1 bigEndian
-// schema org.sbelang.example id=1 version=1 headerType=org.sbelang.common.Header
-// schema org.sbelang.example id=1 version=1 headerType=org.sbelang.common.Header bigEndian
-
-// Each message schema corresponds to a java package [name]
-// The id maps a numeric identifier to the schema
-// The version is a monotonically increasing number
     'schema' name=QName 'id' '=' id=INT 'version' '=' version=INT optionalAttrs=OptionalSchemaAttrs;
 
 OptionalSchemaAttrs:
@@ -27,15 +19,31 @@ OptionalSchemaAttrs:
 TypeDeclaration:
     SimpleTypeDeclaration | EnumDeclaration | SetDeclaration | CompositeTypeDeclaration;
 
-SimpleTypeDeclaration /* simpleDataType - primitiveTypeAttributes + versionAttributes */:
-// length=INT characterEncoding=STRING for character types only
+SimpleTypeDeclaration:
+// The following attributes (XSD presenceAttributes) are only valid in
+// message fields (XSD fieldType) and in basic member data types of
+// composites (XSD memberDataType):
+//
+// presence, nullValue, minValue, maxValue, valueRef
+// 
+// See also: https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/issues/31
+
+// The following attributes (XSD primitiveTypeAttributes) are only valid
+// in simple types (XSD simpleDataType) and in basic member data types
+// of composites (XSD memberDataType):
+// 
+// primitiveType, length, characterEncoding
+//
+// In short, member data types in composites can define everything,
+// whereas simple types can only define base primitive type and length.
+// When using a simple type, rest must be defined in the fields of
+// messages themselves.
     'simpleType' name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')?
     versionModifiers=VersionModifiers;
 
 EnumDeclaration:
     'enum' name=Name ':' encodingType=EnumEncodingType versionModifiers=VersionModifiers '{'
-    enumValues+=EnumValueDeclaration+
-    '}';
+    enumValues+=EnumValueDeclaration+ '}';
 
 EnumValueDeclaration:
     name=Name '(' value=EnumValue ')' versionModifiers=VersionModifiers;
@@ -44,35 +52,28 @@ EnumValue:
     INT | CHAR | CHAR_OCTAL;
 
 VersionModifiers:
-    {VersionModifiers}
-    ('sinceVersion' '=' sinceVersion=OptionalInt)?
-    ('deprecatedSinceVersion' '=' deprecatedSinceVersion=OptionalInt)?;
+    {VersionModifiers} ('sinceVersion' '=' sinceVersion=OptionalInt)? ('deprecatedSinceVersion' '='
+    deprecatedSinceVersion=OptionalInt)?;
 
 SetDeclaration:
     'set' name=Name ':' encodingType=SetEncodingType versionModifiers=VersionModifiers '{'
-    setChoices+=SetChoiceDeclaration+
-    '}';
+    setChoices+=SetChoiceDeclaration+ '}';
 
 SetChoiceDeclaration:
     name=Name '(' value=INT ')' versionModifiers=VersionModifiers;
 
 CompositeTypeDeclaration:
-    'composite' name=Name versionModifiers=VersionModifiers '{'
-    compositeMembers+=CompositeMember+
-    '}';
+    'composite' name=Name versionModifiers=VersionModifiers '{' compositeMembers+=CompositeMember+ '}';
 
 CompositeMember:
     MemberTypeDeclaration | CompositeTypeDeclaration;
 
 MemberTypeDeclaration:
-    EnumDeclaration |
-    SetDeclaration |
-    MemberRefTypeDeclaration /* XSD "refType" */ |
-    MemberPrimitiveTypeDeclaration /* XSD "memberDataType" */;
+    EnumDeclaration | SetDeclaration | MemberRefTypeDeclaration /* XSD "refType" */ | MemberPrimitiveTypeDeclaration
+    /* XSD "memberDataType" */;
 
 MemberRefTypeDeclaration:
     name=Name ':' type=[TypeDeclaration] presence=PresenceModifiers?;
-
 
 MemberPrimitiveTypeDeclaration:
     name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')? ('range' '='
@@ -92,7 +93,8 @@ BlockDeclaration:
     groupDeclarations+=GroupDeclaration* rawDataBlockDeclaration=RawDataBlockDeclaration? '}';
 
 FieldDeclaration:
-    name=Name ':' fieldType=[TypeDeclaration] '@' id=INT presenceModifiers=PresenceModifiers?
+    name=Name ':' (fieldType=[TypeDeclaration] | primitiveType=PrimitiveType) '@' id=INT
+    presenceModifiers=PresenceModifiers?
     // TODO: add "valueRef" - Constant value of a field as a valid value of an enumeration; Valid only if presence= ”constant”  
     versionModifiers=VersionModifiers;
 

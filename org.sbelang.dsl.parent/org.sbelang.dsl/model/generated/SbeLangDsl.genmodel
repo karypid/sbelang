@@ -90,6 +90,7 @@
     <genClasses ecoreClass="SbeLangDsl.ecore#//FieldDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//FieldDeclaration/name"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//FieldDeclaration/fieldType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//FieldDeclaration/primitiveType"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute SbeLangDsl.ecore#//FieldDeclaration/id"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//FieldDeclaration/presenceModifiers"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference SbeLangDsl.ecore#//FieldDeclaration/versionModifiers"/>
