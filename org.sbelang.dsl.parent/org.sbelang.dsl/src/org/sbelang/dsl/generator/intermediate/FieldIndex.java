@@ -15,7 +15,7 @@ import java.util.Map;
  * 
  * @author karypid
  */
-public abstract class FieldIndex
+public class FieldIndex
 {
     private ArrayList<String>  fieldNames;
     private ArrayList<Integer> fieldOffsets;
@@ -42,7 +42,7 @@ public abstract class FieldIndex
     public int addPrimitiveField(String name, String sbePrimitiveType)
     {
         int offset = totalLength;
-        int length = SbePrimitiveUtils.getPrimitiveTypeOctetLength(sbePrimitiveType);
+        int length = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType);
 
         int idx = addField(name, offset, length);
         totalLength += length;

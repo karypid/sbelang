@@ -8,7 +8,7 @@ package org.sbelang.dsl.generator.intermediate;
  * @author karypid
  *
  */
-public class SbePrimitiveUtils
+public class SbeUtils
 {
     public static int getPrimitiveTypeOctetLength(String sbePrimitiveType)
     {

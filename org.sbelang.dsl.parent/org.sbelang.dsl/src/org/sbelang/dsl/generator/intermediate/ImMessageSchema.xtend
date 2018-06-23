@@ -94,7 +94,7 @@ class ImMessageSchema {
 
         // create field index where applicable
         if (td instanceof CompositeTypeDeclaration)
-            allFieldIndexesByUname.put(uname, new CompositeFieldIndex(td))
+            allFieldIndexesByUname.put(uname, new FieldIndex())
 //        else if (td instanceof MessageDeclaration)
 //            allFieldIndexesByUname.put(uname, new MessageFieldIndex(td))
     }
@@ -115,7 +115,6 @@ class ImMessageSchema {
                     fi.addPrimitiveField(cm.name, cm.primitiveType)
                 }
                 MemberRefTypeDeclaration: {
-                    System.out.println("TODO: " + cm.name);
                 }
                 EnumDeclaration: {
                     addToGlobalIndex(cm.name, cm)
@@ -123,7 +122,6 @@ class ImMessageSchema {
                     fqnEnumsMap.put(schemaName + "." + cm.name, cm)
                 }
                 SetDeclaration: {
-                    System.out.println("TODO: " + cm.name);
                 }
                 CompositeTypeDeclaration: {
                     collectComposites(cm, prefix + compositeName + ".", map)
