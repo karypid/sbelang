@@ -34,7 +34,8 @@ SimpleTypeDeclaration:
 // 
 // primitiveType, length, characterEncoding
 //
-// In short, member data types in composites can define everything,
+// In short, member data types in composites are very much like fields
+// in messages (you can define everything and give semantic meaning)
 // whereas simple types can only define base primitive type and length.
 // When using a simple type, rest must be defined in the fields of
 // messages themselves.
@@ -47,13 +48,6 @@ EnumDeclaration:
 
 EnumValueDeclaration:
     name=Name '(' value=EnumValue ')' versionModifiers=VersionModifiers;
-
-EnumValue:
-    INT | CHAR | CHAR_OCTAL;
-
-VersionModifiers:
-    {VersionModifiers} ('sinceVersion' '=' sinceVersion=OptionalInt)? ('deprecatedSinceVersion' '='
-    deprecatedSinceVersion=OptionalInt)?;
 
 SetDeclaration:
     'set' name=Name ':' encodingType=SetEncodingType versionModifiers=VersionModifiers '{'
@@ -79,15 +73,6 @@ MemberPrimitiveTypeDeclaration:
     name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')? ('range' '='
     rangeModifiers=RangeModifiers)? presence=PresenceModifiers?;
 
-RangeModifiers:
-    {RangeModifiers} '[' (min=ValueLiteral?) ',' (max=ValueLiteral?) ']';
-
-MessageDeclaration:
-    'message' block=BlockDeclaration;
-
-GroupDeclaration:
-    'group' ('(' dimensionType=[CompositeTypeDeclaration] ')')? block=BlockDeclaration;
-
 BlockDeclaration:
     name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{' fieldDeclarations+=FieldDeclaration*
     groupDeclarations+=GroupDeclaration* rawDataBlockDeclaration=RawDataBlockDeclaration? '}';
@@ -98,6 +83,27 @@ FieldDeclaration:
     // TODO: add "valueRef" - Constant value of a field as a valid value of an enumeration; Valid only if presence= ”constant”  
     versionModifiers=VersionModifiers;
 
+MessageDeclaration:
+    'message' block=BlockDeclaration;
+
+GroupDeclaration:
+    'group' ('(' dimensionType=[CompositeTypeDeclaration] ')')? block=BlockDeclaration;
+
+RawDataBlockDeclaration:
+    'data' '{' varDataDeclarations+=RawVariableDataDeclaration+ '}';
+
+RawVariableDataDeclaration:
+    name=Name ':' dataEncodingType=[CompositeTypeDeclaration] '@' id=INT;
+
+    // Modifiers =========================================================
+
+VersionModifiers:
+    {VersionModifiers} ('sinceVersion' '=' sinceVersion=OptionalInt)? ('deprecatedSinceVersion' '='
+    deprecatedSinceVersion=OptionalInt)?;
+
+RangeModifiers:
+    {RangeModifiers} '[' (min=ValueLiteral?) ',' (max=ValueLiteral?) ']';
+
 PresenceModifiers:
     PresenceConstantModifier | PresenceOptionalModifier;
 
@@ -107,11 +113,10 @@ PresenceConstantModifier:
 PresenceOptionalModifier:
     (optional?='optional') | ('nullValue' '=' (nullValue=ValueLiteral));
 
-RawDataBlockDeclaration:
-    'data' '{' varDataDeclarations+=RawVariableDataDeclaration+ '}';
+    // Literals/Terminals ================================================
 
-RawVariableDataDeclaration:
-    name=Name ':' dataEncodingType=[CompositeTypeDeclaration] '@' id=INT;
+EnumValue:
+    INT | CHAR | CHAR_OCTAL;
 
 ValueLiteral:
     OptionalSignedInt | OptionalChar;
