@@ -12,5 +12,5 @@ xtend-gen/
 plugin.xml_gen
 
 # generated EMF model
-org.sbelang.dsl/model/generated/SbeLangDsl.genmodel
+org.sbelang.dsl.parent/org.sbelang.dsl/model/generated/SbeLangDsl.genmodel
 
