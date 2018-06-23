@@ -10,3 +10,7 @@ target
 src-gen/
 xtend-gen/
 plugin.xml_gen
+
+# generated EMF model
+org.sbelang.dsl/model/generated/SbeLangDsl.genmodel
+
