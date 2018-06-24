@@ -124,7 +124,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     error(
                         '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
                         cm,
-                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
+                        SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
                     )
                 }
             }
@@ -135,7 +135,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     error(
                         '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
                         cm,
-                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
+                        SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
                     )
                 }
             }
@@ -364,9 +364,9 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     val existingNode = NodeModelUtils.getNode(existing)
                     val featureId = switch nd.declaringObject {
                         MemberPrimitiveTypeDeclaration:
-                            SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
+                            SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
                         MemberRefTypeDeclaration:
-                            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
+                            SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
                         default: // all others are descendants of type declaration
                             SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
                     }

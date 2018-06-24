@@ -60,10 +60,14 @@ CompositeTypeDeclaration:
     'composite' name=Name versionModifiers=VersionModifiers '{' compositeMembers+=CompositeMember+ '}';
 
 CompositeMember:
-    MemberTypeDeclaration | CompositeTypeDeclaration;
+    MemberTypeDeclaration | MemberInlineDeclaration;
+
+MemberInlineDeclaration:
+    EnumDeclaration | SetDeclaration | CompositeTypeDeclaration
+;
 
 MemberTypeDeclaration:
-    EnumDeclaration | SetDeclaration | MemberRefTypeDeclaration /* XSD "refType" */ | MemberPrimitiveTypeDeclaration
+    MemberRefTypeDeclaration /* XSD "refType" */ | MemberPrimitiveTypeDeclaration
     /* XSD "memberDataType" */;
 
 MemberRefTypeDeclaration:
@@ -72,10 +76,6 @@ MemberRefTypeDeclaration:
 MemberPrimitiveTypeDeclaration:
     name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')? ('range' '='
     rangeModifiers=RangeModifiers)? presence=PresenceModifiers?;
-
-BlockDeclaration:
-    name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{' fieldDeclarations+=FieldDeclaration*
-    groupDeclarations+=GroupDeclaration* rawDataBlockDeclaration=RawDataBlockDeclaration? '}';
 
 FieldDeclaration:
     name=Name ':' (fieldType=[TypeDeclaration] | primitiveType=PrimitiveType) '@' id=INT
@@ -88,6 +88,10 @@ MessageDeclaration:
 
 GroupDeclaration:
     'group' ('(' dimensionType=[CompositeTypeDeclaration] ')')? block=BlockDeclaration;
+
+BlockDeclaration:
+    name=Name 'id' '=' id=INT versionModifiers=VersionModifiers '{' fieldDeclarations+=FieldDeclaration*
+    groupDeclarations+=GroupDeclaration* rawDataBlockDeclaration=RawDataBlockDeclaration? '}';
 
 RawDataBlockDeclaration:
     'data' '{' varDataDeclarations+=RawVariableDataDeclaration+ '}';

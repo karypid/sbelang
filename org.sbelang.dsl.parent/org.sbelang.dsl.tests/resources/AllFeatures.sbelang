@@ -5,7 +5,20 @@ schema org.sbelang.examples.v2.ExampleSchema
 
 types
 {
-    // all simple types with NO attributes
+    // ==========================================================================================
+    // SIMPLE TYPES
+    //
+    // Simple types reference one of the primitive type (char, integers of 8/16/32/64 bits with
+    // or without sign, and the float/double IEEE types). The only data type specialisation that
+    // simple types allow is to add a fixed length, thus allowing one to define arrays, which is
+    // the primary reason to use a simple type.
+    //
+    // TODO: char types should also allow "characterEncoding" attribute but that's not implemented yet
+    //
+    // Of course, the version attributes can also be defined.
+    //
+    // SIMPLE TYPES WITH NO ATTRIBUTES (defaults: length=1, since=0, deprecated=n/a)
+    // ------------------------------------------------------------------------------------------
     simpleType t_char : char
     simpleType t_int8 : int8
     simpleType t_int16 : int16
@@ -17,46 +30,86 @@ types
     simpleType t_uint64 : uint64
     simpleType t_float : float
     simpleType t_double : double
-    // all simple types with attributes (only length and since/deprecated versions) - LENGTH 1
-    simpleType t_char_s : char[1] sinceVersion=1
-    simpleType t_char_d : char deprecatedSinceVersion=2
-    simpleType t_char_sd : char sinceVersion=1 deprecatedSinceVersion=2
-    // simpleType t_char_sd_ERR : char sinceVersion=1000 deprecatedSinceVersion=500
-    simpleType t_int8_s : int8[1] sinceVersion=2
+    // ------------------------------------------------------------------------------------------
+    // SIMPLE TYPES WITH NO LENGTH - VERSION ATTRIBUTE COMBINATIONS
+    simpleType t_char_s : char sinceVersion=1 // since only
+    simpleType t_char_d : char deprecatedSinceVersion=2 // deprecated only
+    simpleType t_char_sd : char sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_int8_s : int8 sinceVersion=2
     simpleType t_int8_d : int8 deprecatedSinceVersion=3
     simpleType t_int8_sd : int8 sinceVersion=3 deprecatedSinceVersion=4
-    simpleType t_int16_s : int16[1] sinceVersion=3
+    simpleType t_int16_s : int16 sinceVersion=3
     simpleType t_int16_d : int16 deprecatedSinceVersion=4
     simpleType t_int16_sd : int16 sinceVersion=5 deprecatedSinceVersion=6
-    simpleType t_int32_s : int32[1] sinceVersion=4
+    simpleType t_int32_s : int32 sinceVersion=4
     simpleType t_int32_d : int32 deprecatedSinceVersion=5
     simpleType t_int32_sd : int32 sinceVersion=7 deprecatedSinceVersion=8
-    simpleType t_int64_s : int64[1] sinceVersion=5
+    simpleType t_int64_s : int64 sinceVersion=5
     simpleType t_int64_d : int64 deprecatedSinceVersion=6
     simpleType t_int64_sd : int64 sinceVersion=9 deprecatedSinceVersion=10
-    simpleType t_uint8_s : uint8[1] sinceVersion=6
+    simpleType t_uint8_s : uint8 sinceVersion=6
     simpleType t_uint8_d : uint8 deprecatedSinceVersion=7
     simpleType t_uint8_sd : uint8 sinceVersion=11 deprecatedSinceVersion=12
-    simpleType t_uint16_s : uint16[1] sinceVersion=7
+    simpleType t_uint16_s : uint16 sinceVersion=7
     simpleType t_uint16_d : uint16 deprecatedSinceVersion=8
     simpleType t_uint16_sd : uint16 sinceVersion=13 deprecatedSinceVersion=14
-    simpleType t_uint32_s : uint32[1] sinceVersion=8
+    simpleType t_uint32_s : uint32 sinceVersion=8
     simpleType t_uint32_d : uint32 deprecatedSinceVersion=9
     simpleType t_uint32_sd : uint32 sinceVersion=15 deprecatedSinceVersion=16
-    simpleType t_uint64_s : uint64[1] sinceVersion=9
+    simpleType t_uint64_s : uint64 sinceVersion=9
     simpleType t_uint64_d : uint64 deprecatedSinceVersion=10
     simpleType t_uint64_sd : uint64 sinceVersion=17 deprecatedSinceVersion=18
-    simpleType t_float_s : float[1] sinceVersion=10
+    simpleType t_float_s : float sinceVersion=10
     simpleType t_float_d : float deprecatedSinceVersion=11
     simpleType t_float_sd : float sinceVersion=19 deprecatedSinceVersion=20
-    simpleType t_double_s : double[1] sinceVersion=11
+    simpleType t_double_s : double sinceVersion=11
     simpleType t_double_d : double deprecatedSinceVersion=12
     simpleType t_double_sd : double sinceVersion=21 deprecatedSinceVersion=22
-    // all simple types as array (length greater than one)
+    // uncomment the two lines below to see errors in versions
+    // simpleType t_SinceDep_After_Schema : char sinceVersion=1000 deprecatedSinceVersion=500
+    // simpleType t_DepNotAfterSince : char sinceVersion=50 deprecatedSinceVersion=50
+    // ------------------------------------------------------------------------------------------
+    // SIMPLE TYPES WITH LENGTH 1
+    // length = 1 (this is a special case as it is not serialized as an array)
+    simpleType t_char_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_char_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_char_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_int8_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_int8_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_int8_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_uint8_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_uint8_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_uint8_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_int16_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_int16_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_int16_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_uint16_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_uint16_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_uint16_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_int32_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_int32_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_int32_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_uint32_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_uint32_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_uint32_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_int64_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_int64_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_int64_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_uint64_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_uint64_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_uint64_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_float_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_float_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_float_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    simpleType t_double_l1_s : char[1] sinceVersion=1 // since only
+    simpleType t_double_l1_d : char[1] deprecatedSinceVersion=2 // deprecated only
+    simpleType t_double_l1_sd : char[1] sinceVersion=1 deprecatedSinceVersion=2 // both
+    // ------------------------------------------------------------------------------------------
+    // SIMPLE TYPES WITH LENGTH > 1; (VERSION COMBOS RANDOMLY ASSINGED)
     simpleType t_charArray : char[42]
-    simpleType t_int8Array : int8[2]
-    simpleType t_int16Array : int16[3]
-    simpleType t_int32Array : int32[4]
+    simpleType t_int8Array : int8[2] sinceVersion=1
+    simpleType t_int16Array : int16[3] deprecatedSinceVersion=2
+    simpleType t_int32Array : int32[4] sinceVersion=11 deprecatedSinceVersion=99
     simpleType t_int64Array : int64[5]
     simpleType t_uint8Array : uint8[2]
     simpleType t_uint16Array : uint16[3]
@@ -69,8 +122,24 @@ types
     simpleType t_int16Array_s : int16[3] sinceVersion=1
     simpleType t_int32Array_d : int32[4] deprecatedSinceVersion=2
 
-    // enumerations --------------------------------------------------
-    enum e_Char : char sinceVersion=10 deprecatedSinceVersion=20
+    // ==========================================================================================
+    // ENUMERATIONS
+    //
+    // We support enumerations of 3 types: char/uint8/uint16. There is an implied NULL_VAL entry
+    // with a default value for each type: 0/255/65535 respectively. If NULL_VAL is explicitly
+    // provided then it overrides that default, but this should be done when the enumeration is
+    // first-introduced otherwise changing it later would break compatibility (the null value may
+    // or may not be in use: it depends on whether there are references from composites or fields
+    // in messages).
+    //
+    // Enumerations manifest only when they are used for a field or composite member, so like
+    // simple types they have no business-semantic attributes like "presence" or "min/max range".
+    // In fact the latter does not apply to enumerations anyway (there is no range for an
+    // enumeration: it specifies a list of valid values in itself).
+    //
+    // ------------------------------------------------------------------------------------------
+    // First define all 3 types (char/uint8/uint16) without specifying a NULL_VAL
+    enum E_Char : char sinceVersion=10 deprecatedSinceVersion=20
     {
         YES('Y')
         // YES('y') // invalid because the name collides with YES('Y')
@@ -95,7 +164,7 @@ types
     // VALUE_DEPRECATED_NOT_AFTER_ENUM_DEPRECATED_ERROR('f') deprecatedSinceVersion=21
     }
 
-    enum e_Uint8 : uint8 sinceVersion=1
+    enum E_Uint8 : uint8 sinceVersion=1
     {
         ZERO(0)
         ONE(1)
@@ -104,7 +173,7 @@ types
     // OUT_OF_RANGE(256) // invalid as 256 outside value range of uint8
     }
 
-    enum e_Uint16 : uint16 deprecatedSinceVersion=2
+    enum E_Uint16 : uint16 deprecatedSinceVersion=2
     {
         YES(0)
         NO(1)
@@ -113,15 +182,17 @@ types
     // OUT_OF_RANGE(65536) // invalid as 65536 outside value range of uint16
     }
 
-    // enums with explicit null value which matches default
-    enum e_Char_nvd : char
+    // ------------------------------------------------------------------------------------------
+    // Now define all 3 types (char/uint8/uint16) by specifying a NULL_VAL that MATCHES the 
+    // default value, so essentially that has no effect
+    enum E_Char_nvd : char
     {
         ONE('1')
         TWO('2')
-        NULL_VAL('\000')
+        NULL_VAL('\000') // note that '\ddd' where d is a digit is parsed as a number (BASE 10)
     }
 
-    enum e_Uint8_nvd : uint8
+    enum E_Uint8_nvd : uint8
     {
         ZERO(0)
         ONE(1)
@@ -129,7 +200,7 @@ types
         NULL_VAL(255)
     }
 
-    enum e_Uint16_nvd : uint16
+    enum E_Uint16_nvd : uint16
     {
         YES(0)
         NO(1)
@@ -137,15 +208,17 @@ types
         NULL_VAL(65535)
     }
 
-    // enums with explicit null value which matches which overrides default
-    enum e_Char_nvo : char
+    // ------------------------------------------------------------------------------------------
+    // Now define all 3 types (char/uint8/uint16) by specifying a NULL_VAL that OVERRIDES the 
+    // default value, meaning it is different from that
+    enum E_Char_nvo : char
     {
         ONE('1')
         TWO('2')
-        NULL_VAL(' ')
+        NULL_VAL(' ') // space character is null value here
     }
 
-    enum e_Uint8_nvo : uint8
+    enum E_Uint8_nvo : uint8
     {
         ZERO(0)
         ONE(1)
@@ -154,7 +227,7 @@ types
     // RESERVED_FOR_NULL(255) // invalid as 255 remains reserved for uint8 nullValue
     }
 
-    enum e_Uint16_nvo : uint16
+    enum E_Uint16_nvo : uint16
     {
         YES(0)
         NO(1)
@@ -163,8 +236,20 @@ types
     // RESERVED_FOR_NULL(65535) // invalid as 65535 remains reserved for uint16 nullValue
     }
 
-    // sets of choices ------------------------------------------------
-    set s_uint8 : uint8
+    // ==========================================================================================
+    // SETS (of choices)
+    //
+    // Here we support 4 types: uint8/uint16/uint32/uint64. Again sets behave like simple types
+    // in the same way enumeration do: they have no concept of presence and their range is in
+    // fact defined by the list of possible values (on/off flags) of their content with anything
+    // other bits ignored.
+    //
+    // There is no null value for sets so fields/composite-members that use them cannot be
+    // optional.
+    //
+    // ------------------------------------------------------------------------------------------
+    // Define all 3 types (char/uint8/uint16) without of sets
+    set S_uint8 : uint8
     {
         BIT_0(0)
         BIT_1(1)
@@ -174,7 +259,7 @@ types
     // OUT_OF_RANGE(8) // invalid as 8 outside value range of uint8
     }
 
-    set s_uint16 : uint16 sinceVersion=1
+    set S_uint16 : uint16 sinceVersion=1
     {
         BIT_0(0)
         BIT_1(1)
@@ -185,7 +270,7 @@ types
     // OUT_OF_RANGE(16) // invalid as 8 outside value range of uint16
     }
 
-    set s_uint32 : uint32 deprecatedSinceVersion=2
+    set S_uint32 : uint32 deprecatedSinceVersion=2
     {
         BIT_0(0)
         BIT_1(1)
@@ -197,7 +282,7 @@ types
     // OUT_OF_RANGE(33) // invalid as 8 outside value range of uint32
     }
 
-    set s_uint64 : uint64 sinceVersion=10 deprecatedSinceVersion=20
+    set S_uint64 : uint64 sinceVersion=10 deprecatedSinceVersion=20
     {
         BIT_0(0)
         BIT_1(1)
@@ -223,38 +308,116 @@ types
     // VALUE_DEPRECATED_NOT_AFTER_SET_DEPRECATED_ERROR(26) deprecatedSinceVersion=21
     }
 
-    // composites ------------------------------------------------------------
+    // ==========================================================================================
+    // COMPOSITES
+    //
+    // Macro-like definitions for creating complex types by combining multiple types. Composites
+    // have members that can be primitive types, simple types, enumerations, sets or other
+    // composites.
+    //
+    // You can also define inline enumerations/sets/nested-composites, which are only usable
+    // within this composite and are not reusable outside this composite.
+    //
+    // As composites are higher-order types, their members can define the missing attributes such
+    // as presence, min/max value and null value.
+    //
+    // The composite as a whole can be used for group/message fields or reference from other
+    // composites.
+    // ==========================================================================================
+    //
+    // First the special FIX SBE composites: messageHeader, groupSizeEncoding, DATA
+    // ------------------------------------------------------------------------------------------
     composite messageHeader
     {
-        blockLength : uint16
-        templateId : uint16
-        schemaId : uint16
-        ^version : uint16
-        numGroups : uint16
-        numVarDataFields : uint16
+        // FIX SBE defaults to the composite with this name to use as the message header.
+        // You can override it using the "headerType" keyword of the schema. The below
+        // members are suggested (all required).
+        blockLength : uint16 // size of message's fixed-length portion
+        templateId : uint16 // message template identifier
+        schemaId : uint16 // identifier of the schema defining the message
+        ^version : uint16 // version of the schema used to create this message 
+        // version is a keyword in sbelang; the ^ character escapes it
+        numGroups : uint16 // number of repeating groups after fixed-length portion of message
+        numVarDataFields : uint16 // number of variable data fields after fixed-length portion of message
     }
 
     composite groupSizeEncoding
     {
-        blockLength : uint16
-        numInGroup : uint16
+        // FIX SBE defaults to the composite with this name to use as the group header.
+        // You can override it using the "dimensionType" keyword. The below  members are 
+        // suggested (all required).
+        blockLength : uint16 // fixed-length portion of the group
+        numInGroup : uint16 // number of items in the gorup
         numGroups : uint16
         numVarDataFields2 : uint16
     }
 
     composite DATA
     {
-        length : uint16
-        varData : uint8[0]
+        // FIX SBE recommends using this declaration for variable-length data fields.
+        length : uint16 // number of bytes (octets)
+        varData : uint8[0] // a length of zero means variable length
     }
 
-    // test references 
+    // Demonstrate referencing simple types, enums; define presence and min/max/null
+    // ------------------------------------------------------------------------------------------
+    composite CompPrimitives
+    {
+        // You can set either 'nullValue' or 'optional', not both. Specifying a nullValue makes the
+        // presence optional. In order to use the default null value and not specify one, just mark
+        // the member as 'optional' which uses the default null value for that type. You cannot set
+        // both as it is illegal. Setting neither means the field is required
+        //
+        // All these are required fields with default range; null value is default but not applicable 
+        primChar : char
+        primIint8 : int8
+        primIint16 : int16
+        primIint32 : int32
+        primIint64 : int64
+        primUint8 : uint8
+        primUint16 : uint16
+        primUint32 : uint32
+        primUint64 : uint64
+        // -----------------------------------------------------------------------------------------
+        // Set custom attributes for range and null value; setting a null value makes these optional
+        lowerCaseChar : char range=['a','z'] nullValue=' ' // lower with space meaning absent
+        month : int8 range=[1,12] nullValue = -1 // e.g. for a month; -1 means absent
+        yeadAD : uint16 range=[0, 64999] nullValue = 65000 // e.g. for a month; -1 means absent
+        // -----------------------------------------------------------------------------------------
+        // Optional primitives without a range, just presence
+        optionalChar : char optional // default null value
+        optionalCharWithSpaceForNull : char nullValue = ' ' // special null value
+        marksTheSpotChar : char constant = 'X' // constant presence (character literal)
+        zero : int8 constant = 0 // constant presence (integer)
+        // -----------------------------------------------------------------------------------------
+        // Required primitives with range; null value not applicable
+        requiredChar : char range=['A', 'Z']
+        // -----------------------------------------------------------------------------------------
+        // TODO: set length
+    }
+
+    // Demonstrate referencing simple types, enums; define presence and min/max/null
+    // ------------------------------------------------------------------------------------------
+    // Here, the length (if any) is set by the simple type. We can only specify presence and
+    // also restrict the range if necessary
+    composite CompSimpleTypes
+    {
+        stRequiredChar : t_char // just use it as a required field
+        // TODO: these don't make it into the XML
+        stOptionalChar : t_char optional // make it optional with default null value
+        stOptionalCharWithPlusMeaningAbset : t_char nullValue = '+' // optional with custom null
+        stConstantChar : t_char constant = 'X' // constant char
+        // -----------------------------------------------------------------------------------------
+        // TODO: Specify range ; currently not accepted here
+        stUpperCaseChar : t_char // range=['A','Z'] // just use it as a required field
+    }
+
     composite TestReferencesComposite
     {
-        ref_st_double : t_double
+        ref_st_uint16 : t_uint16 nullValue = 0
         ref_st_doubleArray : t_doubleArray
-        ref_enum : e_Uint16
-        ref_set : s_uint32
+        ref_enum : E_Uint16
+        ref_set : S_uint32
         ref_composite : messageHeader
     }
 
@@ -263,7 +426,7 @@ types
         cChar : char
         // cChar : uint32 // duplicate name inside this composite
         refE : t_char
-    // refE : t_char
+        // refE : t_char
     }
 
     composite TestComposite
@@ -325,32 +488,32 @@ types
 
 message MsgEnumerations id=1
 {
-    f_e_Char : e_Char @ 1 optional
-    f_e_Char_nvd : e_Char_nvd @ 2 optional
-    f_e_Char_nvo : e_Char_nvo @ 3 optional
-    f_e_Uint8 : e_Uint8 @ 4
-    f_e_Uint8_nvd : e_Uint8_nvd @ 5
-    f_e_Uint8_nvo : e_Uint8_nvo @ 6
-    f_e_Uint16 : e_Uint16 @ 7
-    f_e_Uint16_nvd : e_Uint16_nvd @ 8
-    f_e_Uint16_nvo : e_Uint16_nvo @ 9
+    f_e_Char : E_Char @ 1 optional
+    f_e_Char_nvd : E_Char_nvd @ 2 optional
+    f_e_Char_nvo : E_Char_nvo @ 3 optional
+    f_e_Uint8 : E_Uint8 @ 4
+    f_e_Uint8_nvd : E_Uint8_nvd @ 5
+    f_e_Uint8_nvo : E_Uint8_nvo @ 6
+    f_e_Uint16 : E_Uint16 @ 7
+    f_e_Uint16_nvd : E_Uint16_nvd @ 8
+    f_e_Uint16_nvo : E_Uint16_nvo @ 9
 }
 
 message TestMessage2 id=2
 {
-    fChar : t_char @ 1 // Not supported by SBE tool yet: constant = 'a'
-    fUint8 : t_uint8 @ 2 // Not supported by SBE tool yet: constant = 1
+    fChar : char @ 1 // Not supported by SBE tool yet: constant = 'a'
+    fUint8 : uint8 @ 2 // Not supported by SBE tool yet: constant = 1
     fInt8 : t_int8 @ 3 // Not supported by SBE tool yet: constant = 127
     fInt8Array : t_int16Array @ 4 sinceVersion = 1 deprecatedSinceVersion = 2
-    fEnumChar : e_Char @ 5 // constant = TODO: support reference to enum value
-    fSetUint8 : s_uint8 @ 6
+    fEnumChar : E_Char @ 5 // constant = TODO: support reference to enum value
+    fSetUint8 : S_uint8 @ 6
     fTestComposite : TestComposite @ 7
 
     group TestGroup id = 8
     {
         gfDoubleArray : t_doubleArray @ 1
-        gfEnumTopLevelUint8 : e_Uint8 @ 2
-        gfSetTopLevelUint16 : s_uint16 @ 3
+        gfEnumTopLevelUint8 : E_Uint8 @ 2
+        gfSetTopLevelUint16 : S_uint16 @ 3
         gfTestCompositeAttrs : TestCompositeAttrs @ 4 sinceVersion = 2
     }
 

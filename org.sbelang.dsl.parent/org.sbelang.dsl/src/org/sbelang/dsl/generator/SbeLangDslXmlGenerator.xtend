@@ -161,6 +161,8 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             compile(cm /* as MemberTypeDeclaration */ )
         else if (cm instanceof CompositeTypeDeclaration)
             compile(cm /* as CompositeTypeDeclaration */ )
+        else if (cm instanceof EnumDeclaration)
+            compile(cm /* as EnumDeclaration */ )
         else
             throw new IllegalStateException("Unsupported composite member: " + cm.class.name)
     }
@@ -204,7 +206,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 <ref name="«mtd.name»" type="«mtd.type.name»"«memberTypeLength(mtd)»«memberTypeRange(mtd)» />
             '''
             EnumDeclaration:
-                compile(mtd)
+                compile(mtd as EnumDeclaration)
             default: '''TODO'''
         }
     }

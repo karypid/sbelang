@@ -29,7 +29,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EnumDeclaration" eSuperTypes="#//TypeDeclaration #//MemberTypeDeclaration">
+  <eClassifiers xsi:type="ecore:EClass" name="EnumDeclaration" eSuperTypes="#//TypeDeclaration #//MemberInlineDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="encodingType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="enumValues" upperBound="-1"
         eType="#//EnumValueDeclaration" containment="true"/>
@@ -40,7 +40,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="versionModifiers" eType="#//VersionModifiers"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SetDeclaration" eSuperTypes="#//TypeDeclaration #//MemberTypeDeclaration">
+  <eClassifiers xsi:type="ecore:EClass" name="SetDeclaration" eSuperTypes="#//TypeDeclaration #//MemberInlineDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="encodingType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="setChoices" upperBound="-1"
         eType="#//SetChoiceDeclaration" containment="true"/>
@@ -51,38 +51,25 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="versionModifiers" eType="#//VersionModifiers"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CompositeTypeDeclaration" eSuperTypes="#//TypeDeclaration #//CompositeMember">
+  <eClassifiers xsi:type="ecore:EClass" name="CompositeTypeDeclaration" eSuperTypes="#//TypeDeclaration #//MemberInlineDeclaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="compositeMembers" upperBound="-1"
         eType="#//CompositeMember" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="CompositeMember"/>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration" eSuperTypes="#//CompositeMember"/>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberRefTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+  <eClassifiers xsi:type="ecore:EClass" name="MemberInlineDeclaration" eSuperTypes="#//CompositeMember"/>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration" eSuperTypes="#//CompositeMember">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//TypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberRefTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//TypeDeclaration"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="MemberPrimitiveTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//RangeModifiers"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="BlockDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="versionModifiers" eType="#//VersionModifiers"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="fieldDeclarations" upperBound="-1"
-        eType="#//FieldDeclaration" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="groupDeclarations" upperBound="-1"
-        eType="#//GroupDeclaration" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="rawDataBlockDeclaration"
-        eType="#//RawDataBlockDeclaration" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="FieldDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -102,6 +89,18 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="dimensionType" eType="#//CompositeTypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="block" eType="#//BlockDeclaration"
         containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BlockDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="versionModifiers" eType="#//VersionModifiers"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fieldDeclarations" upperBound="-1"
+        eType="#//FieldDeclaration" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="groupDeclarations" upperBound="-1"
+        eType="#//GroupDeclaration" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rawDataBlockDeclaration"
+        eType="#//RawDataBlockDeclaration" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="RawDataBlockDeclaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="varDataDeclarations" upperBound="-1"
