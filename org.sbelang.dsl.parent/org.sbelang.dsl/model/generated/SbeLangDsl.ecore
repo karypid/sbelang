@@ -57,18 +57,20 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="CompositeMember"/>
   <eClassifiers xsi:type="ecore:EClass" name="MemberInlineDeclaration" eSuperTypes="#//CompositeMember"/>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration" eSuperTypes="#//CompositeMember">
+  <eClassifiers xsi:type="ecore:EClass" name="MemberTypeDeclaration" eSuperTypes="#//CompositeMember"/>
+  <eClassifiers xsi:type="ecore:EClass" name="MemberRefTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//TypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberRefTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//TypeDeclaration"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="MemberPrimitiveTypeDeclaration" eSuperTypes="#//MemberTypeDeclaration">
+  <eClassifiers xsi:type="ecore:EClass" name="MemberPrimitiveTypeDeclaration" eSuperTypes="#//MemberInlineDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//RangeModifiers"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="FieldDeclaration">

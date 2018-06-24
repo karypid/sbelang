@@ -163,29 +163,42 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             compile(cm /* as CompositeTypeDeclaration */ )
         else if (cm instanceof EnumDeclaration)
             compile(cm /* as EnumDeclaration */ )
+        else if (cm instanceof MemberPrimitiveTypeDeclaration)
+            compile(cm /* as MemberPrimitiveTypeDeclaration */ )
         else
             throw new IllegalStateException("Unsupported composite member: " + cm.class.name)
+    }
+
+    private def compile(MemberPrimitiveTypeDeclaration mptd) {
+        '''
+            <type name="«mptd.name»" primitiveType="«mptd.primitiveType»"«memberTypeLength(mptd)»«memberTypeRange(mptd)»«presenceAttrs(mptd.presence)»«closeTag("type", mptd.presence)»
+        '''
     }
 
     private def compile(EnumDeclaration ed) {
         '''
             <enum name="«ed.name»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
-                    «IF "NULL_VAL" == enumVal.name»
+                    «IF "NULL_VAL" ==
+enumVal.name»
                         <!--
                         WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
                         an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
                         
-                        <validValue name="NULL_VAL"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
+                        <validValue name="NULL_VAL"«
+versionAttrs
+(enumVal.versionModifiers)»>« constLiteral
+(enumVal.value)»</validValue>
                         -->
                     «ELSE»
-                        <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
+                        <validValue name="« enumVal
+.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
                     «ENDIF»
                 «ENDFOR»
             </enum>
         '''
     }
-    
+
     private def compile(SetDeclaration sd) {
         '''
             <set name="«sd.name»" encodingType="«sd.encodingType»"«versionAttrs(sd.versionModifiers)»>
@@ -199,36 +212,24 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     private def compile(MemberTypeDeclaration mtd) {
         // TODO: handle nullValue
         switch mtd {
-            MemberPrimitiveTypeDeclaration: '''
-                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
-            '''
             MemberRefTypeDeclaration: '''
-                <ref name="«mtd.name»" type="«mtd.type.name»"«memberTypeLength(mtd)»«memberTypeRange(mtd)» />
+                <ref name="«mtd.name»" type="«mtd.type.name»" />
             '''
-            EnumDeclaration:
-                compile(mtd as EnumDeclaration)
             default: '''TODO'''
         }
     }
 
-    private def memberTypeLength(MemberTypeDeclaration mtd) {
-        if (mtd instanceof MemberPrimitiveTypeDeclaration)
-            '''«IF mtd.length !== null» length="«mtd.length»"«ENDIF»'''
-        else
-            ""
+    private def memberTypeLength(MemberPrimitiveTypeDeclaration mtd) {
+        '''«IF mtd.length !== null» length="«mtd.length»"«ENDIF»'''
     }
 
-    private def memberTypeRange(MemberTypeDeclaration mtd) {
-        if (mtd instanceof MemberPrimitiveTypeDeclaration) {
-            if (mtd.rangeModifiers !== null)
-                '''«IF mtd.rangeModifiers.min !== null» minValue="«constLiteral(mtd.rangeModifiers.min)»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«constLiteral(mtd.rangeModifiers.max)»"«ENDIF»'''
-        } else {
-            ""
-        }
+    private def memberTypeRange(MemberPrimitiveTypeDeclaration mtd) {
+        if (mtd.rangeModifiers !== null)
+            '''«IF mtd.rangeModifiers.min !== null» minValue="«constLiteral(mtd.rangeModifiers.min)»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«constLiteral(mtd.rangeModifiers.max)»"«ENDIF»'''
     }
 
     def compile(FieldDeclaration field) {
-        val fieldType = if (field.primitiveType === null) field.fieldType.name else field.primitiveType
+        val fieldType = if(field.primitiveType === null) field.fieldType.name else field.primitiveType
         '''
             <field name="«field.name»" id="«field.id»" type="«fieldType»"«presenceAttrs(field.presenceModifiers)»«versionAttrs(field.versionModifiers)»«closeTag("field", field.presenceModifiers)»
         '''

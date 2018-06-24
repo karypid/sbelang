@@ -12,13 +12,13 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.validation.Check
 import org.sbelang.dsl.SbeLangDslValueUtils
+import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
@@ -115,7 +115,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkComposite(CompositeTypeDeclaration ctd) {
-        val Map<String, MemberTypeDeclaration> names = new HashMap()
+        val Map<String, CompositeMember> names = new HashMap()
         for (cm : ctd.compositeMembers) {
             if (cm instanceof MemberPrimitiveTypeDeclaration) {
                 val existingName = names.put(cm.name, cm)
@@ -124,7 +124,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     error(
                         '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
                         cm,
-                        SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
+                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
                     )
                 }
             }
@@ -135,7 +135,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     error(
                         '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
                         cm,
-                        SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
+                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
                     )
                 }
             }
@@ -364,9 +364,9 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     val existingNode = NodeModelUtils.getNode(existing)
                     val featureId = switch nd.declaringObject {
                         MemberPrimitiveTypeDeclaration:
-                            SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
+                            SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
                         MemberRefTypeDeclaration:
-                            SbeLangDslPackage.Literals.MEMBER_TYPE_DECLARATION__NAME
+                            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
                         default: // all others are descendants of type declaration
                             SbeLangDslPackage.Literals.TYPE_DECLARATION__NAME
                     }

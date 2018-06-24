@@ -63,12 +63,10 @@ CompositeMember:
     MemberTypeDeclaration | MemberInlineDeclaration;
 
 MemberInlineDeclaration:
-    EnumDeclaration | SetDeclaration | CompositeTypeDeclaration
-;
+    MemberPrimitiveTypeDeclaration | EnumDeclaration | SetDeclaration | CompositeTypeDeclaration;
 
 MemberTypeDeclaration:
-    MemberRefTypeDeclaration /* XSD "refType" */ | MemberPrimitiveTypeDeclaration
-    /* XSD "memberDataType" */;
+    MemberRefTypeDeclaration /* XSD "refType" */;
 
 MemberRefTypeDeclaration:
     name=Name ':' type=[TypeDeclaration] presence=PresenceModifiers?;
