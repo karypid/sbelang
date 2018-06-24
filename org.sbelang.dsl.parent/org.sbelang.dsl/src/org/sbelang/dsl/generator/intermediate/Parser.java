@@ -12,7 +12,6 @@ import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.sbelang.dsl.sbeLangDsl.CompositeMember;
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration;
-import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration;
@@ -157,19 +156,21 @@ public class Parser
 
         for (CompositeMember cm : ctd.getCompositeMembers())
         {
-            if (cm instanceof MemberPrimitiveTypeDeclaration)
-            {
-                MemberPrimitiveTypeDeclaration m = (MemberPrimitiveTypeDeclaration) cm;
-                fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType());
-            }
-            else if (cm instanceof MemberRefTypeDeclaration)
+            if (cm instanceof MemberRefTypeDeclaration)
             {
                 MemberRefTypeDeclaration m = (MemberRefTypeDeclaration) cm;
-                TypeDeclaration refTargetType = m.getType();
-                if (refTargetType instanceof SimpleTypeDeclaration)
+                if (m.getPrimitiveType() == null)
                 {
-                    SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
-                    
+                    fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType());
+                }
+                else
+                {
+                    TypeDeclaration refTargetType = m.getType();
+                    if (refTargetType instanceof SimpleTypeDeclaration)
+                    {
+                        SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
+
+                    }
                 }
             }
             else if (cm instanceof EnumDeclaration)

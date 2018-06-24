@@ -7,7 +7,6 @@ import java.util.HashMap
 import java.util.Map
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs
@@ -111,10 +110,8 @@ class ImMessageSchema {
 
         rootComposite.compositeMembers.forEach [ cm |
             switch cm {
-                MemberPrimitiveTypeDeclaration: {
-                    fi.addPrimitiveField(cm.name, cm.primitiveType)
-                }
                 MemberRefTypeDeclaration: {
+                    fi.addPrimitiveField(cm.name, cm.primitiveType)
                 }
                 EnumDeclaration: {
                     addToGlobalIndex(cm.name, cm)

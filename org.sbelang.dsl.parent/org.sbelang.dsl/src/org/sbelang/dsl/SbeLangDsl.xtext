@@ -60,19 +60,13 @@ CompositeTypeDeclaration:
     'composite' name=Name versionModifiers=VersionModifiers '{' compositeMembers+=CompositeMember+ '}';
 
 CompositeMember:
-    MemberTypeDeclaration | MemberInlineDeclaration;
+    MemberRefTypeDeclaration | MemberInlineDeclaration;
 
 MemberInlineDeclaration:
-    MemberPrimitiveTypeDeclaration | EnumDeclaration | SetDeclaration | CompositeTypeDeclaration;
-
-MemberTypeDeclaration:
-    MemberRefTypeDeclaration /* XSD "refType" */;
+    EnumDeclaration | SetDeclaration | CompositeTypeDeclaration;
 
 MemberRefTypeDeclaration:
-    name=Name ':' type=[TypeDeclaration] presence=PresenceModifiers?;
-
-MemberPrimitiveTypeDeclaration:
-    name=Name ':' primitiveType=PrimitiveType ('[' length=OptionalInt ']')? ('range' '='
+    name=Name ':' (type=[TypeDeclaration] | primitiveType=PrimitiveType) ('[' length=OptionalInt ']')? ('range' '='
     rangeModifiers=RangeModifiers)? presence=PresenceModifiers?;
 
 FieldDeclaration:

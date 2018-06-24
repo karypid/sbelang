@@ -12,7 +12,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 
 /**
  * @author karypid
@@ -89,7 +89,7 @@ class ToJavaCompiler {
         switch member {
             CompositeTypeDeclaration:
                 generateCompositeEncoderMember(ownerComposite, member)
-            MemberTypeDeclaration: {
+            MemberRefTypeDeclaration: {
                 ''' /* TODO: «member.toString» */'''
             }
             default: {

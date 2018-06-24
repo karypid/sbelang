@@ -4,7 +4,6 @@
 package org.sbelang.dsl.generator
 
 import java.nio.ByteOrder
-import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
@@ -13,18 +12,17 @@ import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
-import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
-import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
+import org.sbelang.dsl.sbeLangDsl.RawDataBlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
-import org.sbelang.dsl.sbeLangDsl.RawDataBlockDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.SbeLangDslValueUtils
+import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
+import org.eclipse.emf.ecore.EObject
 
 /**
  * Generates XML from your model files on save.
@@ -157,42 +155,46 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     }
 
     private def compile(CompositeMember cm) {
-        if (cm instanceof MemberTypeDeclaration)
-            compile(cm /* as MemberTypeDeclaration */ )
+        if (cm instanceof MemberRefTypeDeclaration)
+            compile(cm /* as MemberRefTypeDeclaration */ )
         else if (cm instanceof CompositeTypeDeclaration)
             compile(cm /* as CompositeTypeDeclaration */ )
         else if (cm instanceof EnumDeclaration)
             compile(cm /* as EnumDeclaration */ )
-        else if (cm instanceof MemberPrimitiveTypeDeclaration)
-            compile(cm /* as MemberPrimitiveTypeDeclaration */ )
+        else if (cm instanceof SetDeclaration)
+            compile(cm /* as SetDeclaration */ )
         else
             throw new IllegalStateException("Unsupported composite member: " + cm.class.name)
     }
 
-    private def compile(MemberPrimitiveTypeDeclaration mptd) {
-        '''
-            <type name="«mptd.name»" primitiveType="«mptd.primitiveType»"«memberTypeLength(mptd)»«memberTypeRange(mptd)»«presenceAttrs(mptd.presence)»«closeTag("type", mptd.presence)»
-        '''
+    private def compile(MemberRefTypeDeclaration mtd) {
+        // TODO: handle nullValue
+        
+        if (mtd.primitiveType === null) {
+            '''
+                <ref name="«mtd.name»" type="«mtd.type.name»" />
+            '''
+        } 
+        else {
+            '''
+                <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
+            '''
+        }
     }
 
     private def compile(EnumDeclaration ed) {
         '''
             <enum name="«ed.name»" encodingType="«ed.encodingType»"«versionAttrs(ed.versionModifiers)»>
                 «FOR enumVal : ed.enumValues»
-                    «IF "NULL_VAL" ==
-enumVal.name»
+                    «IF "NULL_VAL" == enumVal.name»
                         <!--
                         WARNING: SBE Tool currently always adds a "NULL_VAL" to enumerations with the default null value. If you supply
                         an overrides (or just explicitly state the default) for NULL_VAL a bug in SBE Tool will produce broken code.
                         
-                        <validValue name="NULL_VAL"«
-versionAttrs
-(enumVal.versionModifiers)»>« constLiteral
-(enumVal.value)»</validValue>
+                        <validValue name="NULL_VAL"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
                         -->
                     «ELSE»
-                        <validValue name="« enumVal
-.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
+                        <validValue name="«enumVal.name»"«versionAttrs(enumVal.versionModifiers)»>«constLiteral(enumVal.value)»</validValue>
                     «ENDIF»
                 «ENDFOR»
             </enum>
@@ -209,21 +211,12 @@ versionAttrs
         '''
     }
 
-    private def compile(MemberTypeDeclaration mtd) {
-        // TODO: handle nullValue
-        switch mtd {
-            MemberRefTypeDeclaration: '''
-                <ref name="«mtd.name»" type="«mtd.type.name»" />
-            '''
-            default: '''TODO'''
-        }
-    }
 
-    private def memberTypeLength(MemberPrimitiveTypeDeclaration mtd) {
+    private def memberTypeLength(MemberRefTypeDeclaration mtd) {
         '''«IF mtd.length !== null» length="«mtd.length»"«ENDIF»'''
     }
 
-    private def memberTypeRange(MemberPrimitiveTypeDeclaration mtd) {
+    private def memberTypeRange(MemberRefTypeDeclaration mtd) {
         if (mtd.rangeModifiers !== null)
             '''«IF mtd.rangeModifiers.min !== null» minValue="«constLiteral(mtd.rangeModifiers.min)»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«constLiteral(mtd.rangeModifiers.max)»"«ENDIF»'''
     }

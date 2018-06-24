@@ -17,7 +17,6 @@ import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
-import org.sbelang.dsl.sbeLangDsl.MemberPrimitiveTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
@@ -60,7 +59,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
-    def checkMemberType(MemberPrimitiveTypeDeclaration mtd) {
+    def checkMemberType(MemberRefTypeDeclaration mtd) {
         switch mtd.presence {
             PresenceConstantModifier:
                 validatePresenceConstant(mtd.presence as PresenceConstantModifier, mtd.primitiveType)
@@ -117,17 +116,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     def checkComposite(CompositeTypeDeclaration ctd) {
         val Map<String, CompositeMember> names = new HashMap()
         for (cm : ctd.compositeMembers) {
-            if (cm instanceof MemberPrimitiveTypeDeclaration) {
-                val existingName = names.put(cm.name, cm)
-                if (existingName !== null) {
-                    val existingNode = NodeModelUtils.getNode(existingName)
-                    error(
-                        '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
-                        cm,
-                        SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
-                    )
-                }
-            }
             if (cm instanceof MemberRefTypeDeclaration) {
                 val existingName = names.put(cm.name, cm)
                 if (existingName !== null) {
@@ -192,14 +180,14 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
-    def checkRangeIsProper(MemberPrimitiveTypeDeclaration mptd) {
+    def checkRangeIsProper(MemberRefTypeDeclaration mptd) {
         if(mptd.rangeModifiers === null) return; // no range can't be wrong
         if (mptd.presence !== null) {
             // if constant, range does not make sense...
             if (mptd.presence instanceof PresenceConstantModifier)
                 error(
                     "You can't specify a range for a constant!",
-                    SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__RANGE_MODIFIERS
+                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
                 )
         }
 
@@ -213,7 +201,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                         if (min.get.compareTo(max.get) > 0)
                             error(
                                 '''Minimum range of («mptd.rangeModifiers.min») cannot exceed maximum of («mptd.rangeModifiers.max»)''',
-                                SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__RANGE_MODIFIERS
+                                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
                             )
                 }
                 default: { // assume number...
@@ -223,7 +211,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                         if (min.get.compareTo(max.get) > 0)
                             error(
                                 '''Minimum range of («mptd.rangeModifiers.min») cannot exceed maximum of («mptd.rangeModifiers.max»)''',
-                                SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__RANGE_MODIFIERS
+                                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
                             )
                 }
             }
@@ -232,14 +220,14 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         if (!isValidLiteral(mptd.rangeModifiers.min.toString, mptd.primitiveType)) {
             error(
                 '''Minimum range of («mptd.rangeModifiers.min») is not within range of type («mptd.primitiveType»)''',
-                SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__RANGE_MODIFIERS
+                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
             )
         }
 
         if (!isValidLiteral(mptd.rangeModifiers.max.toString, mptd.primitiveType)) {
             error(
                 '''Maximum range of («mptd.rangeModifiers.max») is not within range of type («mptd.primitiveType»)''',
-                SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__RANGE_MODIFIERS
+                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
             )
         }
     }
@@ -363,8 +351,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                 if (existing !== null) {
                     val existingNode = NodeModelUtils.getNode(existing)
                     val featureId = switch nd.declaringObject {
-                        MemberPrimitiveTypeDeclaration:
-                            SbeLangDslPackage.Literals.MEMBER_PRIMITIVE_TYPE_DECLARATION__NAME
                         MemberRefTypeDeclaration:
                             SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
                         default: // all others are descendants of type declaration
