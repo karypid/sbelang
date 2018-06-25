@@ -83,6 +83,33 @@ types
 //  composite EnumUint8 {
 //      m_enum_char     : EnumChar
 //  }
+    set Set8 : uint8
+    {
+        ZERO(0)
+        SEVEN(7)
+    }
+
+    set Set16 : uint16
+    {
+        ZERO(0)
+        FIFTEEN(15)
+    }
+
+    set Set32 : uint32
+    {
+        ZERO(0)
+        THIRTY_ONE(31)
+    }
+
+    set Set64 : uint64
+    {
+        ZERO(0)
+        SIXTY_THREE(63)
+    }
+
+//  composite Set16 {
+//      m_set_32     : Set32
+//  }
     composite CompEnums
     {
         m_enum_char     : EnumChar
@@ -100,16 +127,30 @@ types
         }
     }
 
+    composite CompSets
+    {
+        m_set_8     : Set8
+        m_set_16    : Set16
+        m_set_32    : Set32
+        m_set_64    : Set64
+
+//      composite Set16 {
+//          m_set_32     : Set32
+//      }
+        set SetNested16 : uint16
+        {
+            NESTED_ZERO(0)
+            NESTED_FIFTEEN(15)
+        }
+    }
+
     composite CompEverything
     {
         m_prim_int      : int32
         m_st_char       : t_char
 
-//      enum EnumNestedChar : char
-//      {
-//          X('A')
-//          Y('B')
-//          Z('C')
+//      enum EnumNestedChar : char {
+//          X('X')
 //      }
         enum EnumNestedUint16 : uint16
         {
@@ -118,12 +159,22 @@ types
             THREE(3)
         }
 
+//      set Set32 : uint32 {
+//          ZERO(0)
+//      }
+        set SetNested32 : uint32
+        {
+            ZERO(0)
+            THIRTY_ONE(31)
+        }
+
         composite CompEverythingNested
         { // inline composite
             m_nested_prim   : uint16
             m_st_float      :   float
         }
         m_ref_comp_enum     : CompEnums
+        m_ref_comp_sets     : CompSets
         m_ref_comp_simple   : CompSimpleTypes // reference composite
     }
 }

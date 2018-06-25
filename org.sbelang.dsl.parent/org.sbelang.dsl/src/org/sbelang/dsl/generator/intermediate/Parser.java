@@ -183,6 +183,13 @@ public class Parser
                         SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
                         fieldIndex.addPrimitiveField(ed.getName(), st.getPrimitiveType(), m);
                     }
+                    else if (refTargetType instanceof SetDeclaration)
+                    {
+                        SetDeclaration sd = (SetDeclaration) refTargetType;
+                        String encodingType = sd.getEncodingType();
+                        SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
+                        fieldIndex.addPrimitiveField(sd.getName(), st.getPrimitiveType(), m);
+                    }
                     else if (refTargetType instanceof CompositeTypeDeclaration)
                     {
                         CompositeTypeDeclaration reftCtd = (CompositeTypeDeclaration) refTargetType;
@@ -207,6 +214,7 @@ public class Parser
             else if (cm instanceof SetDeclaration)
             {
                 SetDeclaration sd = (SetDeclaration) cm;
+                checkRootUnique(sd);
                 fieldIndex.addPrimitiveField(sd.getName(), sd.getEncodingType(), sd);
             }
             else if (cm instanceof CompositeTypeDeclaration)
