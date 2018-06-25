@@ -59,6 +59,34 @@ types
 //   }
     }
 
+//  enum CompSimpleType { // not allowed...
+//      DUPLICATE_ENUM_NAME('X')
+//  }
+    enum EnumChar : char
+    {
+        YES('Y')
+        NO('N')
+    }
+
+    enum EnumUint8 : uint8
+    {
+        YES(1)
+        NO(0)
+    }
+
+    enum EnumUint16 : uint16
+    {
+        YES(10001)
+        NO(10000)
+    }
+
+    composite CompEnums
+    {
+        m_enum_char     : EnumChar
+        m_enum_uint8    : EnumUint8
+        m_enum_uint16   : EnumUint16
+    }
+
     composite CompEverything
     {
         m_prim_int      : int32
@@ -69,7 +97,7 @@ types
             m_nested_prim   : uint16
             m_st_float      :   float
         }
-        
-        m_ref_comp      : CompSimpleTypes // reference composite
+        m_ref_comp_enum     : CompEnums
+        m_ref_comp_simple   : CompSimpleTypes // reference composite
     }
 }

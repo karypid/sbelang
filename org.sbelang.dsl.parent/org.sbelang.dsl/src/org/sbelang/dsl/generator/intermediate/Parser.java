@@ -17,6 +17,7 @@ import org.sbelang.dsl.sbeLangDsl.MessageSchema;
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration;
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration;
+import org.sbelang.dsl.sbeLangDsl.impl.SimpleTypeDeclarationImpl;
 
 public class Parser
 {
@@ -58,6 +59,19 @@ public class Parser
 
         this.allRootNames = new LinkedHashMap<>();
         this.allParsedComposites = new LinkedHashMap<>();
+
+        // we define simple types for all primitives
+        for (String pt : SbeUtils.PRIMITIVE_TYPES)
+        {
+            SimpleTypeDeclarationImpl st = new SimpleTypeDeclarationImpl() {
+                {
+                    setPrimitiveType(pt);
+                    setName(pt);
+                    setLength(1);
+                }
+            };
+            rootSimpleTypes.put(pt, st);
+        }
     }
 
     private ParsedSchema parse() throws Exception
@@ -155,6 +169,13 @@ public class Parser
                     {
                         SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
                         fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType(), m);
+                    }
+                    else if (refTargetType instanceof EnumDeclaration)
+                    {
+                        EnumDeclaration ed = (EnumDeclaration) refTargetType;
+                        String encodingType = ed.getEncodingType();
+                        SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
+                        fieldIndex.addPrimitiveField(ed.getName(), st.getPrimitiveType(), m);
                     }
                     else if (refTargetType instanceof CompositeTypeDeclaration)
                     {

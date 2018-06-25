@@ -4,6 +4,10 @@
  */
 package org.sbelang.dsl.generator.intermediate;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.ICompositeNode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
@@ -14,6 +18,10 @@ import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
  */
 public class SbeUtils
 {
+    public static final List<String> PRIMITIVE_TYPES = Collections
+                    .unmodifiableList(Arrays.asList("char", "int8", "int16", "int32", "int64",
+                                    "uint8", "uint16", "uint32", "uint64", "float", "double"));
+
     public static String location(ICompositeNode node)
     {
         int s = node.getStartLine();
