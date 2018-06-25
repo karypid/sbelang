@@ -35,6 +35,7 @@ types
 
     composite CompPrimitives
     {
+        t_char     : char // member name does not collide with simple type
         primChar   : char
         primIint8  : int8
         primIint16 : int16
@@ -64,11 +65,12 @@ types
         arr_primDouble : double[2]
     }
 
-//    composite CompPrimitives {
+//    composite CompPrimitives { // composite name collides with existing composite
 //        this_composite_name_should_collide_with_the_one_above : char
 //    }
     composite CompSimpleTypes
     {
+        t_char       : t_char // member name does not collide with simple type
         st_char      : t_char
         st_int8      : t_int8
         st_int16     : t_int16
@@ -90,7 +92,7 @@ types
 //   }
     }
 
-//  enum CompSimpleType { // not allowed...
+//  enum CompSimpleType { // composite name collides with enum
 //      DUPLICATE_ENUM_NAME('X')
 //  }
     enum EnumChar : char
@@ -111,7 +113,7 @@ types
         NO(10000)
     }
 
-//  composite EnumUint8 {
+//  composite EnumUint8 { // composite name collides with enum
 //      m_enum_char     : EnumChar
 //  }
     composite CompEnums
@@ -121,7 +123,7 @@ types
         m_enum_uint8    : EnumUint8
         m_enum_uint16   : EnumUint16
 
-//      composite EnumUint8 {
+//      composite EnumUint8 { // composite name collides with enum
 //          m_enum_char     : EnumChar
 //      }
         enum EnumNestedChar : char
@@ -209,9 +211,22 @@ types
         // m_ref_comp_array    : CompEnums[3] // length is illegal in composite references
         m_ref_comp_enum     : CompEnums
         m_ref_comp_sets     : CompSets
+        m_ref_comp_prims   : CompPrimitives // reference composite
         m_ref_comp_simple   : CompSimpleTypes // reference composite
     }
 
+    /*================================================================================================
+     * The section above covers all core features. Every kind of type declaration (simple/enum/set and
+     * composite) is demonstrated, along with all kinds of inline/reference members for composites. We
+     * also covered arrays (from simple types or member types that are primitives) and finally we have
+     * provided commented-out examples for all kinds of syntactically-correct but semantically-illegal
+     * cases (unique member names in same composite/enum/set, unique names for inline sets enumerations
+     * and composites across the entire schema).
+     * 
+     * 
+     * 
+     */
+    // this is required to exist (composite with name messageHeader ; can be overwritten by schema's headerType)
     composite messageHeader
     {
         // FIX SBE defaults to the composite with this name to use as the message header.
@@ -225,4 +240,9 @@ types
         numGroups : uint16 // number of repeating groups after fixed-length portion of message
         numVarDataFields : uint16 // number of variable data fields after fixed-length portion of message
     }
+}
+
+message MessageOne id=1
+{
+    f_comp_everything : CompEverything @ 1
 }
