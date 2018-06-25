@@ -92,10 +92,22 @@ class ImMessageSchema {
         allGlobalTypesByUname.put(uname, td)
 
         // create field index where applicable
-//        if (td instanceof CompositeTypeDeclaration)
-//            allFieldIndexesByUname.put(uname, new FieldIndex(td))
+        if (td instanceof CompositeTypeDeclaration)
+            allFieldIndexesByUname.put(uname, new FieldIndex(new CompositeTypeDeclarationFieldIndexContainer(td), false))
 //        else if (td instanceof MessageDeclaration)
 //            allFieldIndexesByUname.put(uname, new MessageFieldIndex(td))
+    }
+    
+    static class CompositeTypeDeclarationFieldIndexContainer implements FieldIndexContainer {
+        CompositeTypeDeclaration ctd;
+        
+        new(CompositeTypeDeclaration ctd) {
+            this.ctd = ctd;
+        }
+        
+        override getContainerName() {
+            return ctd.name
+        }
     }
 
     private def void collectComposites(CompositeTypeDeclaration rootComposite, String prefix,
@@ -112,7 +124,7 @@ class ImMessageSchema {
             switch cm {
                 MemberRefTypeDeclaration: {
                     if (cm.primitiveType !== null)
-                        fi.addPrimitiveField(cm.name, cm.primitiveType, cm)
+                        fi.addPrimitiveField(cm.name, cm.primitiveType, 1, cm)
                 }
                 EnumDeclaration: {
                     addToGlobalIndex(cm.name, cm)

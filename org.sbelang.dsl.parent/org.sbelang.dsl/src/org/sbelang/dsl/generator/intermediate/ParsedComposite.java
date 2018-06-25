@@ -33,7 +33,6 @@ public class ParsedComposite implements FieldIndexContainer
         return containerComposite;
     }
 
-    @Override
     public FieldIndex getFieldIndex()
     {
         return fieldIndex;

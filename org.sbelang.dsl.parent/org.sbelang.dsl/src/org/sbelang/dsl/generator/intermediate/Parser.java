@@ -70,7 +70,7 @@ public class Parser
                     setLength(1);
                 }
             };
-            
+
             rootSimpleTypes.put(pt, st);
             allRootNames.put(pt.toUpperCase(), st);
         }
@@ -130,7 +130,7 @@ public class Parser
     }
 
     private void parse(CompositeTypeDeclaration ctd, ParsedComposite container)
-                    throws DuplicateIdentifierException
+                    throws DuplicateIdentifierException, AttributeErrorException
     {
         System.out.format("    composite: %s in %s...%n", ctd.getName(),
                         container != null ? container.getCompositeType().getName() : "[ROOT]");
@@ -162,11 +162,26 @@ public class Parser
             {
                 MemberRefTypeDeclaration m = (MemberRefTypeDeclaration) cm;
 
-                // references can be made to simple types, or use primitive
-                // types directly
+                // references can be made to primitive types directly as a
+                // special case. also, some attributes are present in the
+                // grammar for that case only. we need to check for illegal
+                // stuff first before proceeding...
+
+                if (m.getLength() != null)
+                {
+                    // length is only allowed when using a primitive type...
+                    if (m.getPrimitiveType() == null)
+                    {
+                        String message = String.format("Length is not allowed on [%s] at %s",
+                                        m.getName(), SbeUtils.location(m));
+                        throw new AttributeErrorException(message, m);
+                    }
+                }
+
                 if (m.getPrimitiveType() != null)
                 {
-                    fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), m);
+                    int length = m.getLength() == null ? 1 : m.getLength();
+                    fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), length, m);
                 }
                 else
                 {
@@ -174,21 +189,23 @@ public class Parser
                     if (refTargetType instanceof SimpleTypeDeclaration)
                     {
                         SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
-                        fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType(), m);
+                        int stLength = st.getLength() == null ? 1 : st.getLength();
+                        fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType(), stLength,
+                                        m);
                     }
                     else if (refTargetType instanceof EnumDeclaration)
                     {
                         EnumDeclaration ed = (EnumDeclaration) refTargetType;
                         String encodingType = ed.getEncodingType();
                         SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
-                        fieldIndex.addPrimitiveField(ed.getName(), st.getPrimitiveType(), m);
+                        fieldIndex.addPrimitiveField(ed.getName(), st.getPrimitiveType(), 1, m);
                     }
                     else if (refTargetType instanceof SetDeclaration)
                     {
                         SetDeclaration sd = (SetDeclaration) refTargetType;
                         String encodingType = sd.getEncodingType();
                         SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
-                        fieldIndex.addPrimitiveField(sd.getName(), st.getPrimitiveType(), m);
+                        fieldIndex.addPrimitiveField(sd.getName(), st.getPrimitiveType(), 1, m);
                     }
                     else if (refTargetType instanceof CompositeTypeDeclaration)
                     {
@@ -209,13 +226,13 @@ public class Parser
             {
                 EnumDeclaration ed = (EnumDeclaration) cm;
                 checkRootUnique(ed);
-                fieldIndex.addPrimitiveField(ed.getName(), ed.getEncodingType(), ed);
+                fieldIndex.addPrimitiveField(ed.getName(), ed.getEncodingType(), 1, ed);
             }
             else if (cm instanceof SetDeclaration)
             {
                 SetDeclaration sd = (SetDeclaration) cm;
                 checkRootUnique(sd);
-                fieldIndex.addPrimitiveField(sd.getName(), sd.getEncodingType(), sd);
+                fieldIndex.addPrimitiveField(sd.getName(), sd.getEncodingType(), 1, sd);
             }
             else if (cm instanceof CompositeTypeDeclaration)
             {

@@ -11,6 +11,4 @@ package org.sbelang.dsl.generator.intermediate;
 public interface FieldIndexContainer
 {
     public String getContainerName();
-
-    public FieldIndex getFieldIndex();
 }

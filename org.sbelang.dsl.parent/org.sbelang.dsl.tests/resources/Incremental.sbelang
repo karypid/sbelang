@@ -18,6 +18,20 @@ types
     // simpleType t_char : int16 // exactly same name
     simpleType t_float : float
     simpleType t_double : double
+    //
+    // arrays --------------------------------
+    //
+    simpleType array_char : char[42]
+    simpleType array_int8 : int8[16]
+    simpleType array_int16 : int16[8]
+    simpleType array_int32 : int32[4]
+    simpleType array_int64 : int64[2]
+    simpleType array_uint8 : uint8[16]
+    simpleType array_uint16 : uint16[8]
+    simpleType array_uint32 : uint32[4]
+    simpleType array_uint64 : uint64[2]
+    simpleType array_float : float[4]
+    simpleType array_double : double[2]
 
     composite CompPrimitives
     {
@@ -34,6 +48,20 @@ types
         // primChar   : int8 // exactly same name
         primFloat  : float
         primDouble : double
+        //
+        // arrays
+        //
+        arr_primChar   : char[24]
+        arr_primIint8  : int8[16]
+        arr_primIint16 : int16[8]
+        arr_primIint32 : int32[4]
+        arr_primIint64 : int64[2]
+        arr_primUint8  : uint8[16]
+        arr_primUint16 : uint16[8]
+        arr_primUint32 : uint32[4]
+        arr_primUint64 : uint64[2]
+        arr_primFloat  : float[4]
+        arr_primDouble : double[2]
     }
 
 //    composite CompPrimitives {
@@ -41,19 +69,22 @@ types
 //    }
     composite CompSimpleTypes
     {
-        st_char   : t_char
-        st_int8   : t_int8
-        st_int16  : t_int16
-        st_int32  : t_int32
-        st_int64  : t_int64
-        st_uint8  : t_uint8
-        st_uint16 : t_uint16
-        st_uint32 : t_uint32
-        st_uint64 : t_uint64
+        st_char      : t_char
+        st_int8      : t_int8
+        st_int16     : t_int16
+        st_int32     : t_int32
+        st_int64     : t_int64
+        st_uint8     : t_uint8
+        st_uint16    : t_uint16
+        st_uint32    : t_uint32
+        st_uint64    : t_uint64
         // st_chAr   : char // same name in different letter case
         // st_char   : t_char // exactly same name
         st_float  : t_float
         st_double : t_double
+        // st_char_array   : t_char[123] // length not allowed here!
+        arr_st_char  : array_char // but you can refer to an array...
+        arr_st_int32 : array_int32
 //   composite CompPrimitives {
 //   this_composite_name_should_collide_with_the_one_above : char
 //   }
@@ -86,6 +117,7 @@ types
     composite CompEnums
     {
         m_enum_char     : EnumChar
+        // m_array_enum_char     : EnumChar[3] // length is illegal in enum references
         m_enum_uint8    : EnumUint8
         m_enum_uint16   : EnumUint16
 
@@ -131,6 +163,7 @@ types
     {
         m_set_8     : Set8
         m_set_16    : Set16
+        // m_array_set_16     : Set16[3] // length is illegal in set references
         m_set_32    : Set32
         m_set_64    : Set64
 
@@ -173,8 +206,23 @@ types
             m_nested_prim   : uint16
             m_st_float      :   float
         }
+        // m_ref_comp_array    : CompEnums[3] // length is illegal in composite references
         m_ref_comp_enum     : CompEnums
         m_ref_comp_sets     : CompSets
         m_ref_comp_simple   : CompSimpleTypes // reference composite
+    }
+
+    composite messageHeader
+    {
+        // FIX SBE defaults to the composite with this name to use as the message header.
+        // You can override it using the "headerType" keyword of the schema. The below
+        // members are suggested (all required).
+        blockLength : uint16 // size of message's fixed-length portion
+        templateId : uint16 // message template identifier
+        schemaId : uint16 // identifier of the schema defining the message
+        ^version : uint16 // version of the schema used to create this message 
+        // version is a keyword in sbelang; the ^ character escapes it
+        numGroups : uint16 // number of repeating groups after fixed-length portion of message
+        numVarDataFields : uint16 // number of variable data fields after fixed-length portion of message
     }
 }

@@ -49,14 +49,14 @@ public class FieldIndex
         return totalLength;
     }
 
-    public int addPrimitiveField(String name, String sbePrimitiveType, EObject grammarElement)
+    public int addPrimitiveField(String name, String sbePrimitiveType, int length, EObject grammarElement)
                     throws DuplicateIdentifierException
     {
         int offset = totalLength;
-        int length = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType);
+        int octetLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType) * length;
 
-        int idx = addField(name, offset, length, grammarElement);
-        totalLength += length;
+        int idx = addField(name, offset, octetLength, grammarElement);
+        totalLength += octetLength;
 
         return idx;
     }
@@ -72,11 +72,11 @@ public class FieldIndex
         return idx;
     }
 
-    private int addField(String name, int offset, int length, EObject grammarElement)
+    private int addField(String name, int offset, int octetLength, EObject grammarElement)
                     throws DuplicateIdentifierException
     {
-        System.out.format("        Adding %s to %s at offset %d with length %d%n", name,
-                        container.getContainerName(), offset, length);
+        System.out.format("        Adding %s to %s at offset %d with octet length %d%n", name,
+                        container.getContainerName(), offset, octetLength);
 
         String indexName = caseSensitive ? name : name.toUpperCase();
         int idx = fieldNames.size(); // the next entry in arraylist group...
@@ -94,7 +94,7 @@ public class FieldIndex
 
         fieldNames.add(name);
         fieldOffsets.add(offset);
-        fieldLengths.add(length);
+        fieldLengths.add(octetLength);
         fieldGrammarElements.add(grammarElement);
 
         return idx;
