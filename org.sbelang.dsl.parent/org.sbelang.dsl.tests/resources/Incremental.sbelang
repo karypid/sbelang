@@ -37,10 +37,10 @@ types
     {
         t_char     : char // member name does not collide with simple type
         primChar   : char
-        primIint8  : int8
-        primIint16 : int16
-        primIint32 : int32
-        primIint64 : int64
+        primInt8  : int8
+        primInt16 : int16
+        primInt32 : int32
+        primInt64 : int64
         primUint8  : uint8
         primUint16 : uint16
         primUint32 : uint32
@@ -53,10 +53,10 @@ types
         // arrays
         //
         arr_primChar   : char[24]
-        arr_primIint8  : int8[16]
-        arr_primIint16 : int16[8]
-        arr_primIint32 : int32[4]
-        arr_primIint64 : int64[2]
+        arr_primInt8  : int8[16]
+        arr_primInt16 : int16[8]
+        arr_primInt32 : int32[4]
+        arr_primInt64 : int64[2]
         arr_primUint8  : uint8[16]
         arr_primUint16 : uint16[8]
         arr_primUint32 : uint32[4]
