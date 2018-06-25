@@ -11,12 +11,18 @@ import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
+import java.io.File
+import java.nio.file.Paths
+import java.nio.file.Files
+import org.eclipse.xtext.testing.validation.ValidationTestHelper
 
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
 class SbeLangDslParsingTest {
     @Inject
     ParseHelper<MessageSchema> parseHelper
+
+    @Inject extension ValidationTestHelper
 
     @Test
     def void testPrimitives() {
@@ -41,6 +47,20 @@ class SbeLangDslParsingTest {
             }
         ''')
         Assert.assertNotNull(result)
+        result.assertNoErrors
+
+        val errors = result.eResource.errors
+        Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)
+    }
+
+    @Test
+    def void testAllFeatures() {
+        val String allFeaturesFileContent = new String(
+            Files.readAllBytes(Paths.get(new File("resources/AllFeatures.sbelang").getAbsolutePath())));
+
+        val result = parseHelper.parse(allFeaturesFileContent)
+        Assert.assertNotNull(result)
+        result.assertNoErrors
 
         val errors = result.eResource.errors
         Assert.assertTrue('''Unexpected errors: «errors.join(", ")»''', errors.isEmpty)

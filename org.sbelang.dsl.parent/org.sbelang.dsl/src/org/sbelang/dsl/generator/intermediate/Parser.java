@@ -159,7 +159,7 @@ public class Parser
             if (cm instanceof MemberRefTypeDeclaration)
             {
                 MemberRefTypeDeclaration m = (MemberRefTypeDeclaration) cm;
-                if (m.getPrimitiveType() == null)
+                if (m.getPrimitiveType() != null)
                 {
                     fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType());
                 }
@@ -169,7 +169,7 @@ public class Parser
                     if (refTargetType instanceof SimpleTypeDeclaration)
                     {
                         SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
-
+                        fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType());
                     }
                 }
             }

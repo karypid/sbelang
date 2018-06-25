@@ -61,8 +61,18 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     @Check
     def checkMemberType(MemberRefTypeDeclaration mtd) {
         switch mtd.presence {
-            PresenceConstantModifier:
-                validatePresenceConstant(mtd.presence as PresenceConstantModifier, mtd.primitiveType)
+            PresenceConstantModifier: {
+                val primitiveType = if (mtd.primitiveType !== null)
+                        mtd.primitiveType
+                    else {
+                        if (mtd.type instanceof SimpleTypeDeclaration) {
+                            (mtd.type as SimpleTypeDeclaration).primitiveType
+                        } else {
+                            mtd.type.name
+                        }
+                    }
+                validatePresenceConstant(mtd.presence as PresenceConstantModifier, primitiveType)
+            }
         }
     }
 

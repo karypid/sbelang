@@ -111,7 +111,8 @@ class ImMessageSchema {
         rootComposite.compositeMembers.forEach [ cm |
             switch cm {
                 MemberRefTypeDeclaration: {
-                    fi.addPrimitiveField(cm.name, cm.primitiveType)
+                    if (cm.primitiveType !== null)
+                        fi.addPrimitiveField(cm.name, cm.primitiveType)
                 }
                 EnumDeclaration: {
                     addToGlobalIndex(cm.name, cm)

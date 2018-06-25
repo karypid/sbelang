@@ -18,43 +18,76 @@
         <type name="t_uint64" primitiveType="uint64"/>
         <type name="t_float" primitiveType="float"/>
         <type name="t_double" primitiveType="double"/>
-        <type name="t_char_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_char_s" primitiveType="char" sinceVersion="1"/>
         <type name="t_char_d" primitiveType="char" deprecated="2"/>
         <type name="t_char_sd" primitiveType="char" sinceVersion="1" deprecated="2"/>
-        <type name="t_int8_s" primitiveType="int8" length="1" sinceVersion="2"/>
+        <type name="t_int8_s" primitiveType="int8" sinceVersion="2"/>
         <type name="t_int8_d" primitiveType="int8" deprecated="3"/>
         <type name="t_int8_sd" primitiveType="int8" sinceVersion="3" deprecated="4"/>
-        <type name="t_int16_s" primitiveType="int16" length="1" sinceVersion="3"/>
+        <type name="t_int16_s" primitiveType="int16" sinceVersion="3"/>
         <type name="t_int16_d" primitiveType="int16" deprecated="4"/>
         <type name="t_int16_sd" primitiveType="int16" sinceVersion="5" deprecated="6"/>
-        <type name="t_int32_s" primitiveType="int32" length="1" sinceVersion="4"/>
+        <type name="t_int32_s" primitiveType="int32" sinceVersion="4"/>
         <type name="t_int32_d" primitiveType="int32" deprecated="5"/>
         <type name="t_int32_sd" primitiveType="int32" sinceVersion="7" deprecated="8"/>
-        <type name="t_int64_s" primitiveType="int64" length="1" sinceVersion="5"/>
+        <type name="t_int64_s" primitiveType="int64" sinceVersion="5"/>
         <type name="t_int64_d" primitiveType="int64" deprecated="6"/>
         <type name="t_int64_sd" primitiveType="int64" sinceVersion="9" deprecated="10"/>
-        <type name="t_uint8_s" primitiveType="uint8" length="1" sinceVersion="6"/>
+        <type name="t_uint8_s" primitiveType="uint8" sinceVersion="6"/>
         <type name="t_uint8_d" primitiveType="uint8" deprecated="7"/>
         <type name="t_uint8_sd" primitiveType="uint8" sinceVersion="11" deprecated="12"/>
-        <type name="t_uint16_s" primitiveType="uint16" length="1" sinceVersion="7"/>
+        <type name="t_uint16_s" primitiveType="uint16" sinceVersion="7"/>
         <type name="t_uint16_d" primitiveType="uint16" deprecated="8"/>
         <type name="t_uint16_sd" primitiveType="uint16" sinceVersion="13" deprecated="14"/>
-        <type name="t_uint32_s" primitiveType="uint32" length="1" sinceVersion="8"/>
+        <type name="t_uint32_s" primitiveType="uint32" sinceVersion="8"/>
         <type name="t_uint32_d" primitiveType="uint32" deprecated="9"/>
         <type name="t_uint32_sd" primitiveType="uint32" sinceVersion="15" deprecated="16"/>
-        <type name="t_uint64_s" primitiveType="uint64" length="1" sinceVersion="9"/>
+        <type name="t_uint64_s" primitiveType="uint64" sinceVersion="9"/>
         <type name="t_uint64_d" primitiveType="uint64" deprecated="10"/>
         <type name="t_uint64_sd" primitiveType="uint64" sinceVersion="17" deprecated="18"/>
-        <type name="t_float_s" primitiveType="float" length="1" sinceVersion="10"/>
+        <type name="t_float_s" primitiveType="float" sinceVersion="10"/>
         <type name="t_float_d" primitiveType="float" deprecated="11"/>
         <type name="t_float_sd" primitiveType="float" sinceVersion="19" deprecated="20"/>
-        <type name="t_double_s" primitiveType="double" length="1" sinceVersion="11"/>
+        <type name="t_double_s" primitiveType="double" sinceVersion="11"/>
         <type name="t_double_d" primitiveType="double" deprecated="12"/>
         <type name="t_double_sd" primitiveType="double" sinceVersion="21" deprecated="22"/>
+        <type name="t_char_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_char_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_char_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_int8_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_int8_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_int8_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_uint8_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_uint8_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_uint8_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_int16_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_int16_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_int16_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_uint16_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_uint16_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_uint16_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_int32_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_int32_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_int32_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_uint32_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_uint32_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_uint32_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_int64_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_int64_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_int64_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_uint64_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_uint64_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_uint64_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_float_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_float_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_float_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
+        <type name="t_double_l1_s" primitiveType="char" length="1" sinceVersion="1"/>
+        <type name="t_double_l1_d" primitiveType="char" length="1" deprecated="2"/>
+        <type name="t_double_l1_sd" primitiveType="char" length="1" sinceVersion="1" deprecated="2"/>
         <type name="t_charArray" primitiveType="char" length="42"/>
-        <type name="t_int8Array" primitiveType="int8" length="2"/>
-        <type name="t_int16Array" primitiveType="int16" length="3"/>
-        <type name="t_int32Array" primitiveType="int32" length="4"/>
+        <type name="t_int8Array" primitiveType="int8" length="2" sinceVersion="1"/>
+        <type name="t_int16Array" primitiveType="int16" length="3" deprecated="2"/>
+        <type name="t_int32Array" primitiveType="int32" length="4" sinceVersion="11" deprecated="99"/>
         <type name="t_int64Array" primitiveType="int64" length="5"/>
         <type name="t_uint8Array" primitiveType="uint8" length="2"/>
         <type name="t_uint16Array" primitiveType="uint16" length="3"/>
@@ -66,7 +99,7 @@
         <type name="t_int16Array_s" primitiveType="int16" length="3" sinceVersion="1"/>
         <type name="t_int32Array_d" primitiveType="int32" length="4" deprecated="2"/>
         
-        <enum name="e_Char" encodingType="char" sinceVersion="10" deprecated="20">
+        <enum name="E_Char" encodingType="char" sinceVersion="10" deprecated="20">
             <validValue name="YES">Y</validValue>
             <validValue name="THINK_YES">y</validValue>
             <validValue name="NO">N</validValue>
@@ -74,17 +107,17 @@
             <validValue name="MAYBE" deprecated="20">M</validValue>
             <validValue name="NOT_SURE" sinceVersion="11" deprecated="19">?</validValue>
         </enum>
-        <enum name="e_Uint8" encodingType="uint8" sinceVersion="1">
+        <enum name="E_Uint8" encodingType="uint8" sinceVersion="1">
             <validValue name="ZERO">0</validValue>
             <validValue name="ONE">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FOUR">254</validValue>
         </enum>
-        <enum name="e_Uint16" encodingType="uint16" deprecated="2">
+        <enum name="E_Uint16" encodingType="uint16" deprecated="2">
             <validValue name="YES">0</validValue>
             <validValue name="NO">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FIVE">255</validValue>
         </enum>
-        <enum name="e_Char_nvd" encodingType="char">
+        <enum name="E_Char_nvd" encodingType="char">
             <validValue name="ONE">1</validValue>
             <validValue name="TWO">2</validValue>
             <!--
@@ -94,7 +127,7 @@
             <validValue name="NULL_VAL"> </validValue>
             -->
         </enum>
-        <enum name="e_Uint8_nvd" encodingType="uint8">
+        <enum name="E_Uint8_nvd" encodingType="uint8">
             <validValue name="ZERO">0</validValue>
             <validValue name="ONE">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FOUR">254</validValue>
@@ -105,7 +138,7 @@
             <validValue name="NULL_VAL">255</validValue>
             -->
         </enum>
-        <enum name="e_Uint16_nvd" encodingType="uint16">
+        <enum name="E_Uint16_nvd" encodingType="uint16">
             <validValue name="YES">0</validValue>
             <validValue name="NO">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FIVE">255</validValue>
@@ -116,7 +149,7 @@
             <validValue name="NULL_VAL">65535</validValue>
             -->
         </enum>
-        <enum name="e_Char_nvo" encodingType="char">
+        <enum name="E_Char_nvo" encodingType="char">
             <validValue name="ONE">1</validValue>
             <validValue name="TWO">2</validValue>
             <!--
@@ -126,7 +159,7 @@
             <validValue name="NULL_VAL"> </validValue>
             -->
         </enum>
-        <enum name="e_Uint8_nvo" encodingType="uint8">
+        <enum name="E_Uint8_nvo" encodingType="uint8">
             <validValue name="ZERO">0</validValue>
             <validValue name="ONE">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FOUR">254</validValue>
@@ -137,7 +170,7 @@
             <validValue name="NULL_VAL">42</validValue>
             -->
         </enum>
-        <enum name="e_Uint16_nvo" encodingType="uint16">
+        <enum name="E_Uint16_nvo" encodingType="uint16">
             <validValue name="YES">0</validValue>
             <validValue name="NO">1</validValue>
             <validValue name="TWO_HUNDRED_AND_FIFTY_FIVE">255</validValue>
@@ -149,25 +182,25 @@
             -->
         </enum>
         
-        <set name="s_uint8" encodingType="uint8">
+        <set name="S_uint8" encodingType="uint8">
             <choice name="BIT_0">0</choice>
             <choice name="BIT_1">1</choice>
             <choice name="BIT_7">7</choice>
         </set>
-        <set name="s_uint16" encodingType="uint16" sinceVersion="1">
+        <set name="S_uint16" encodingType="uint16" sinceVersion="1">
             <choice name="BIT_0">0</choice>
             <choice name="BIT_1">1</choice>
             <choice name="BIT_8">8</choice>
             <choice name="BIT_15">15</choice>
         </set>
-        <set name="s_uint32" encodingType="uint32" deprecated="2">
+        <set name="S_uint32" encodingType="uint32" deprecated="2">
             <choice name="BIT_0">0</choice>
             <choice name="BIT_1">1</choice>
             <choice name="BIT_8">8</choice>
             <choice name="BIT_16">16</choice>
             <choice name="BIT_31">31</choice>
         </set>
-        <set name="s_uint64" encodingType="uint64" sinceVersion="10" deprecated="20">
+        <set name="S_uint64" encodingType="uint64" sinceVersion="10" deprecated="20">
             <choice name="BIT_0">0</choice>
             <choice name="BIT_1">1</choice>
             <choice name="BIT_8" sinceVersion="10">8</choice>
@@ -193,11 +226,37 @@
             <type name="length" primitiveType="uint16"/>
             <type name="varData" primitiveType="uint8" length="0"/>
         </composite>
+        <composite name="CompPrimitives">
+            <type name="primChar" primitiveType="char"/>
+            <type name="primIint8" primitiveType="int8"/>
+            <type name="primIint16" primitiveType="int16"/>
+            <type name="primIint32" primitiveType="int32"/>
+            <type name="primIint64" primitiveType="int64"/>
+            <type name="primUint8" primitiveType="uint8"/>
+            <type name="primUint16" primitiveType="uint16"/>
+            <type name="primUint32" primitiveType="uint32"/>
+            <type name="primUint64" primitiveType="uint64"/>
+            <type name="lowerCaseChar" primitiveType="char" minValue="a" maxValue="z" presence="optional"/>
+            <type name="month" primitiveType="int8" minValue="1" maxValue="12" presence="optional"/>
+            <type name="yeadAD" primitiveType="uint16" minValue="0" maxValue="64999" presence="optional"/>
+            <type name="optionalChar" primitiveType="char" presence="optional"/>
+            <type name="optionalCharWithSpaceForNull" primitiveType="char" presence="optional"/>
+            <type name="marksTheSpotChar" primitiveType="char" presence="constant">X</type>
+            <type name="zero" primitiveType="int8" presence="constant">0</type>
+            <type name="requiredChar" primitiveType="char" minValue="A" maxValue="Z"/>
+        </composite>
+        <composite name="CompSimpleTypes">
+            <ref name="stRequiredChar" type="t_char" />
+            <ref name="stOptionalChar" type="t_char" />
+            <ref name="stOptionalCharWithPlusMeaningAbset" type="t_char" />
+            <ref name="stConstantChar" type="t_char" />
+            <ref name="stUpperCaseChar" type="t_char" />
+        </composite>
         <composite name="TestReferencesComposite">
-            <ref name="ref_st_double" type="t_double" />
+            <ref name="ref_st_uint16" type="t_uint16" />
             <ref name="ref_st_doubleArray" type="t_doubleArray" />
-            <ref name="ref_enum" type="e_Uint16" />
-            <ref name="ref_set" type="s_uint32" />
+            <ref name="ref_enum" type="E_Uint16" />
+            <ref name="ref_set" type="S_uint32" />
             <ref name="ref_composite" type="messageHeader" />
         </composite>
         <composite name="TestCompositeAttrs" sinceVersion="1" deprecated="2">
@@ -253,28 +312,28 @@
     </types>
     
     <message name="MsgEnumerations" id="1">
-        <field name="f_e_Char" id="1" type="e_Char" presence="optional"/>
-        <field name="f_e_Char_nvd" id="2" type="e_Char_nvd" presence="optional"/>
-        <field name="f_e_Char_nvo" id="3" type="e_Char_nvo" presence="optional"/>
-        <field name="f_e_Uint8" id="4" type="e_Uint8"/>
-        <field name="f_e_Uint8_nvd" id="5" type="e_Uint8_nvd"/>
-        <field name="f_e_Uint8_nvo" id="6" type="e_Uint8_nvo"/>
-        <field name="f_e_Uint16" id="7" type="e_Uint16"/>
-        <field name="f_e_Uint16_nvd" id="8" type="e_Uint16_nvd"/>
-        <field name="f_e_Uint16_nvo" id="9" type="e_Uint16_nvo"/>
+        <field name="f_e_Char" id="1" type="E_Char" presence="optional"/>
+        <field name="f_e_Char_nvd" id="2" type="E_Char_nvd" presence="optional"/>
+        <field name="f_e_Char_nvo" id="3" type="E_Char_nvo" presence="optional"/>
+        <field name="f_e_Uint8" id="4" type="E_Uint8"/>
+        <field name="f_e_Uint8_nvd" id="5" type="E_Uint8_nvd"/>
+        <field name="f_e_Uint8_nvo" id="6" type="E_Uint8_nvo"/>
+        <field name="f_e_Uint16" id="7" type="E_Uint16"/>
+        <field name="f_e_Uint16_nvd" id="8" type="E_Uint16_nvd"/>
+        <field name="f_e_Uint16_nvo" id="9" type="E_Uint16_nvo"/>
     </message>
     <message name="TestMessage2" id="2">
-        <field name="fChar" id="1" type="t_char"/>
-        <field name="fUint8" id="2" type="t_uint8"/>
+        <field name="fChar" id="1" type="char"/>
+        <field name="fUint8" id="2" type="uint8"/>
         <field name="fInt8" id="3" type="t_int8"/>
         <field name="fInt8Array" id="4" type="t_int16Array" sinceVersion="1" deprecated="2"/>
-        <field name="fEnumChar" id="5" type="e_Char"/>
-        <field name="fSetUint8" id="6" type="s_uint8"/>
+        <field name="fEnumChar" id="5" type="E_Char"/>
+        <field name="fSetUint8" id="6" type="S_uint8"/>
         <field name="fTestComposite" id="7" type="TestComposite"/>
         <group name="TestGroup" id="8">
             <field name="gfDoubleArray" id="1" type="t_doubleArray"/>
-            <field name="gfEnumTopLevelUint8" id="2" type="e_Uint8"/>
-            <field name="gfSetTopLevelUint16" id="3" type="s_uint16"/>
+            <field name="gfEnumTopLevelUint8" id="2" type="E_Uint8"/>
+            <field name="gfSetTopLevelUint16" id="3" type="S_uint16"/>
             <field name="gfTestCompositeAttrs" id="4" type="TestCompositeAttrs" sinceVersion="2"/>
         </group>
         <data name="fVarRawData1" id="9" type="DATA" />
