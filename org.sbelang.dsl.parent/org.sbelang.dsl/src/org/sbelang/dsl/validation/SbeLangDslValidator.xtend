@@ -191,9 +191,9 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkRangeIsProper(MemberRefTypeDeclaration mptd) {
+        // basic checks for existence or constant presence
         if(mptd.rangeModifiers === null) return; // no range can't be wrong
-        if (mptd.presence !== null) {
-            // if constant, range does not make sense...
+        if (mptd.presence !== null) { // if constant, range does not make sense...
             if (mptd.presence instanceof PresenceConstantModifier)
                 error(
                     "You can't specify a range for a constant!",
@@ -201,6 +201,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                 )
         }
 
+        // check their relative value; min cannot exceed max regardless of anything else
         if ((mptd.rangeModifiers.min !== null) && (mptd.rangeModifiers.max !== null)) {
             switch (mptd.primitiveType) {
                 case 'char': {
@@ -227,18 +228,43 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             }
         }
 
-        if (!isValidLiteral(mptd.rangeModifiers.min.toString, mptd.primitiveType)) {
-            error(
-                '''Minimum range of («mptd.rangeModifiers.min») is not within range of type («mptd.primitiveType»)''',
-                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
-            )
-        }
-
-        if (!isValidLiteral(mptd.rangeModifiers.max.toString, mptd.primitiveType)) {
-            error(
-                '''Maximum range of («mptd.rangeModifiers.max») is not within range of type («mptd.primitiveType»)''',
-                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
-            )
+        // check the literals; if it's not a primitive type, must pick up from reference type
+        if (mptd.primitiveType !== null) {
+            if (!isValidLiteral(mptd.rangeModifiers.min.toString, mptd.primitiveType)) {
+                error(
+                    '''Minimum range of («mptd.rangeModifiers.min») is not within range of type («mptd.primitiveType»)''',
+                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+            }
+            if (!isValidLiteral(mptd.rangeModifiers.max.toString, mptd.primitiveType)) {
+                error(
+                    '''Maximum range of («mptd.rangeModifiers.max») is not within range of type («mptd.primitiveType»)''',
+                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+            }
+        } else {
+            /*
+             * Enums and sets cannot have a range as that is defined by the list of values. Composites cannot
+             * have a range as it would not make sense (they comprise of many items each with its own range).
+             * For each member of a composite the range is specified for by that item. Enums/sets automatically
+             * define their range from their content and member data types can specify it as per below examples.
+             * References to enums/sets use their target's range and REFERENCES TO SIMPLE TYPES CAN NOT have a
+             * range but if one is required they can simply replace the reference with an inline member type
+             * definition (same primitive/length but with range attribute).
+             */
+            // reject range for reference to anything other than simple type
+            if (mptd.type instanceof SimpleTypeDeclaration) {
+                val st = mptd.type as SimpleTypeDeclaration
+                error(
+                    '''Range cannot be applied to simple type reference. You should just use the primitive type [«st.primitiveType»] directy''',
+                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+            } else {
+                error(
+                    '''Range cannot be applied to this type''',
+                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                )
+            }
         }
     }
 
