@@ -44,7 +44,7 @@ public class FieldIndex
         fieldIndexes = new HashMap<>();
     }
 
-    public int getTotalLength()
+    public int getTotalOctetLength()
     {
         return totalLength;
     }
@@ -54,6 +54,17 @@ public class FieldIndex
     {
         int offset = totalLength;
         int length = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType);
+
+        int idx = addField(name, offset, length, grammarElement);
+        totalLength += length;
+
+        return idx;
+    }
+
+    public int addCompositeField(String name, EObject grammarElement, int length)
+                    throws DuplicateIdentifierException
+    {
+        int offset = totalLength;
 
         int idx = addField(name, offset, length, grammarElement);
         totalLength += length;

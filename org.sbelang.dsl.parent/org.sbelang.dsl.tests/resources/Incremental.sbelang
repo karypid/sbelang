@@ -58,4 +58,18 @@ types
 //   this_composite_name_should_collide_with_the_one_above : char
 //   }
     }
+
+    composite CompEverything
+    {
+        m_prim_int      : int32
+        m_st_char       : t_char
+
+        composite CompEverythingNested
+        { // inline composite
+            m_nested_prim   : uint16
+            m_st_float      :   float
+        }
+        
+        m_ref_comp      : CompSimpleTypes // reference composite
+    }
 }

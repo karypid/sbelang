@@ -38,13 +38,12 @@ public class Parser
     // referenced anywhere (messages, groups, nested composites...); furthermore
     // the nested container typer (enum/set/composite) which are defined inline
     // within root composites must also have globally unique names for
-    // convenience
-    // and flexibility in generating code (e.g. can use a static class at the
-    // schema
-    // package level rather than requiring a nested inner class within the
-    // containing
-    // composite)
+    // convenience and flexibility in generating code (e.g. can use a static
+    // class at the schema package level rather than requiring a nested inner
+    // class within the containing composite)
     private final Map<String, TypeDeclaration> allRootNames;
+
+    private final Map<String, ParsedComposite> allParsedComposites;
 
     private Parser(MessageSchema schema)
     {
@@ -58,6 +57,7 @@ public class Parser
         this.rootComposites = new LinkedHashMap<>();
 
         this.allRootNames = new LinkedHashMap<>();
+        this.allParsedComposites = new LinkedHashMap<>();
     }
 
     private ParsedSchema parse() throws Exception
@@ -143,8 +143,7 @@ public class Parser
                 MemberRefTypeDeclaration m = (MemberRefTypeDeclaration) cm;
 
                 // references can be made to simple types, or use primitive
-                // types
-                // directly
+                // types directly
                 if (m.getPrimitiveType() != null)
                 {
                     fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), m);
@@ -157,6 +156,19 @@ public class Parser
                         SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
                         fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType(), m);
                     }
+                    else if (refTargetType instanceof CompositeTypeDeclaration)
+                    {
+                        CompositeTypeDeclaration reftCtd = (CompositeTypeDeclaration) refTargetType;
+                        ParsedComposite refParsedComposite = allParsedComposites
+                                        .get(reftCtd.getName());
+                        if (refParsedComposite.getCompositeType() != reftCtd)
+                            throw new IllegalStateException("Composite index lookup mismatch");
+                        fieldIndex.addCompositeField(m.getName(), reftCtd,
+                                        refParsedComposite.getFieldIndex().getTotalOctetLength());
+                    }
+                    else throw new IllegalStateException("Don't know how to handle type: "
+                                    + refTargetType.getClass().getName());
+
                 }
             }
             else if (cm instanceof EnumDeclaration)
@@ -172,12 +184,20 @@ public class Parser
             else if (cm instanceof CompositeTypeDeclaration)
             {
                 // we have already done a pass above to parse and create the
-                // field index
-                // ParsedComposite memberComposite =
+                // field index, so we should be able to locate it in the map
+                CompositeTypeDeclaration nestedCtd = (CompositeTypeDeclaration) cm;
+                ParsedComposite nestedParsedComposite = allParsedComposites
+                                .get(nestedCtd.getName());
+                if (nestedParsedComposite.getCompositeType() != nestedCtd)
+                    throw new IllegalStateException("Composite index lookup mismatch");
+                fieldIndex.addCompositeField(nestedCtd.getName(), nestedCtd,
+                                nestedParsedComposite.getFieldIndex().getTotalOctetLength());
             }
             else throw new IllegalStateException(
                             "Don't know how to handle type: " + cm.getClass().getName());
         }
+
+        allParsedComposites.put(parsedComposite.getContainerName(), parsedComposite);
     }
 
     private void checkRootUnique(TypeDeclaration td) throws DuplicateIdentifierException
