@@ -14,8 +14,8 @@ types
     simpleType t_uint16 : uint16
     simpleType t_uint32 : uint32
     simpleType t_uint64 : uint64
-    // simpleType t_Char : int8 // same name in different letter case
-    // simpleType t_char : int16 // exactly same name
+//   simpleType t_Char : int8 // same name in different letter case
+//   simpleType t_char : int16 // exactly same name
     simpleType t_float : float
     simpleType t_double : double
     //
@@ -243,13 +243,13 @@ types
         m_int16_4_digits    : int16 range = [-9999, 9999]
         m_int32_6_digits    : int32 range = [-999999, 999999]
         m_int64_10_digit    : int64 range = [-9999999999, 9999999999]
-        // some errors --------------------------------------
+        // range specification errors -----------------------
         // m_char_range_inverted    : char range=['z', 'a']
         // m_int_range_inverted     : char range=[5, -1]
         // m_uint_range_inverted    : char range=[5, 0]
-        // m_int_max_out_of_range       : int8 range=[1, 128]
+        // m_int_max_out_of_range   : int8 range=[1, 128]
         // m_uint_max_out_of_range  : uint8 range=[0, 256]
-        // m_int_min_out_of_range       : int8 range=[-129, 127]
+        // m_int_min_out_of_range   : int8 range=[-129, 127]
         // m_uint_min_out_of_range  : uint8 range=[-1, 255]
         m_uint8_2_digits    : uint8 range=[0, 99]
         m_uint16_4_digits   : uint16 range = [0, 9999]
@@ -268,13 +268,13 @@ types
         m_double : double // TODO: support double range
         // ------------------------------------------------------
         // Ranges can NOT be applied to simple type references
-        // m_t_char_lower      : t_char range=['a', 'z']
-        // m_t_int8_2_digits   : t_int8 range=[-99, 99]
-        // m_t_int16_4_digits  : t_int16 range = [-9999, 9999]
-        // m_t_int32_6_digits  : t_int32 range = [-999999, 999999]
-        // m_t_int64_10_digit  : t_int64 range = [-9999999999, 9999999999]
-        // m_enum_range : EnumChar range = ['a','z']
-        // m_set_range : Set16 range = [1,5]
+        // m_t_char_lower      : t_char   range = ['a', 'z']
+        // m_t_int8_2_digits   : t_int8   range = [-99, 99]
+        // m_t_int16_4_digits  : t_int16  range = [-9999, 9999]
+        // m_t_int32_6_digits  : t_int32  range = [-999999, 999999]
+        // m_t_int64_10_digit  : t_int64  range = [-9999999999, 9999999999]
+        // m_enum_range        : EnumChar range = ['a','z']
+        // m_set_range         : Set16    range = [1, 5]
     }
 
     composite CompPresence
@@ -315,25 +315,56 @@ types
         primUint64 : uint64 optional
         primFloat  : float optional
         primDouble : double optional
+        // constant presence -----------------------------
+        constChar   : char   constant='a'
+        constInt8   : int8   constant=42
+        constInt16  : int16  constant=42
+        constInt32  : int32  constant=42
+        constInt64  : int64  constant=42
+        constUint8  : uint8  constant=42
+        constUint16 : uint16 constant=42
+        constUint32 : uint32 constant=42
+        constUint64 : uint64 constant=42
+// TODO: support float/double constants
+//        constFloat  : float  constant=42
+//        constDouble : double constant=42
+        //
+        // some illegal const value literals ------------
+//      int_for_char_const    : char constant=42
+//      char_for_uint8_const  : uint8 constant='x'
+        //
         // override default null value
-        nv_primChar   : char nullValue='.'
-        nv_primInt8   : int8 nullValue=42
-        nv_primInt16  : int16 nullValue=42
-        nv_primInt32  : int32 nullValue=42
-        nv_primInt64  : int64 nullValue=42
-        nv_primUint8  : uint8 nullValue=42
+        nv_primChar   : char   nullValue='.'
+        nv_primInt8   : int8   nullValue=42
+        nv_primInt16  : int16  nullValue=42
+        nv_primInt32  : int32  nullValue=42
+        nv_primInt64  : int64  nullValue=42
+        nv_primUint8  : uint8  nullValue=42
         nv_primUint16 : uint16 nullValue=42
         nv_primUint32 : uint32 nullValue=42
         nv_primUint64 : uint64 nullValue=42
-        nv_primFloat  : float nullValue=42
-        nv_primDouble : double nullValue=42
-        // references to simple types, enums and sets cannot have presence
-//        a : EnumChar optional
-//        b : EnumChar nullValue = 1
-//        c : Set16 optional
-//        d : Set16 nullValue = 5
-//        e : t_char optional
-//        f : t_uint8 nullValue = 42
+// TODO: support float/double constants
+//        nv_primFloat  : float nullValue=42
+//        nv_primDouble : double nullValue=42
+        // some illegal null value literals ------------
+//      int_for_char_null     : char  nullValue=55
+//      char_for_int8_null    : int8  nullValue='x'
+//      char_for_uint8_null   : uint8 nullValue='x'
+//
+        // types where presence  does not apply -------
+//      int_for_enum_null     : EnumChar nullValue = 1
+//      char_for_enum_null    : EnumChar nullValue = 'x'
+//      int_for_enum_const    : EnumChar constant = 1
+//      char_for_enum_const   : EnumChar constant = 'x'
+//      enum_optional           : EnumChar optional
+//      char_for_set_null     : Set32 nullValue = 'x'
+//      int_for_set_null      : Set16 nullValue = 1
+//      char_for_set_const    : Set32 constant = 'x'
+//      int_for_set_const     : Set16 constant = 1
+//      set_optional            : Set64 optional
+//      simple_type_constant  : t_uint8 constant = 42
+//      simple_type_nullValue : t_uint8 nullValue = 42
+//      simple_type_optional  : t_uint8 optional
     }
 
     // this is required to exist (composite with name messageHeader ; can be overwritten by schema's headerType)

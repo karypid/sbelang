@@ -16,16 +16,14 @@ import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
-import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
-import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
+import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 import org.sbelang.dsl.sbeLangDsl.SbeLangDslPackage
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 import static org.sbelang.dsl.SbeLangDslValueUtils.isValidLiteral
@@ -52,26 +50,41 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
-    def checkField(FieldDeclaration fd) {
-        val type = fd.fieldType
-        val presence = fd.presenceModifiers
-        validatePresence(presence, type)
-    }
-
-    @Check
     def checkMemberType(MemberRefTypeDeclaration mtd) {
-        switch mtd.presence {
-            PresenceConstantModifier: {
-                val primitiveType = if (mtd.primitiveType !== null)
-                        mtd.primitiveType
-                    else {
-                        if (mtd.type instanceof SimpleTypeDeclaration) {
-                            (mtd.type as SimpleTypeDeclaration).primitiveType
-                        } else {
-                            mtd.type.name
+        val presence = mtd.presence
+        switch mtd.type {
+            case null: {
+                switch presence {
+                    PresenceConstantModifier: {
+                        validatePresenceConstant(presence, mtd.primitiveType)
+                    }
+                    PresenceOptionalModifier: {
+                        if (!presence.isOptional) {
+                            validatePresenceNullValue(presence, mtd.primitiveType)
                         }
                     }
-                validatePresenceConstant(mtd.presence as PresenceConstantModifier, primitiveType)
+                }
+            }
+            SetDeclaration: {
+                if (presence !== null)
+                    error(
+                        '''Presence cannot be applied to sets.''',
+                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE
+                    )
+            }
+            EnumDeclaration: {
+                if (presence !== null)
+                    error(
+                        '''Presence cannot be applied to enum.''',
+                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE
+                    )
+            }
+            SimpleTypeDeclaration: {
+                if (presence !== null)
+                    error(
+                        '''Presence cannot be applied to simple type reference. You should just use the primitive type [«(mtd.type as SimpleTypeDeclaration).primitiveType»] directy''',
+                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE
+                    )
             }
         }
     }
@@ -304,28 +317,17 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     // INTERNALS ------------------------------------------------------
-    private def validatePresence(PresenceModifiers presenceModifiers, TypeDeclaration typeDeclaration) {
-        switch (presenceModifiers) {
-            PresenceConstantModifier:
-                validatePresenceConstant(presenceModifiers, typeDeclaration)
-        // TODO: PresenceOptionalModifier: any validation required for this?
-        }
-    }
-
-    private def validatePresenceConstant(PresenceConstantModifier constantModifier, TypeDeclaration typeDeclaration) {
-        switch typeDeclaration {
-            SimpleTypeDeclaration:
-                validatePresenceConstant(constantModifier, typeDeclaration.primitiveType)
-//            EnumDeclaration:
-//            SetDeclaration:
-//            CompositeTypeDeclaration:
-        }
-    }
-
     private def validatePresenceConstant(PresenceConstantModifier constantModifier, String primitiveType) {
         if (! isValidLiteral(constantModifier.constantValue, primitiveType)) {
-            error('''The value [«constantModifier.constantValue»] is not valid for the type [«primitiveType»]''',
+            error('''The constant value [«constantModifier.constantValue»] is not valid for the type [«primitiveType»]''',
                 constantModifier, SbeLangDslPackage.Literals.PRESENCE_CONSTANT_MODIFIER__CONSTANT_VALUE)
+        }
+    }
+
+    private def validatePresenceNullValue(PresenceOptionalModifier optionalModifier, String primitiveType) {
+        if (! isValidLiteral(optionalModifier.nullValue, primitiveType)) {
+            error('''The null value [«optionalModifier.nullValue»] is not valid for the type [«primitiveType»]''',
+                optionalModifier, SbeLangDslPackage.Literals.PRESENCE_OPTIONAL_MODIFIER__NULL_VALUE)
         }
     }
 
