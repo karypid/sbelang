@@ -35,9 +35,15 @@ public class Parser
     private final Map<String, CompositeTypeDeclaration> rootComposites;
 
     // all root names must be unique in a case-insensitive manner as they may be
-    // referenced in composites; furthermore, nested container types
-    // (enum/set/composite) must also have globally unique names, as they may
-    // cause
+    // referenced anywhere (messages, groups, nested composites...); furthermore
+    // the nested container typer (enum/set/composite) which are defined inline
+    // within root composites must also have globally unique names for
+    // convenience
+    // and flexibility in generating code (e.g. can use a static class at the
+    // schema
+    // package level rather than requiring a nested inner class within the
+    // containing
+    // composite)
     private final Map<String, TypeDeclaration> allRootNames;
 
     private Parser(MessageSchema schema)
@@ -54,35 +60,6 @@ public class Parser
         this.allRootNames = new LinkedHashMap<>();
     }
 
-    private String location(ICompositeNode node)
-    {
-        int s = node.getStartLine();
-        int e = node.getEndLine();
-        return s == e ? ("line " + s) : String.format("lines %d-%d", s, e);
-    }
-
-    private void checkUnique(TypeDeclaration td) throws DuplicateIdentifierException
-    {
-        String caseInsensitiveName = td.getName().toUpperCase();
-
-        TypeDeclaration existing = allRootNames.put(caseInsensitiveName, td);
-
-        if (existing != null)
-        {
-            ICompositeNode collidingNode = NodeModelUtils.getNode(td);
-            ICompositeNode existingNode = NodeModelUtils.getNode(existing);
-
-            String message = String.format(
-                            "At %s name [%s] collides with previously defined [%s] at %s (note: case-insensitive)",
-                            location(collidingNode), td.getName(), existing.getName(),
-                            location(existingNode));
-
-            System.out.println(message);
-
-            throw new DuplicateIdentifierException(message, existing, td);
-        }
-    }
-
     private ParsedSchema parse() throws Exception
     {
         System.out.println("Parsing: " + schema.getSchema());
@@ -91,7 +68,7 @@ public class Parser
         {
 
             // root types must all have schema-wide unique names
-            checkUnique(td);
+            checkRootUnique(td);
 
             if (td instanceof SimpleTypeDeclaration)
             {
@@ -133,6 +110,7 @@ public class Parser
     }
 
     private void parse(CompositeTypeDeclaration ctd, ParsedComposite container)
+                    throws DuplicateIdentifierException
     {
         System.out.format("    composite: %s in %s...%n", ctd.getName(),
                         container != null ? container.getCompositeType().getName() : "[ROOT]");
@@ -140,12 +118,16 @@ public class Parser
         ParsedComposite parsedComposite = new ParsedComposite(ctd, container);
 
         // we go depth-first in order to reach leaf composites as we can
-        // calculate the block length for them
+        // calculate the block length for them; we only lookt at inline
+        // composites at this point and ignore everything else
         for (CompositeMember cm : ctd.getCompositeMembers())
         {
-            if (cm instanceof CompositeTypeDeclaration)
+            if (cm instanceof CompositeTypeDeclaration) // inline composite
             {
-                parse((CompositeTypeDeclaration) cm, parsedComposite);
+                CompositeTypeDeclaration nestedCtd = (CompositeTypeDeclaration) cm;
+                // nested composites must have unique names across schema
+                checkRootUnique(nestedCtd);
+                parse(nestedCtd, parsedComposite);
             }
         }
 
@@ -159,9 +141,13 @@ public class Parser
             if (cm instanceof MemberRefTypeDeclaration)
             {
                 MemberRefTypeDeclaration m = (MemberRefTypeDeclaration) cm;
+
+                // references can be made to simple types, or use primitive
+                // types
+                // directly
                 if (m.getPrimitiveType() != null)
                 {
-                    fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType());
+                    fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), m);
                 }
                 else
                 {
@@ -169,21 +155,51 @@ public class Parser
                     if (refTargetType instanceof SimpleTypeDeclaration)
                     {
                         SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
-                        fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType());
+                        fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType(), m);
                     }
                 }
             }
             else if (cm instanceof EnumDeclaration)
             {
+                EnumDeclaration ed = (EnumDeclaration) cm;
+                fieldIndex.addPrimitiveField(ed.getName(), ed.getEncodingType(), ed);
             }
             else if (cm instanceof SetDeclaration)
             {
+                SetDeclaration sd = (SetDeclaration) cm;
+                fieldIndex.addPrimitiveField(sd.getName(), sd.getEncodingType(), sd);
             }
             else if (cm instanceof CompositeTypeDeclaration)
             {
+                // we have already done a pass above to parse and create the
+                // field index
+                // ParsedComposite memberComposite =
             }
             else throw new IllegalStateException(
                             "Don't know how to handle type: " + cm.getClass().getName());
         }
     }
+
+    private void checkRootUnique(TypeDeclaration td) throws DuplicateIdentifierException
+    {
+        String caseInsensitiveName = td.getName().toUpperCase();
+
+        TypeDeclaration existing = allRootNames.put(caseInsensitiveName, td);
+
+        if (existing != null)
+        {
+            ICompositeNode collidingNode = NodeModelUtils.getNode(td);
+            ICompositeNode existingNode = NodeModelUtils.getNode(existing);
+
+            String message = String.format(
+                            "At %s name [%s] collides with previously defined [%s] at %s (note: case-insensitive)",
+                            SbeUtils.location(collidingNode), td.getName(), existing.getName(),
+                            SbeUtils.location(existingNode));
+
+            System.out.println(message);
+
+            throw new DuplicateIdentifierException(message, existing, td);
+        }
+    }
+
 }

@@ -6,17 +6,15 @@ package org.sbelang.dsl.tests
 import com.google.inject.Injector
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.GeneratorContext
-import org.eclipse.xtext.generator.IGeneratorContext
-import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.sbelang.dsl.SbeLangDslStandaloneSetup
-import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.generator.intermediate.Parser
+import org.sbelang.dsl.sbeLangDsl.MessageSchema
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
@@ -25,14 +23,11 @@ class SbeLangDslIntermediateParserTest {
     def void testIntermediateParser() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
-        val Resource resource = resourceSet.getResource(URI.createURI("resources/AllFeatures.sbelang"), true);
-
-        val InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess
-        val IGeneratorContext ctx = new GeneratorContext
+        val Resource resource = resourceSet.getResource(URI.createURI("resources/Incremental.sbelang"), true);
 
         val messageSchema = resource.getEObject("/") as MessageSchema
 
-        Parser.parse(messageSchema);
+        val ParsedSchema parsedSchema = Parser.parse(messageSchema);
     }
 
 }

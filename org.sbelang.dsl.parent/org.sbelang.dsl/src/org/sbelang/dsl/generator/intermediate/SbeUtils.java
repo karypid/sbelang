@@ -4,12 +4,29 @@
  */
 package org.sbelang.dsl.generator.intermediate;
 
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.nodemodel.ICompositeNode;
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+
 /**
  * @author karypid
  *
  */
 public class SbeUtils
 {
+    public static String location(ICompositeNode node)
+    {
+        int s = node.getStartLine();
+        int e = node.getEndLine();
+        return s == e ? ("line " + s) : String.format("lines %d-%d", s, e);
+    }
+
+    public static String location(EObject grammarElement)
+    {
+        ICompositeNode node = NodeModelUtils.getNode(grammarElement);
+        return location(node);
+    }
+
     public static int getPrimitiveTypeOctetLength(String sbePrimitiveType)
     {
         if ("char".equals(sbePrimitiveType)) return 1;
@@ -21,9 +38,9 @@ public class SbeUtils
         else if ("uint32".equals(sbePrimitiveType)) return 4;
         else if ("int64".equals(sbePrimitiveType)) return 8;
         else if ("uint64".equals(sbePrimitiveType)) return 8;
-        else if ("float".equals(sbePrimitiveType)) return 8;
+        else if ("float".equals(sbePrimitiveType)) return 4;
         else if ("double".equals(sbePrimitiveType)) return 8;
-        
+
         throw new IllegalArgumentException("Unkndown primitive type: [" + sbePrimitiveType + "]");
     }
 }

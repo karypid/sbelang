@@ -92,8 +92,8 @@ class ImMessageSchema {
         allGlobalTypesByUname.put(uname, td)
 
         // create field index where applicable
-        if (td instanceof CompositeTypeDeclaration)
-            allFieldIndexesByUname.put(uname, new FieldIndex())
+//        if (td instanceof CompositeTypeDeclaration)
+//            allFieldIndexesByUname.put(uname, new FieldIndex(td))
 //        else if (td instanceof MessageDeclaration)
 //            allFieldIndexesByUname.put(uname, new MessageFieldIndex(td))
     }
@@ -112,7 +112,7 @@ class ImMessageSchema {
             switch cm {
                 MemberRefTypeDeclaration: {
                     if (cm.primitiveType !== null)
-                        fi.addPrimitiveField(cm.name, cm.primitiveType)
+                        fi.addPrimitiveField(cm.name, cm.primitiveType, cm)
                 }
                 EnumDeclaration: {
                     addToGlobalIndex(cm.name, cm)
