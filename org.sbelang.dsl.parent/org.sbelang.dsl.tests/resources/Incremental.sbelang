@@ -83,6 +83,23 @@ types
 //  composite EnumUint8 {
 //      m_enum_char     : EnumChar
 //  }
+    composite CompEnums
+    {
+        m_enum_char     : EnumChar
+        m_enum_uint8    : EnumUint8
+        m_enum_uint16   : EnumUint16
+
+//      composite EnumUint8 {
+//          m_enum_char     : EnumChar
+//      }
+        enum EnumNestedChar : char
+        {
+            A('A')
+            B('B')
+            C('C')
+        }
+    }
+
     set Set8 : uint8
     {
         ZERO(0)
@@ -110,23 +127,6 @@ types
 //  composite Set16 {
 //      m_set_32     : Set32
 //  }
-    composite CompEnums
-    {
-        m_enum_char     : EnumChar
-        m_enum_uint8    : EnumUint8
-        m_enum_uint16   : EnumUint16
-
-//      composite EnumUint8 {
-//          m_enum_char     : EnumChar
-//      }
-        enum EnumNestedChar : char
-        {
-            A('A')
-            B('B')
-            C('C')
-        }
-    }
-
     composite CompSets
     {
         m_set_8     : Set8
