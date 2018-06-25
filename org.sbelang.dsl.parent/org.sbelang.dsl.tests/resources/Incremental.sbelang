@@ -87,14 +87,11 @@ types
         // st_char_array   : t_char[123] // length not allowed here!
         arr_st_char  : array_char // but you can refer to an array...
         arr_st_int32 : array_int32
-//   composite CompPrimitives {
-//   this_composite_name_should_collide_with_the_one_above : char
+//   composite CompPrimitives { // nested composite name collides with existing composite
+//       normal_member_char : char
 //   }
     }
 
-//  enum CompSimpleType { // composite name collides with enum
-//      DUPLICATE_ENUM_NAME('X')
-//  }
     enum EnumChar : char
     {
         YES('Y')
@@ -113,6 +110,9 @@ types
         NO(10000)
     }
 
+//  enum CompSimpleTypes : char { // enum name collides with composite name
+//      NORMA_VALUE('X')
+//  }
 //  composite EnumUint8 { // composite name collides with enum
 //      m_enum_char     : EnumChar
 //  }
@@ -123,7 +123,10 @@ types
         m_enum_uint8    : EnumUint8
         m_enum_uint16   : EnumUint16
 
-//      composite EnumUint8 { // composite name collides with enum
+//      enum CompSimpleTypes : char { // nested enum name collides with composite name
+//          NORMA_VALUE('X')
+//      }
+//      composite EnumUint8 { // nested composite name collides with enum
 //          m_enum_char     : EnumChar
 //      }
         enum EnumNestedChar : char
@@ -158,7 +161,10 @@ types
         SIXTY_THREE(63)
     }
 
-//  composite Set16 {
+//  set CompSimpleTypes : uint16 { // set name collides with composite name
+//      ZERO(0)
+//  }
+//  composite Set16 { // composite name collides with set
 //      m_set_32     : Set32
 //  }
     composite CompSets
@@ -169,7 +175,10 @@ types
         m_set_32    : Set32
         m_set_64    : Set64
 
-//      composite Set16 {
+//      set CompSimpleTypes : uint16 { // set name collides with composite name
+//          ZERO(0)
+//      }
+//      composite Set16 { // nested composite name collides with set
 //          m_set_32     : Set32
 //      }
         set SetNested16 : uint16
@@ -184,26 +193,20 @@ types
         m_prim_int      : int32
         m_st_char       : t_char
 
-//      enum EnumNestedChar : char {
-//          X('X')
-//      }
-        enum EnumNestedUint16 : uint16
+        enum CompEverythingEnumNestedUint16 : uint16
         {
             ONE(1)
             TWO(2)
             THREE(3)
         }
 
-//      set Set32 : uint32 {
-//          ZERO(0)
-//      }
-        set SetNested32 : uint32
+        set CompEverythingSetNested32 : uint32
         {
             ZERO(0)
             THIRTY_ONE(31)
         }
 
-        composite CompEverythingNested
+        composite CompEverythingNestedComposite
         { // inline composite
             m_nested_prim   : uint16
             m_st_float      :   float
@@ -222,10 +225,117 @@ types
      * provided commented-out examples for all kinds of syntactically-correct but semantically-illegal
      * cases (unique member names in same composite/enum/set, unique names for inline sets enumerations
      * and composites across the entire schema).
+     */
+    /*
      * 
+     * 
+     * ================================================================================================
+     * The next section deals with range/presence attributes.
+     * 
+     * Range and presence can only be defined for message fields and for in composite member data types.
      * 
      * 
      */
+    composite CompRanges
+    {
+        m_char_lower        : char range=['a', 'z']
+        m_int8_2_digits     : int8 range=[-99, 99]
+        m_int16_4_digits    : int16 range = [-9999, 9999]
+        m_int32_6_digits    : int32 range = [-999999, 999999]
+        m_int64_10_digit    : int64 range = [-9999999999, 9999999999]
+        // some errors --------------------------------------
+        // m_char_range_inverted    : char range=['z', 'a']
+        // m_int_range_inverted     : char range=[5, -1]
+        // m_uint_range_inverted    : char range=[5, 0]
+        // m_int_max_out_of_range       : int8 range=[1, 128]
+        // m_uint_max_out_of_range  : uint8 range=[0, 256]
+        // m_int_min_out_of_range       : int8 range=[-129, 127]
+        // m_uint_min_out_of_range  : uint8 range=[-1, 255]
+        m_uint8_2_digits    : uint8 range=[0, 99]
+        m_uint16_4_digits   : uint16 range = [0, 9999]
+        m_uint32_6_digits   : uint32 range = [0, 999999]
+        m_uint64_10_digit   : uint64 range = [0, 9999999999]
+        /*
+         * Enums and sets cannot have a range as that is defined by the list of values. Composites cannot
+         * have a range as it would not make sense (they comprise of many items each with its own range).
+         * For each member of a composite the range is specified for by that item. Enums/sets automatically
+         * define their range from their content and member data types can specify it as per below examples.
+         * References to enums/sets use their target's range and REFERENCES TO SIMPLE TYPES CAN NOT have a
+         * range but if one is required they can simply replace the reference with an inline member type
+         * definition (same primitive/length but with range attribute).
+         */
+        m_float : float // TODO: support float range
+        m_double : double // TODO: support double range
+        // ------------------------------------------------------
+        // Ranges can NOT be applied to simple type references
+        // m_t_char_lower      : t_char range=['a', 'z']
+        // m_t_int8_2_digits   : t_int8 range=[-99, 99]
+        // m_t_int16_4_digits  : t_int16 range = [-9999, 9999]
+        // m_t_int32_6_digits  : t_int32 range = [-999999, 999999]
+        // m_t_int64_10_digit  : t_int64 range = [-9999999999, 9999999999]
+        // m_enum_range : EnumChar range = ['a','z']
+        // m_set_range : Set16 range = [1,5]
+    }
+
+    composite CompPresence
+    {
+        /*
+         * Since composites are treated as a whole, each specific use of a composite in a message field will
+         * apply the presence of that field to the entire composite. As such, a composite in itself has no
+         * presence: only when used through a field does it acquire one.
+         * 
+         * A field using a composite can only be set to required or optional (you can not specify a constant
+         * composite).
+         * 
+         * For optional composites, the first member is used to encode the absence of the entire composite.
+         * The rest of the members should be ignored if that member is set to the null value. For fields where
+         * the composite's presence is required, the first field must never be set to its null value.
+         * 
+         * Individual members of a composite can still have presence to define whether they are required or
+         * not. When a composite is present (first field not absent) then each of the rest of the fields may
+         * or may not be present. If a composite is absent (first field is absent) the n the rest of the fields
+         * should not be parsed. This means that it is impossible to reliably encode a composite where only its
+         * first field is absent, so if that is required the application must rearrange the fields so that
+         * another field is first, or add one (e.g. 'present : char optional') for that purpose.
+         * 
+         * Technically it is an error to define a field that is optional and use a composite whose first member
+         * is not optional (constant or required). The specification does not clarify this however and some
+         * implementations ignore this condition and allow encoding of the null value anyway, acting as if the
+         * member was defined optional in the context of that field. 
+         */
+        // use default null value
+        primChar   : char optional
+        primInt8   : int8 optional
+        primInt16  : int16 optional
+        primInt32  : int32 optional
+        primInt64  : int64 optional
+        primUint8  : uint8 optional
+        primUint16 : uint16 optional
+        primUint32 : uint32 optional
+        primUint64 : uint64 optional
+        primFloat  : float optional
+        primDouble : double optional
+        // override default null value
+        nv_primChar   : char nullValue='.'
+        nv_primInt8   : int8 nullValue=42
+        nv_primInt16  : int16 nullValue=42
+        nv_primInt32  : int32 nullValue=42
+        nv_primInt64  : int64 nullValue=42
+        nv_primUint8  : uint8 nullValue=42
+        nv_primUint16 : uint16 nullValue=42
+        nv_primUint32 : uint32 nullValue=42
+        nv_primUint64 : uint64 nullValue=42
+        nv_primFloat  : float nullValue=42
+        nv_primDouble : double nullValue=42
+        // references to simple types, enums and sets cannot have presence
+//        a : EnumChar optional
+//        b : EnumChar nullValue = 1
+//        c : Set16 optional
+//        d : Set16 nullValue = 5
+//        e : t_char optional
+//        f : t_uint8 nullValue = 42
+    }
+
     // this is required to exist (composite with name messageHeader ; can be overwritten by schema's headerType)
     composite messageHeader
     {
@@ -244,5 +354,7 @@ types
 
 message MessageOne id=1
 {
-    f_comp_everything : CompEverything @ 1
+    f_comp_everything   : CompEverything @ 1
+    f_comp_ranges       : CompRanges @ 2
+    f_comp_presence     : CompPresence @ 3
 }

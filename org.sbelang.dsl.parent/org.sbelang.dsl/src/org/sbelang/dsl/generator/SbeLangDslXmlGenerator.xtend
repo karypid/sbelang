@@ -168,8 +168,6 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     }
 
     private def compile(MemberRefTypeDeclaration mtd) {
-        // TODO: handle nullValue
-        
         if (mtd.primitiveType === null) {
             '''
                 <ref name="«mtd.name»" type="«mtd.type.name»" />
@@ -256,7 +254,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def presenceAttrs(Object presence) {
         switch presence {
-            PresenceOptionalModifier: ''' presence="optional"'''
+            PresenceOptionalModifier: ''' presence="optional"«IF !presence.isOptional» nullValue="«presence.nullValue»"«ENDIF»'''
             PresenceConstantModifier: ''' presence="constant"'''
             default: ''''''
         }
