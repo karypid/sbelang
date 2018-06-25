@@ -80,17 +80,43 @@ types
         NO(10000)
     }
 
+//  composite EnumUint8 {
+//      m_enum_char     : EnumChar
+//  }
     composite CompEnums
     {
         m_enum_char     : EnumChar
         m_enum_uint8    : EnumUint8
         m_enum_uint16   : EnumUint16
+
+//      composite EnumUint8 {
+//          m_enum_char     : EnumChar
+//      }
+        enum EnumNestedChar : char
+        {
+            A('A')
+            B('B')
+            C('C')
+        }
     }
 
     composite CompEverything
     {
         m_prim_int      : int32
         m_st_char       : t_char
+
+//      enum EnumNestedChar : char
+//      {
+//          X('A')
+//          Y('B')
+//          Z('C')
+//      }
+        enum EnumNestedUint16 : uint16
+        {
+            ONE(1)
+            TWO(2)
+            THREE(3)
+        }
 
         composite CompEverythingNested
         { // inline composite

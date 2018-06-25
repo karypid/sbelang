@@ -70,7 +70,9 @@ public class Parser
                     setLength(1);
                 }
             };
+            
             rootSimpleTypes.put(pt, st);
+            allRootNames.put(pt.toUpperCase(), st);
         }
     }
 
@@ -113,12 +115,16 @@ public class Parser
         System.out.println("Root sets (of choice): " + rootSets.keySet());
         System.out.println("Root composites: " + rootComposites.keySet());
 
+        System.out.println("All root names: " + allRootNames.keySet());
+
         System.out.println("Processing root composites...");
 
         for (CompositeTypeDeclaration ctd : rootComposites.values())
         {
             parse(ctd, null);
         }
+
+        System.out.println("All root names: " + allRootNames.keySet());
 
         return new ParsedSchema(schema);
     }
@@ -195,6 +201,7 @@ public class Parser
             else if (cm instanceof EnumDeclaration)
             {
                 EnumDeclaration ed = (EnumDeclaration) cm;
+                checkRootUnique(ed);
                 fieldIndex.addPrimitiveField(ed.getName(), ed.getEncodingType(), ed);
             }
             else if (cm instanceof SetDeclaration)
