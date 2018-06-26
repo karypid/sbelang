@@ -140,7 +140,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         val Map<String, CompositeMember> names = new HashMap()
         for (cm : ctd.compositeMembers) {
             if (cm instanceof MemberRefTypeDeclaration) {
-                val existingName = names.put(cm.name, cm)
+                val existingName = names.put(cm.name.toUpperCase, cm)
                 if (existingName !== null) {
                     val existingNode = NodeModelUtils.getNode(existingName)
                     error(
