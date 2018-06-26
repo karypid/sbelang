@@ -23,6 +23,7 @@ import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.SbeLangDslValueUtils
 import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 import org.eclipse.emf.ecore.EObject
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 /**
  * Generates XML from your model files on save.
@@ -33,6 +34,10 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     public static val genXml = Boolean.valueOf(
         System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genXml", "true"))
+
+    override void compile(ParsedSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        
+    }
 
     override void compile(ImMessageSchema imSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
         if(!genXml) return;

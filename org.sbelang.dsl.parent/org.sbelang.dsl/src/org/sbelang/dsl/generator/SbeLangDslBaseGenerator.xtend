@@ -9,6 +9,8 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
+import org.sbelang.dsl.generator.intermediate.Parser
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 /**
  * Base class for SBE generators
@@ -17,10 +19,17 @@ abstract class SbeLangDslBaseGenerator extends AbstractGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val messageSchema = resource.getEObject("/") as MessageSchema
-        val ImMessageSchema imSchema = new ImMessageSchema(messageSchema)
 
-        compile(imSchema, fsa, context)
+        val parsedSchema = Parser.parse(messageSchema)
+        compile(parsedSchema, fsa, context)
+
+        if (Boolean.valueOf(System.getProperty('useLegacyCompiler'))) {
+            val ImMessageSchema imSchema = new ImMessageSchema(messageSchema)
+            compile(imSchema, fsa, context)
+        }
     }
 
     def void compile(ImMessageSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context)
+
+    def void compile(ParsedSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context)
 }

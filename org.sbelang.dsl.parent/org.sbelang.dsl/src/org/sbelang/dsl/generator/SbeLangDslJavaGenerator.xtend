@@ -4,11 +4,16 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.sbelang.dsl.ToJavaCompiler
 import org.sbelang.dsl.generator.intermediate.ImMessageSchema
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
 
     public static val genJava = Boolean.valueOf(
         System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genJava", "true"))
+
+    override void compile(ParsedSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        
+    }
 
     override void compile(ImMessageSchema imSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
         if(!genJava) return;
