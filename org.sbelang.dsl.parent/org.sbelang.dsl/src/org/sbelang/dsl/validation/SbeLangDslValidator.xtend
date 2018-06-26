@@ -385,7 +385,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     private def void validateAllTypeNamesAreUnique(List<NameDeclaration> nameDeclarations, Map<String, EObject> names) {
         nameDeclarations.forEach [ nd |
             if (nd !== null) {
-                val existing = names.put(nd.name, nd.declaringObject)
+                val existing = names.put(nd.name.toUpperCase, nd.declaringObject)
                 if (existing !== null) {
                     val existingNode = NodeModelUtils.getNode(existing)
                     val featureId = switch nd.declaringObject {
