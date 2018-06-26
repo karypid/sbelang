@@ -49,8 +49,8 @@ public class FieldIndex
         return totalLength;
     }
 
-    public int addPrimitiveField(String name, String sbePrimitiveType, int length, EObject grammarElement)
-                    throws DuplicateIdentifierException
+    public int addPrimitiveField(String name, String sbePrimitiveType, int length,
+                    EObject grammarElement) throws DuplicateIdentifierException
     {
         int offset = totalLength;
         int octetLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType) * length;
@@ -102,7 +102,7 @@ public class FieldIndex
 
     public int getOffset(String fieldName)
     {
-        Integer idx = fieldIndexes.get(fieldName);
+        Integer idx = getIndex(fieldName);
         if (idx == null) return -1;
         // throw new NullPointerException("Could not find field by name: " +
         // fieldName);
@@ -111,10 +111,15 @@ public class FieldIndex
 
     public int getLength(String fieldName)
     {
-        Integer idx = fieldIndexes.get(fieldName);
+        Integer idx = getIndex(fieldName);
         if (idx == null) return -1;
         // throw new NullPointerException("Could not find field by name: " +
         // fieldName);
         return fieldLengths.get(idx);
+    }
+
+    private Integer getIndex(String fieldName)
+    {
+        return fieldIndexes.get(fieldName.toUpperCase());
     }
 }

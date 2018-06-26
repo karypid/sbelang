@@ -98,12 +98,46 @@ class ToJavaCompiler {
             CompositeTypeDeclaration:
                 generateCompositeEncoderMember(ownerComposite, member)
             MemberRefTypeDeclaration: {
-                ''' /* TODO: «member.toString» */'''
+                if (member.primitiveType !== null)
+                    generatePrimitiveEncoderMember(ownerComposite, member)
+                else if (member.type !== null)
+                    ''' /* TODO: reference to non-primitive - «member.toString» */'''
+                else
+                    ''' /* TODO: «member.toString» */'''
             }
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
+    }
+
+    private def generatePrimitiveEncoderMember(CompositeTypeDeclaration ownerComposite,
+        MemberRefTypeDeclaration member) {
+        val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+        val meberVarName = member.name.toFirstLower
+        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldOffset = fieldIndex.getOffset(member.name)
+        val memberValueJavaType = primitiveToJavaType(member.primitiveType)
+
+        '''
+            // «meberVarName»
+            public static int «meberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «meberVarName»EncodingLength()
+            {
+                return «fieldIndex.getLength(member.name)»;
+            }
+            
+            public «ownerCompositeEncoderClass» «meberVarName»( «memberValueJavaType» value )
+            {
+                buffer.put«memberValueJavaType.toFirstUpper»(offset + «fieldOffset», value);
+                return this;
+            }
+            
+        '''
     }
 
     private def generateCompositeEncoderMember(CompositeTypeDeclaration ownerComposite,
@@ -112,24 +146,25 @@ class ToJavaCompiler {
         val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
         val meberVarName = member.name.toFirstLower
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldOffset = fieldIndex.getOffset(member.name)
 
         '''
             // «memberEncoderClass»
             public static int «meberVarName»EncodingOffset()
             {
-                return («fieldIndex.getOffset(member.name)»);
+                return «fieldOffset»;
             }
             
             public static int «meberVarName»EncodingLength()
             {
-                return («fieldIndex.getLength(member.name)»);
+                return «fieldIndex.getLength(member.name)»;
             }
             
             private «memberEncoderClass» «meberVarName» = new «memberEncoderClass»();
             
             public «memberEncoderClass» «meberVarName»()
             {
-                «meberVarName».wrap(buffer, offset + (-1 /* TODO */) );
+                «meberVarName».wrap(buffer, offset + «fieldOffset» );
                 return «meberVarName»;
             }
             
@@ -139,21 +174,21 @@ class ToJavaCompiler {
     def generateEnum(EnumDeclaration ed) {
         val enumName = ed.name.toFirstUpper
         val enumValueJavaType = enumJavaType(ed.encodingType)
+        val enumNullValueLiteral = enumDefaultNullValueLiteral(ed.encodingType)
         '''
             package  «parsedSchema.schemaName»;
             
             public enum «enumName»
             {
                 «FOR ev : ed.enumValues»
-                    «ev.name»( («enumValueJavaType») «ev.value» ),
+                    «ev.name» ( («enumValueJavaType») «ev.value» ),
                 «ENDFOR»«IF !isEnumWithExplicitNull(ed.enumValues)»
-                    NULL_VAL ( («enumValueJavaType») «enumDefaultNullValueLiteral(ed.encodingType)» )
-                «ENDIF»
-                ;
+                    
+                NULL_VAL ( («enumValueJavaType») «enumNullValueLiteral» )«ENDIF»;
                 
                 public final «enumValueJavaType» value;
                 
-                private «enumName»(«enumValueJavaType» value)
+                private «enumName»( final «enumValueJavaType» value )
                 {
                     this.value = value;
                 }
@@ -163,13 +198,14 @@ class ToJavaCompiler {
                     return value;
                 }
                 
-                public static «enumName» get ( «enumValueJavaType» value )
+                public static «enumName» get ( final «enumValueJavaType» value )
                 {
                     switch ( value )
                     {
                         «FOR ev : ed.enumValues»
                             case «ev.value»: return «ev.name»;
                         «ENDFOR»
+                        case «enumNullValueLiteral»: return NULL_VAL;
                         default:
                             throw new IllegalArgumentException ( "Unknown value: " + value );
                     }
@@ -197,6 +233,23 @@ class ToJavaCompiler {
             case 'char': 'byte'
             case 'uint8': 'short'
             case 'uint16': 'int'
+            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
+        }
+    }
+    
+    private def primitiveToJavaType(String sbePrimitive) {
+        switch sbePrimitive {
+            case 'char': 'char'
+            case 'int8': 'byte'
+            case 'int16': 'short'
+            case 'int32': 'int'
+            case 'int64': 'long'
+            case 'uint8': 'byte'
+            case 'uint16': 'short'
+            case 'uint32': 'int'
+            case 'uint64': 'long'
+            case 'float': 'float'
+            case 'double': 'float'
             default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
         }
     }
