@@ -23,10 +23,8 @@ abstract class SbeLangDslBaseGenerator extends AbstractGenerator {
         val parsedSchema = Parser.parse(messageSchema)
         compile(parsedSchema, fsa, context)
 
-        if (Boolean.valueOf(System.getProperty('useLegacyCompiler'))) {
-            val ImMessageSchema imSchema = new ImMessageSchema(messageSchema)
-            compile(imSchema, fsa, context)
-        }
+        val ImMessageSchema imSchema = new ImMessageSchema(messageSchema)
+        compile(imSchema, fsa, context)
     }
 
     def void compile(ImMessageSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context)

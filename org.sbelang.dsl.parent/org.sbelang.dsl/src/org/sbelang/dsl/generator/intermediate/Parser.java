@@ -121,15 +121,15 @@ public class Parser
 
         for (CompositeTypeDeclaration ctd : rootComposites.values())
         {
-            parse(ctd, null);
+            parseComposite(ctd, null);
         }
 
         System.out.println("All root names: " + allRootNames.keySet());
 
-        return new ParsedSchema(schema);
+        return new ParsedSchema(schema, allRootNames, allParsedComposites);
     }
 
-    private void parse(CompositeTypeDeclaration ctd, ParsedComposite container)
+    private void parseComposite(CompositeTypeDeclaration ctd, ParsedComposite container)
                     throws DuplicateIdentifierException, AttributeErrorException
     {
         System.out.format("    composite: %s in %s...%n", ctd.getName(),
@@ -147,7 +147,7 @@ public class Parser
                 CompositeTypeDeclaration nestedCtd = (CompositeTypeDeclaration) cm;
                 // nested composites must have unique names across schema
                 checkRootUnique(nestedCtd);
-                parse(nestedCtd, parsedComposite);
+                parseComposite(nestedCtd, parsedComposite);
             }
         }
 

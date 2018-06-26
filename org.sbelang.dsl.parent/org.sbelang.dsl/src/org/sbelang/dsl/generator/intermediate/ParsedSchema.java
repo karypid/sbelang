@@ -4,7 +4,14 @@
  */
 package org.sbelang.dsl.generator.intermediate;
 
+import java.nio.ByteOrder;
+import java.util.Map;
+
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
+import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs;
+import org.sbelang.dsl.sbeLangDsl.TypeDeclaration;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author karypid
@@ -12,18 +19,64 @@ import org.sbelang.dsl.sbeLangDsl.MessageSchema;
  */
 public class ParsedSchema
 {
-    private final MessageSchema rawSchema;
+    public static final String DEFAULT_HEADER_TYPE_NAME = "messageHeader";
 
-    ParsedSchema(MessageSchema rawSchema)
+    private final MessageSchema                         messageSchema;
+    private final ImmutableMap<String, TypeDeclaration> allRootNames;
+    private final ImmutableMap<String, ParsedComposite> allParsedComposites;
+
+    private final int       schemaId;
+    private final String    schemaName;
+    private final int       schemaVersion;
+    private final ByteOrder schemaByteOrder;
+    private final String    schemaHeaderType;
+
+    public ParsedSchema(MessageSchema messageSchema, Map<String, TypeDeclaration> allRootNames,
+                    Map<String, ParsedComposite> allParsedComposites)
     {
-        this.rawSchema = rawSchema;
+        this.messageSchema = messageSchema;
+        this.allRootNames = ImmutableMap.copyOf(allRootNames);
+        this.allParsedComposites = ImmutableMap.copyOf(allParsedComposites);
+
+        OptionalSchemaAttrs schemaOptionalAttrs = messageSchema.getSchema().getOptionalAttrs();
+        this.schemaByteOrder = ((schemaOptionalAttrs == null)
+                        || (!schemaOptionalAttrs.isBigEndian())) ? ByteOrder.LITTLE_ENDIAN
+                                        : ByteOrder.BIG_ENDIAN;
+        this.schemaHeaderType = (schemaOptionalAttrs == null) ? null
+                        : schemaOptionalAttrs.getHeaderType();
+
+        this.schemaId = messageSchema.getSchema().getId();
+        this.schemaName = messageSchema.getSchema().getName();
+        this.schemaVersion = messageSchema.getSchema().getVersion();
     }
 
-    /**
-     * @return the rawSchema
-     */
-    public MessageSchema getRawSchema()
+    public MessageSchema getMessageSchema()
     {
-        return rawSchema;
+        return messageSchema;
+    }
+
+    public String getSchemaName()
+    {
+        return schemaName;
+    }
+
+    public int getSchemaId()
+    {
+        return schemaId;
+    }
+
+    public int getSchemaVersion()
+    {
+        return schemaVersion;
+    }
+
+    public String getSchemaHeaderType()
+    {
+        return schemaHeaderType;
+    }
+
+    public ByteOrder getSchemaByteOrder()
+    {
+        return schemaByteOrder;
     }
 }

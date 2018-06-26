@@ -35,8 +35,55 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     public static val genXml = Boolean.valueOf(
         System.getProperty(typeof(SbeLangDslGenerator).package.name + ".genXml", "true"))
 
-    override void compile(ParsedSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context) {
-        
+    override void compile(ParsedSchema parsedSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        if(!genXml) return;
+
+        val xmlHeaderTypeAttribute = if (parsedSchema.schemaHeaderType === null)
+                ''''''
+            else
+                ''' headerType="«parsedSchema.schemaHeaderType»"'''
+                
+        val xmlByteOrderAttribute = //
+            if (parsedSchema.schemaByteOrder === ByteOrder.LITTLE_ENDIAN)
+                ''''''  // This is the default: ''' byteOrder="littleEndian"'''
+            else
+                ''' byteOrder="bigEndian"'''
+
+        fsa.generateFile(
+            parsedSchema.schemaName + '.NEW.xml',
+            '''
+                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                    xsi:schemaLocation="http://fixprotocol.io/2016/sbe/sbe.xsd"
+                    
+                    package="«parsedSchema.schemaName»"
+                    id="«parsedSchema.schemaId»" version="«parsedSchema.schemaVersion»"«xmlHeaderTypeAttribute»«xmlByteOrderAttribute»>
+                    
+                    <types>
+                        «FOR type : parsedSchema.messageSchema.typeDelcarations.filter(SimpleTypeDeclaration)»
+                            «compile(type)»
+                        «ENDFOR»
+                        
+                        «FOR type : parsedSchema.messageSchema.typeDelcarations.filter(EnumDeclaration)»
+                            «compile(type)»
+                        «ENDFOR»
+                        
+                        «FOR type : parsedSchema.messageSchema.typeDelcarations.filter(SetDeclaration)»
+                            «compile(type)»
+                        «ENDFOR»
+                        
+                        «FOR compositeType : parsedSchema.messageSchema.typeDelcarations.filter(CompositeTypeDeclaration)»
+                            «compile(compositeType)»
+                        «ENDFOR»
+                    </types>
+                    
+                    «FOR message : parsedSchema.messageSchema.messageDeclarations»
+                        «compile("message", message.block)»
+                    «ENDFOR»
+                </sbe:messageSchema>
+            '''
+        )
     }
 
     override void compile(ImMessageSchema imSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
@@ -45,7 +92,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         val xmlSchema = new XmlMessageSchema(imSchema)
 
         fsa.generateFile(
-            imSchema.schemaName + '.xml',
+            imSchema.schemaName + '.OLD.xml',
             '''
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
@@ -177,8 +224,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             '''
                 <ref name="«mtd.name»" type="«mtd.type.name»" />
             '''
-        } 
-        else {
+        } else {
             '''
                 <type name="«mtd.name»" primitiveType="«mtd.primitiveType»"«memberTypeLength(mtd)»«memberTypeRange(mtd)»«presenceAttrs(mtd.presence)»«closeTag("type", mtd.presence)»
             '''
@@ -213,7 +259,6 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
             </set>
         '''
     }
-
 
     private def memberTypeLength(MemberRefTypeDeclaration mtd) {
         '''«IF mtd.length !== null» length="«mtd.length»"«ENDIF»'''
