@@ -288,15 +288,19 @@ types
          * composite).
          * 
          * For optional composites, the first member is used to encode the absence of the entire composite.
-         * The rest of the members should be ignored if that member is set to the null value. For fields where
-         * the composite's presence is required, the first field must never be set to its null value.
+         * The rest of the members should be ignored if that member is set to the null value. For composite 
+         * fields that are required, the first member of the composite must never be set to its null value.
          * 
          * Individual members of a composite can still have presence to define whether they are required or
          * not. When a composite is present (first field not absent) then each of the rest of the fields may
-         * or may not be present. If a composite is absent (first field is absent) the n the rest of the fields
-         * should not be parsed. This means that it is impossible to reliably encode a composite where only its
-         * first field is absent, so if that is required the application must rearrange the fields so that
-         * another field is first, or add one (e.g. 'present : char optional') for that purpose.
+         * or may not be present. If a composite is absent (first field is absent) the rest of the fields
+         * should not be parsed.
+         * 
+         * A consequence of the above is that it is impossible to reliably encode a composite where its first
+         * field *only* is absent, with some of the rest being present, because the first field defines the
+         * presence for the entire composite. In cases where this is required, message designers must rearrange
+         * the fields so that another field is first, and add an extra field for that purpose (e.g. add field
+         * 'present : char optional' as the first member).
          * 
          * Technically it is an error to define a field that is optional and use a composite whose first member
          * is not optional (constant or required). The specification does not clarify this however and some
@@ -350,7 +354,24 @@ types
 //      int_for_char_null     : char  nullValue=55
 //      char_for_int8_null    : int8  nullValue='x'
 //      char_for_uint8_null   : uint8 nullValue='x'
-//
+        /*
+         * The set of members below reference enumerations, sets and simple types.
+         * 
+         * It is not possible to define presence for references to these types. For
+         * simple types there is an alternative: just re-declare it as a member type
+         * using its underlying primitive. For enumerations and sets (whether through
+         * reference or inline) there is no way to set the presence of that member. 
+         * 
+         * The specification is lax on this topic. You can assume the presence is
+         * required and design around this limitation, or you can assume the presence
+         * is optional but you must use the default null value for the type (all bits
+         * set for the underlying encoding type). Note that for sets were all bits are
+         * used the default null value would collide with the case of all choices in
+         * the set being active.
+         * 
+         * We treat presence modifiers as illegal, but leave it to the application to
+         * decide which interpretation to use.
+         */
         // types where presence  does not apply -------
 //      int_for_enum_null     : EnumChar nullValue = 1
 //      char_for_enum_null    : EnumChar nullValue = 'x'
