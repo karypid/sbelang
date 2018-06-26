@@ -7,10 +7,9 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.sbeLangDsl.MessageSchema
-import org.sbelang.dsl.generator.intermediate.ImMessageSchema
-import org.sbelang.dsl.generator.intermediate.Parser
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
+import org.sbelang.dsl.generator.intermediate.Parser
+import org.sbelang.dsl.sbeLangDsl.MessageSchema
 
 /**
  * Base class for SBE generators
@@ -22,12 +21,7 @@ abstract class SbeLangDslBaseGenerator extends AbstractGenerator {
 
         val parsedSchema = Parser.parse(messageSchema)
         compile(parsedSchema, fsa, context)
-
-        val ImMessageSchema imSchema = new ImMessageSchema(messageSchema)
-        compile(imSchema, fsa, context)
     }
-
-    def void compile(ImMessageSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context)
 
     def void compile(ParsedSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context)
 }

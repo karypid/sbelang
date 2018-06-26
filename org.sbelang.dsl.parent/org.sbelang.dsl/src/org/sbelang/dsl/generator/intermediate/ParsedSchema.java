@@ -7,6 +7,9 @@ package org.sbelang.dsl.generator.intermediate;
 import java.nio.ByteOrder;
 import java.util.Map;
 
+import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
+import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
+import org.sbelang.dsl.sbeLangDsl.EnumDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
 import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration;
@@ -78,5 +81,32 @@ public class ParsedSchema
     public ByteOrder getSchemaByteOrder()
     {
         return schemaByteOrder;
+    }
+
+    public FieldIndex getFieldIndex(String compositeName)
+    {
+        return allParsedComposites.get(compositeName).getFieldIndex();
+    }
+
+    public void forAllEnums(Procedure1<EnumDeclaration> op)
+    {
+        for (TypeDeclaration type : allRootNames.values())
+        {
+            if (type instanceof EnumDeclaration)
+            {
+                op.apply((EnumDeclaration) type);
+            }
+        }
+    }
+
+    public void forAllComposites(Procedure1<CompositeTypeDeclaration> op)
+    {
+        for (TypeDeclaration type : allRootNames.values())
+        {
+            if (type instanceof CompositeTypeDeclaration)
+            {
+                op.apply((CompositeTypeDeclaration) type);
+            }
+        }
     }
 }

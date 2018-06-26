@@ -274,5 +274,4 @@ public class Parser
             throw new DuplicateIdentifierException(message, existing, td);
         }
     }
-
 }

@@ -4,26 +4,24 @@
 package org.sbelang.dsl.generator
 
 import java.nio.ByteOrder
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.generator.intermediate.ImMessageSchema
-import org.sbelang.dsl.generator.xml.XmlMessageSchema
+import org.sbelang.dsl.SbeLangDslValueUtils
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
+import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
 import org.sbelang.dsl.sbeLangDsl.RawDataBlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
-import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
-import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
-import org.sbelang.dsl.SbeLangDslValueUtils
-import org.sbelang.dsl.sbeLangDsl.PresenceOptionalModifier
-import org.eclipse.emf.ecore.EObject
-import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 /**
  * Generates XML from your model files on save.
@@ -42,15 +40,15 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 ''''''
             else
                 ''' headerType="«parsedSchema.schemaHeaderType»"'''
-                
+
         val xmlByteOrderAttribute = //
             if (parsedSchema.schemaByteOrder === ByteOrder.LITTLE_ENDIAN)
-                ''''''  // This is the default: ''' byteOrder="littleEndian"'''
+                '''''' // This is the default: ''' byteOrder="littleEndian"'''
             else
                 ''' byteOrder="bigEndian"'''
 
         fsa.generateFile(
-            parsedSchema.schemaName + '.NEW.xml',
+            parsedSchema.schemaName + '.xml',
             '''
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
@@ -79,48 +77,6 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                     </types>
                     
                     «FOR message : parsedSchema.messageSchema.messageDeclarations»
-                        «compile("message", message.block)»
-                    «ENDFOR»
-                </sbe:messageSchema>
-            '''
-        )
-    }
-
-    override void compile(ImMessageSchema imSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
-        if(!genXml) return;
-
-        val xmlSchema = new XmlMessageSchema(imSchema)
-
-        fsa.generateFile(
-            imSchema.schemaName + '.OLD.xml',
-            '''
-                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                    xsi:schemaLocation="http://fixprotocol.io/2016/sbe/sbe.xsd"
-                    
-                    package="«imSchema.schemaName»"
-                    id="«imSchema.schemaId»" version="«imSchema.schemaVersion»"«optionalAttrs(xmlSchema)»>
-                    
-                    <types>
-                        «FOR type : imSchema.rawSchema.typeDelcarations.filter(SimpleTypeDeclaration)»
-                            «compile(type)»
-                        «ENDFOR»
-                        
-                        «FOR type : imSchema.rawSchema.typeDelcarations.filter(EnumDeclaration)»
-                            «compile(type)»
-                        «ENDFOR»
-                        
-                        «FOR type : imSchema.rawSchema.typeDelcarations.filter(SetDeclaration)»
-                            «compile(type)»
-                        «ENDFOR»
-                        
-                        «FOR compositeType : imSchema.rawSchema.typeDelcarations.filter(CompositeTypeDeclaration)»
-                            «compile(compositeType)»
-                        «ENDFOR»
-                    </types>
-                    
-                    «FOR message : imSchema.rawSchema.messageDeclarations»
                         «compile("message", message.block)»
                     «ENDFOR»
                 </sbe:messageSchema>
@@ -182,18 +138,6 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
         } else {
             ""
         }
-    }
-
-    private def optionalAttrs(XmlMessageSchema xmlSchema) {
-        '''«headerTypeAttr(xmlSchema.imSchema)»«byteOrderAttr(xmlSchema)»'''
-    }
-
-    private def headerTypeAttr(ImMessageSchema imSchema) {
-        '''«IF imSchema.headerTypeName !== null» headerType="«imSchema.headerTypeName»"«ENDIF»'''
-    }
-
-    private def byteOrderAttr(XmlMessageSchema xmlMessageSchema) {
-        '''«IF xmlMessageSchema.imSchema.schemaByteOrder !== ByteOrder.LITTLE_ENDIAN» byteOrder="«xmlMessageSchema.byteOrderAttribute»"«ENDIF»'''
     }
 
     private def String compile(CompositeTypeDeclaration ctd) {

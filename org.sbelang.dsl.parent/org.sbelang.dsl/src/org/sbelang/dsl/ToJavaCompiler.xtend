@@ -6,8 +6,9 @@ package org.sbelang.dsl
 
 import java.io.File
 import java.nio.ByteOrder
+import java.nio.file.Paths
 import org.eclipse.emf.common.util.EList
-import org.sbelang.dsl.generator.intermediate.ImMessageSchema
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
@@ -19,23 +20,30 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
  * 
  */
 class ToJavaCompiler {
-    val ImMessageSchema imSchema
+    val ParsedSchema parsedSchema
+    val String packagePath
 
-    new(ImMessageSchema imSchema) {
-        this.imSchema = imSchema
+    new(ParsedSchema parsedSchema) {
+        this.parsedSchema = parsedSchema
+
+        this.packagePath = {
+            val String[] components = parsedSchema.schemaName.split("\\.")
+            val schemaPath = Paths.get(".", components)
+            Paths.get(".").relativize(schemaPath).normalize.toString
+        }
     }
 
     def generateMessageSchema() {
-        val schemaByteOrderConstant = if(imSchema.schemaByteOrder ===
+        val schemaByteOrderConstant = if(parsedSchema.schemaByteOrder ===
                 ByteOrder.BIG_ENDIAN) "BIG_ENDIAN" else "LITTLE_ENDIAN"
         '''
-            package  «imSchema.schemaName»;
+            package  «parsedSchema.schemaName»;
             
             import java.nio.ByteOrder;
             
             public class MessageSchema {
-                public static final int SCHEMA_ID = «imSchema.schemaId»;
-                public static final int SCHEMA_VERSION = «imSchema.schemaVersion»;
+                public static final int SCHEMA_ID = «parsedSchema.schemaId»;
+                public static final int SCHEMA_VERSION = «parsedSchema.schemaVersion»;
                 public static final ByteOrder BYTE_ORDER = ByteOrder.«schemaByteOrderConstant»;
             }
         '''
@@ -44,7 +52,7 @@ class ToJavaCompiler {
     def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
         val compositeName = ctd.name.toFirstUpper + 'Encoder'
         '''
-            package  «imSchema.schemaName»;
+            package  «parsedSchema.schemaName»;
             
             import org.agrona.MutableDirectBuffer;
             
@@ -103,7 +111,7 @@ class ToJavaCompiler {
 
         val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
         val meberVarName = member.name.toFirstLower
-        val fieldIndex = imSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
 
         '''
             // «memberEncoderClass»
@@ -132,7 +140,7 @@ class ToJavaCompiler {
         val enumName = ed.name.toFirstUpper
         val enumValueJavaType = enumJavaType(ed.encodingType)
         '''
-            package  «imSchema.schemaName»;
+            package  «parsedSchema.schemaName»;
             
             public enum «enumName»
             {
@@ -195,7 +203,7 @@ class ToJavaCompiler {
 
     // other utils ---------------------------------------------------
     def filename(String filename) {
-        imSchema.packagePath.toString + File.separatorChar + filename
+        packagePath.toString + File.separatorChar + filename
     }
 
 }
