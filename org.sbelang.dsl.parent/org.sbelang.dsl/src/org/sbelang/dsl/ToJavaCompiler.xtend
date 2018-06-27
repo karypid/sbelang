@@ -132,7 +132,9 @@ class ToJavaCompiler {
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                         }
                         EnumDeclaration:
-                            generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name)
+                            generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
+                        SetDeclaration:
+                            generateComposite_SetMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
                         default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
                     }
                 } else
@@ -143,6 +145,8 @@ class ToJavaCompiler {
                 generateComposite_CompositeMember_Encoder(ownerComposite, member)
             EnumDeclaration:
                 generateComposite_EnumMember_Encoder(ownerComposite, member, member.name.toFirstLower)
+            SetDeclaration:
+                generateComposite_SetMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
@@ -241,6 +245,35 @@ class ToJavaCompiler {
             {
                 buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
                 return this;
+            }
+            
+        '''
+    }
+
+    private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite,
+        SetDeclaration setMember, String memberVarName) {
+        val setEncoderClassName = setMember.name.toFirstUpper + 'Encoder'
+        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldOffset = fieldIndex.getOffset(setMember.name)
+
+        '''
+            // «setMember.name»
+            public static int «memberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «memberVarName»EncodingLength()
+            {
+                return «fieldIndex.getOctectLength(setMember.name)»;
+            }
+            
+            private final «setEncoderClassName» «memberVarName» = new «setEncoderClassName»();
+            
+            public «setEncoderClassName» «memberVarName»()
+            {
+                «memberVarName».wrap(buffer, offset + «fieldOffset»);
+                return «memberVarName»;
             }
             
         '''
