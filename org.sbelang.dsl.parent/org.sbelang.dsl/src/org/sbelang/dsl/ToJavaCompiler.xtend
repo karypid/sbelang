@@ -22,6 +22,8 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 class ToJavaCompiler {
     val ParsedSchema parsedSchema
     val String packagePath
+    
+    static val ENUM_NULL_VAL_NAME = "NULL_VAL"
 
     new(ParsedSchema parsedSchema) {
         this.parsedSchema = parsedSchema
@@ -41,10 +43,15 @@ class ToJavaCompiler {
             
             import java.nio.ByteOrder;
             
-            public class MessageSchema {
+            public class MessageSchema
+            {
+                
                 public static final int SCHEMA_ID = «parsedSchema.schemaId»;
+                
                 public static final int SCHEMA_VERSION = «parsedSchema.schemaVersion»;
+                
                 public static final ByteOrder BYTE_ORDER = ByteOrder.«schemaByteOrderConstant»;
+                
             }
         '''
     }
@@ -62,30 +69,30 @@ class ToJavaCompiler {
                 
                 private int offset;
                 private MutableDirectBuffer buffer;
-            
+                
                 public «compositeName» wrap(final MutableDirectBuffer buffer, final int offset)
                 {
-                this.buffer = buffer;
-                this.offset = offset;
-            
+                    this.buffer = buffer;
+                    this.offset = offset;
+                    
                     return this;
                 }
-            
+                
                 public MutableDirectBuffer buffer()
                 {
                     return buffer;
                 }
-            
+                
                 public int offset()
                 {
                     return offset;
                 }
-            
+                
                 public int encodedLength()
                 {
                     return ENCODED_LENGTH;
                 }
-            
+                
                 «FOR cm : ctd.compositeMembers»
                     «generateCompositeEncoderMember(ctd, cm)»
                 «ENDFOR»
@@ -95,8 +102,6 @@ class ToJavaCompiler {
 
     private def generateCompositeEncoderMember(CompositeTypeDeclaration ownerComposite, CompositeMember member) {
         switch member {
-            CompositeTypeDeclaration:
-                generateCompositeEncoderMember(ownerComposite, member)
             MemberRefTypeDeclaration: {
                 if (member.primitiveType !== null)
                     generatePrimitiveEncoderMember(ownerComposite, member)
@@ -105,6 +110,11 @@ class ToJavaCompiler {
                 else
                     ''' /* TODO: «member.toString» */'''
             }
+            // all inline declarations below --------------------
+            CompositeTypeDeclaration:
+                generateCompositeEncoderMember(ownerComposite, member)
+            EnumDeclaration:
+                generateEnumEncoderMember(ownerComposite, member)
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
@@ -118,6 +128,9 @@ class ToJavaCompiler {
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(member.name)
         val memberValueJavaType = primitiveToJavaType(member.primitiveType)
+        val putSetter = 'put' + memberValueJavaType.toFirstUpper
+        val optionalEndian = if (memberValueJavaType ==
+                'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
 
         '''
             // «meberVarName»
@@ -131,9 +144,40 @@ class ToJavaCompiler {
                 return «fieldIndex.getLength(member.name)»;
             }
             
-            public «ownerCompositeEncoderClass» «meberVarName»( «memberValueJavaType» value )
+            public «ownerCompositeEncoderClass» «meberVarName»( final «memberValueJavaType» value )
             {
-                buffer.put«memberValueJavaType.toFirstUpper»(offset + «fieldOffset», value);
+                buffer.«putSetter»( offset + «fieldOffset», value «optionalEndian»);
+                return this;
+            }
+            
+        '''
+    }
+
+    private def generateEnumEncoderMember(CompositeTypeDeclaration ownerComposite, EnumDeclaration member) {
+        val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+        val meberVarName = member.name.toFirstLower
+        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldOffset = fieldIndex.getOffset(member.name)
+        
+        val memberEnumEncodingValueJavaType = enumJavaType(member.encodingType)
+        val memberEnumType = member.name.toFirstUpper
+        val putSetter = 'put' + memberEnumEncodingValueJavaType.toFirstUpper
+
+        '''
+            // «member.name»
+            public static int «meberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «meberVarName»EncodingLength()
+            {
+                return «fieldIndex.getLength(member.name)»;
+            }
+            
+            public «ownerCompositeEncoderClass» «meberVarName»( final «memberEnumType» value )
+            {
+                buffer.«putSetter»( offset + «fieldOffset», value.value() );
                 return this;
             }
             
@@ -174,17 +218,24 @@ class ToJavaCompiler {
     def generateEnum(EnumDeclaration ed) {
         val enumName = ed.name.toFirstUpper
         val enumValueJavaType = enumJavaType(ed.encodingType)
-        val enumNullValueLiteral = enumDefaultNullValueLiteral(ed.encodingType)
+        
+        // separate null if present and calculate literal
+        val enumValuesWithoutNull = ed.enumValues.filter[ev | ev.name != ENUM_NULL_VAL_NAME]
+        val explicitNull = ed.enumValues.findFirst[ev | ev.name == ENUM_NULL_VAL_NAME]
+        val enumNullValueLiteral = if (isEnumWithExplicitNull(ed.enumValues))
+                '''«explicitNull.value»'''
+            else
+                enumDefaultNullValueLiteral(ed.encodingType)
         '''
             package  «parsedSchema.schemaName»;
             
             public enum «enumName»
             {
-                «FOR ev : ed.enumValues»
+                «FOR ev : enumValuesWithoutNull»
                     «ev.name» ( («enumValueJavaType») «ev.value» ),
-                «ENDFOR»«IF !isEnumWithExplicitNull(ed.enumValues)»
+                «ENDFOR»
                     
-                NULL_VAL ( («enumValueJavaType») «enumNullValueLiteral» )«ENDIF»;
+                «ENUM_NULL_VAL_NAME» ( («enumValueJavaType») «enumNullValueLiteral» );
                 
                 public final «enumValueJavaType» value;
                 
@@ -202,10 +253,10 @@ class ToJavaCompiler {
                 {
                     switch ( value )
                     {
-                        «FOR ev : ed.enumValues»
+                        «FOR ev : enumValuesWithoutNull»
                             case «ev.value»: return «ev.name»;
                         «ENDFOR»
-                        case «enumNullValueLiteral»: return NULL_VAL;
+                        case «enumNullValueLiteral»: return «ENUM_NULL_VAL_NAME»;
                         default:
                             throw new IllegalArgumentException ( "Unknown value: " + value );
                     }
@@ -225,7 +276,8 @@ class ToJavaCompiler {
     }
 
     private def boolean isEnumWithExplicitNull(EList<EnumValueDeclaration> enumValues) {
-        enumValues.exists[evd|evd.name == "NULL_VAL"]
+        System.out.println(enumValues + " - " + String.valueOf(enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]))
+        enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]
     }
 
     private def enumJavaType(String sbePrimitive) {
@@ -236,10 +288,10 @@ class ToJavaCompiler {
             default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
         }
     }
-    
+
     private def primitiveToJavaType(String sbePrimitive) {
         switch sbePrimitive {
-            case 'char': 'char'
+            case 'char': 'byte' // sbe chars are ascii
             case 'int8': 'byte'
             case 'int16': 'short'
             case 'int32': 'int'
