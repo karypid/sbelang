@@ -135,6 +135,8 @@ class ToJavaCompiler {
                             generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
                         SetDeclaration:
                             generateComposite_SetMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
+                        CompositeTypeDeclaration:
+                            generateComposite_CompositeMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
                         default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
                     }
                 } else
@@ -142,7 +144,7 @@ class ToJavaCompiler {
             }
             // all inline declarations below --------------------
             CompositeTypeDeclaration:
-                generateComposite_CompositeMember_Encoder(ownerComposite, member)
+                generateComposite_CompositeMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             EnumDeclaration:
                 generateComposite_EnumMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             SetDeclaration:
@@ -280,12 +282,12 @@ class ToJavaCompiler {
     }
 
     private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
-        CompositeTypeDeclaration member) {
+        CompositeTypeDeclaration member, String memberVarName) {
 
         val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
-        val memberVarName = member.name.toFirstLower
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
-        val fieldOffset = fieldIndex.getOffset(member.name)
+        val fieldOffset = fieldIndex.getOffset(memberVarName)
+        val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
 
         '''
             // «memberEncoderClass»
@@ -296,7 +298,7 @@ class ToJavaCompiler {
             
             public static int «memberVarName»EncodingLength()
             {
-                return «fieldIndex.getOctectLength(member.name)»;
+                return «fieldEncodingLength»;
             }
             
             private «memberEncoderClass» «memberVarName» = new «memberEncoderClass»();
