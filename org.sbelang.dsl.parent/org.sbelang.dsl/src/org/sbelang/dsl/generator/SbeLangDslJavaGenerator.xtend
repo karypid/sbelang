@@ -22,7 +22,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         )
 
         schema.forAllEnums [ ed |
-            fsa.generateFile(compiler.filename(ed.name.toFirstUpper + ".java"), compiler.generateEnum(ed))
+            fsa.generateFile(compiler.filename(ed.name.toFirstUpper + ".java"), compiler.generateEnumDefinition(ed))
         ]
 
         schema.forAllComposites [ ctd |

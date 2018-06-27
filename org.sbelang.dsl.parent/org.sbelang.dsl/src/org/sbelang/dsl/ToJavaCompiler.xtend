@@ -22,7 +22,7 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 class ToJavaCompiler {
     val ParsedSchema parsedSchema
     val String packagePath
-    
+
     static val ENUM_NULL_VAL_NAME = "NULL_VAL"
 
     new(ParsedSchema parsedSchema) {
@@ -104,47 +104,51 @@ class ToJavaCompiler {
         switch member {
             MemberRefTypeDeclaration: {
                 if (member.primitiveType !== null)
-                    generatePrimitiveEncoderMember(ownerComposite, member)
-                else if (member.type !== null)
-                    ''' /* TODO: reference to non-primitive - «member.toString» */'''
-                else
+                    generateCompositePrimitiveEncoderMember(ownerComposite, member)
+                else if (member.type !== null) {
+                    val memberType = member.type
+                    switch memberType {
+                        EnumDeclaration:
+                            generateCompositeEnumMemberEncoder(ownerComposite, memberType, member.name)
+                        default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
+                    }
+                } else
                     ''' /* TODO: «member.toString» */'''
             }
             // all inline declarations below --------------------
             CompositeTypeDeclaration:
                 generateCompositeEncoderMember(ownerComposite, member)
             EnumDeclaration:
-                generateEnumEncoderMember(ownerComposite, member)
+                generateCompositeEnumMemberEncoder(ownerComposite, member, member.name.toFirstLower)
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
     }
 
-    private def generatePrimitiveEncoderMember(CompositeTypeDeclaration ownerComposite,
+    private def generateCompositePrimitiveEncoderMember(CompositeTypeDeclaration ownerComposite,
         MemberRefTypeDeclaration member) {
         val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-        val meberVarName = member.name.toFirstLower
+        val memberVarName = member.name.toFirstLower
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(member.name)
         val memberValueJavaType = primitiveToJavaType(member.primitiveType)
         val putSetter = 'put' + memberValueJavaType.toFirstUpper
-        val optionalEndian = if (memberValueJavaType ==
-                'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
+        val optionalEndian = endianParam(memberValueJavaType)
 
         '''
-            // «meberVarName»
-            public static int «meberVarName»EncodingOffset()
+            // «memberVarName»
+            public static int «memberVarName»EncodingOffset()
             {
                 return «fieldOffset»;
             }
             
-            public static int «meberVarName»EncodingLength()
+            public static int «memberVarName»EncodingLength()
             {
                 return «fieldIndex.getLength(member.name)»;
             }
             
-            public «ownerCompositeEncoderClass» «meberVarName»( final «memberValueJavaType» value )
+            public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueJavaType» value )
             {
                 buffer.«putSetter»( offset + «fieldOffset», value «optionalEndian»);
                 return this;
@@ -153,75 +157,80 @@ class ToJavaCompiler {
         '''
     }
 
-    private def generateEnumEncoderMember(CompositeTypeDeclaration ownerComposite, EnumDeclaration member) {
+    private def generateCompositeEnumMemberEncoder(CompositeTypeDeclaration ownerComposite, EnumDeclaration enumMember,
+        String memberVarName) {
         val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-        val meberVarName = member.name.toFirstLower
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
-        val fieldOffset = fieldIndex.getOffset(member.name)
-        
-        val memberEnumEncodingValueJavaType = enumJavaType(member.encodingType)
-        val memberEnumType = member.name.toFirstUpper
-        val putSetter = 'put' + memberEnumEncodingValueJavaType.toFirstUpper
+        val fieldOffset = fieldIndex.getOffset(enumMember.name)
+
+        val memberEnumType = enumMember.name.toFirstUpper
+        val memberEnumEncodingJavaType = primitiveToJavaType(enumMember.encodingType)
+        val putSetter = 'put' + memberEnumEncodingJavaType.toFirstUpper
+        val optionalEndian = endianParam(memberEnumEncodingJavaType)
 
         '''
-            // «member.name»
-            public static int «meberVarName»EncodingOffset()
+            // «enumMember.name»
+            public static int «memberVarName»EncodingOffset()
             {
                 return «fieldOffset»;
             }
             
-            public static int «meberVarName»EncodingLength()
+            public static int «memberVarName»EncodingLength()
             {
-                return «fieldIndex.getLength(member.name)»;
+                return «fieldIndex.getLength(enumMember.name)»;
             }
             
-            public «ownerCompositeEncoderClass» «meberVarName»( final «memberEnumType» value )
+            public «ownerCompositeEncoderClass» «memberVarName»( final «memberEnumType» value )
             {
-                buffer.«putSetter»( offset + «fieldOffset», value.value() );
+                buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
                 return this;
             }
             
         '''
     }
 
+    def endianParam(String primitiveJavaType) {
+        if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
+    }
+
     private def generateCompositeEncoderMember(CompositeTypeDeclaration ownerComposite,
         CompositeTypeDeclaration member) {
 
         val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
-        val meberVarName = member.name.toFirstLower
+        val memberVarName = member.name.toFirstLower
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(member.name)
 
         '''
             // «memberEncoderClass»
-            public static int «meberVarName»EncodingOffset()
+            public static int «memberVarName»EncodingOffset()
             {
                 return «fieldOffset»;
             }
             
-            public static int «meberVarName»EncodingLength()
+            public static int «memberVarName»EncodingLength()
             {
                 return «fieldIndex.getLength(member.name)»;
             }
             
-            private «memberEncoderClass» «meberVarName» = new «memberEncoderClass»();
+            private «memberEncoderClass» «memberVarName» = new «memberEncoderClass»();
             
-            public «memberEncoderClass» «meberVarName»()
+            public «memberEncoderClass» «memberVarName»()
             {
-                «meberVarName».wrap(buffer, offset + «fieldOffset» );
-                return «meberVarName»;
+                «memberVarName».wrap(buffer, offset + «fieldOffset» );
+                return «memberVarName»;
             }
             
         '''
     }
 
-    def generateEnum(EnumDeclaration ed) {
+    def generateEnumDefinition(EnumDeclaration ed) {
         val enumName = ed.name.toFirstUpper
         val enumValueJavaType = enumJavaType(ed.encodingType)
-        
+
         // separate null if present and calculate literal
-        val enumValuesWithoutNull = ed.enumValues.filter[ev | ev.name != ENUM_NULL_VAL_NAME]
-        val explicitNull = ed.enumValues.findFirst[ev | ev.name == ENUM_NULL_VAL_NAME]
+        val enumValuesWithoutNull = ed.enumValues.filter[ev|ev.name != ENUM_NULL_VAL_NAME]
+        val explicitNull = ed.enumValues.findFirst[ev|ev.name == ENUM_NULL_VAL_NAME]
         val enumNullValueLiteral = if (isEnumWithExplicitNull(ed.enumValues))
                 '''«explicitNull.value»'''
             else
@@ -234,7 +243,7 @@ class ToJavaCompiler {
                 «FOR ev : enumValuesWithoutNull»
                     «ev.name» ( («enumValueJavaType») «ev.value» ),
                 «ENDFOR»
-                    
+                
                 «ENUM_NULL_VAL_NAME» ( («enumValueJavaType») «enumNullValueLiteral» );
                 
                 public final «enumValueJavaType» value;
@@ -276,7 +285,6 @@ class ToJavaCompiler {
     }
 
     private def boolean isEnumWithExplicitNull(EList<EnumValueDeclaration> enumValues) {
-        System.out.println(enumValues + " - " + String.valueOf(enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]))
         enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]
     }
 
