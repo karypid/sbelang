@@ -229,7 +229,7 @@ class JavaDecodersGenerator {
     
     private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite,
         SetDeclaration setMember, String memberVarName) {
-        val setEncoderClassName = setMember.name.toFirstUpper + 'Decoder'
+        val setDecoderClassName = setMember.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(setMember.name)
 
@@ -245,9 +245,9 @@ class JavaDecodersGenerator {
                 return «fieldIndex.getOctectLength(setMember.name)»;
             }
             
-            private final «setEncoderClassName» «memberVarName» = new «setEncoderClassName»();
+            private final «setDecoderClassName» «memberVarName» = new «setDecoderClassName»();
             
-            public «setEncoderClassName» «memberVarName»()
+            public «setDecoderClassName» «memberVarName»()
             {
                 «memberVarName».wrap(buffer, offset + «fieldOffset»);
                 return «memberVarName»;
