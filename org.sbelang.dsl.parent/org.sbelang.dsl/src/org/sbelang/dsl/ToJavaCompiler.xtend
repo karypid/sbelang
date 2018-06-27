@@ -15,6 +15,7 @@ import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.generator.intermediate.SbeUtils
 
 /**
  * @author karypid
@@ -153,6 +154,7 @@ class ToJavaCompiler {
         val optionalEndian = endianParam(memberValueWireType)
         val value = if (memberValueWireType ==
                 memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
+        val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
 
         '''
             // «memberVarName»
@@ -185,7 +187,7 @@ class ToJavaCompiler {
                         throw new IndexOutOfBoundsException("index out of range: index=" + index);
                     }
                     
-                    final int pos = this.offset + «fieldOffset» + (index * 2);
+                    final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
                     buffer.«putSetter»(pos, «value» «optionalEndian»);
                     return this;
                 }
