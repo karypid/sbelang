@@ -6,7 +6,7 @@ package org.sbelang.dsl.generator.intermediate;
 
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
 
-public class ParsedComposite implements FieldIndexContainer
+public class ParsedComposite
 {
     private final CompositeTypeDeclaration compositeType;
 
@@ -20,7 +20,7 @@ public class ParsedComposite implements FieldIndexContainer
         super();
         this.compositeType = compositeType;
         this.containerComposite = containerComposite;
-        this.fieldIndex = new FieldIndex(this, false);
+        this.fieldIndex = new FieldIndex(false);
     }
 
     public CompositeTypeDeclaration getCompositeType()
@@ -36,11 +36,5 @@ public class ParsedComposite implements FieldIndexContainer
     public FieldIndex getFieldIndex()
     {
         return fieldIndex;
-    }
-
-    @Override
-    public String getContainerName()
-    {
-        return compositeType.getName();
     }
 }

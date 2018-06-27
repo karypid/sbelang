@@ -19,7 +19,6 @@ import org.eclipse.emf.ecore.EObject;
  */
 public class FieldIndex
 {
-    private final FieldIndexContainer container;
     private final boolean             caseSensitive;
 
     private ArrayList<String>  fieldNames;
@@ -32,9 +31,8 @@ public class FieldIndex
 
     private int totalLength;
 
-    public FieldIndex(FieldIndexContainer container, boolean caseSensitive)
+    public FieldIndex(boolean caseSensitive)
     {
-        this.container = container;
         this.caseSensitive = caseSensitive;
 
         fieldNames = new ArrayList<>();
@@ -77,10 +75,6 @@ public class FieldIndex
     private int addField(String name, int offset, int elementsLength, int octetsLength,
                     EObject grammarElement) throws DuplicateIdentifierException
     {
-        System.out.format(
-                        "        Adding %s to %s at offset %d with element length %d and octets length %d%n",
-                        name, container.getContainerName(), offset, elementsLength, octetsLength);
-
         String indexName = caseSensitive ? name : name.toUpperCase();
         int idx = fieldNames.size(); // the next entry in arraylist group...
         Integer existingIdx = fieldIndexes.put(indexName, idx);

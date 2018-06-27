@@ -78,8 +78,6 @@ public class Parser
 
     private ParsedSchema parse() throws Exception
     {
-        System.out.println("Parsing: " + schema.getSchema());
-
         for (TypeDeclaration td : schema.getTypeDelcarations())
         {
 
@@ -110,21 +108,10 @@ public class Parser
                             "Don't know how to handle type: " + td.getClass().getName());
         }
 
-        System.out.println("Root simple types: " + rootSimpleTypes.keySet());
-        System.out.println("Root enumerations: " + rootEnumerations.keySet());
-        System.out.println("Root sets (of choice): " + rootSets.keySet());
-        System.out.println("Root composites: " + rootComposites.keySet());
-
-        System.out.println("All root names: " + allRootNames.keySet());
-
-        System.out.println("Processing root composites...");
-
         for (CompositeTypeDeclaration ctd : rootComposites.values())
         {
             parseComposite(ctd, null);
         }
-
-        System.out.println("All root names: " + allRootNames.keySet());
 
         return new ParsedSchema(schema, allRootNames, allParsedComposites);
     }
@@ -132,9 +119,6 @@ public class Parser
     private void parseComposite(CompositeTypeDeclaration ctd, ParsedComposite container)
                     throws DuplicateIdentifierException, AttributeErrorException
     {
-        System.out.format("    composite: %s in %s...%n", ctd.getName(),
-                        container != null ? container.getCompositeType().getName() : "[ROOT]");
-
         ParsedComposite parsedComposite = new ParsedComposite(ctd, container);
 
         // we go depth-first in order to reach leaf composites as we can
@@ -250,7 +234,7 @@ public class Parser
                             "Don't know how to handle type: " + cm.getClass().getName());
         }
 
-        allParsedComposites.put(parsedComposite.getContainerName(), parsedComposite);
+        allParsedComposites.put(ctd.getName(), parsedComposite);
     }
 
     private void checkRootUnique(TypeDeclaration td) throws DuplicateIdentifierException
