@@ -248,7 +248,9 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
 
     private def presenceAttrs(Object presence) {
         switch presence {
-            PresenceOptionalModifier: ''' presence="optional"«IF !presence.isOptional» nullValue="«presence.nullValue»"«ENDIF»'''
+            PresenceOptionalModifier: {
+                ''' presence="optional"«IF !presence.isOptional» nullValue="«constLiteral(presence.nullValue)»"«ENDIF»'''
+            }
             PresenceConstantModifier: ''' presence="constant"'''
             default: ''''''
         }
