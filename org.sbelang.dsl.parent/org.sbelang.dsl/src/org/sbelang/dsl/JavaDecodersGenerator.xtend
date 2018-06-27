@@ -6,13 +6,11 @@ package org.sbelang.dsl
 
 import java.io.File
 import java.nio.file.Paths
-import org.eclipse.emf.common.util.EList
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.SbeUtils
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
-import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
@@ -25,8 +23,6 @@ import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 class JavaDecodersGenerator {
     val ParsedSchema parsedSchema
     val String packagePath
-
-    static val ENUM_NULL_VAL_NAME = "NULL_VAL"
 
     new(ParsedSchema parsedSchema) {
         this.parsedSchema = parsedSchema
@@ -291,56 +287,6 @@ class JavaDecodersGenerator {
         '''
     }
 
-    def generateEnumDefinition(EnumDeclaration ed) {
-        val enumName = ed.name.toFirstUpper
-        val enumValueJavaType = primitiveToJavaDataType(ed.encodingType)
-
-        // separate null if present and calculate literal
-        val enumValuesWithoutNull = ed.enumValues.filter[ev|ev.name != ENUM_NULL_VAL_NAME]
-        val explicitNull = ed.enumValues.findFirst[ev|ev.name == ENUM_NULL_VAL_NAME]
-        val enumNullValueLiteral = if (isEnumWithExplicitNull(ed.enumValues))
-                '''«explicitNull.value»'''
-            else
-                enumDefaultNullValueLiteral(ed.encodingType)
-        '''
-            package  «parsedSchema.schemaName»;
-            
-            public enum «enumName»
-            {
-                «FOR ev : enumValuesWithoutNull»
-                    «ev.name» ( («enumValueJavaType») «ev.value» ),
-                «ENDFOR»
-                
-                «ENUM_NULL_VAL_NAME» ( («enumValueJavaType») «enumNullValueLiteral» );
-                
-                public final «enumValueJavaType» value;
-                
-                private «enumName»( final «enumValueJavaType» value )
-                {
-                    this.value = value;
-                }
-                
-                public «enumValueJavaType» value()
-                {
-                    return value;
-                }
-                
-                public static «enumName» get ( final «enumValueJavaType» value )
-                {
-                    switch ( value )
-                    {
-                        «FOR ev : enumValuesWithoutNull»
-                            case «ev.value»: return «ev.name»;
-                        «ENDFOR»
-                        case «enumNullValueLiteral»: return «ENUM_NULL_VAL_NAME»;
-                        default:
-                            throw new IllegalArgumentException ( "Unknown value: " + value );
-                    }
-                }
-            }
-        '''
-    }
-
     def generateSetDecoder(SetDeclaration sd) {
         val setName = sd.name.toFirstUpper
         val setDecoderName = setName + 'Decoder'
@@ -414,19 +360,6 @@ class JavaDecodersGenerator {
     // java utils ----------------------------------------------------
     private def endianParam(String primitiveJavaType) {
         if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
-    }
-
-    private def boolean isEnumWithExplicitNull(EList<EnumValueDeclaration> enumValues) {
-        enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]
-    }
-
-    private def enumDefaultNullValueLiteral(String enumEncodingType) {
-        switch (enumEncodingType) {
-            case 'char': '0'
-            case 'uint8': '255'
-            case 'uint16': '65535'
-            default: throw new IllegalStateException("Encoding not supported for enums: " + enumEncodingType)
-        }
     }
 
     private def enumAllBitsMask(String sbeEnumEncodingType) {
