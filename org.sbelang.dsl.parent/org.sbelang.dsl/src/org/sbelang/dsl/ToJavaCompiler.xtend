@@ -16,6 +16,8 @@ import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.generator.intermediate.SbeUtils
+import org.sbelang.dsl.sbeLangDsl.SetDeclaration
+import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 
 /**
  * @author karypid
@@ -277,7 +279,7 @@ class ToJavaCompiler {
 
     def generateEnumDefinition(EnumDeclaration ed) {
         val enumName = ed.name.toFirstUpper
-        val enumValueJavaType = enumJavaType(ed.encodingType)
+        val enumValueJavaType = primitiveToJavaDataType(ed.encodingType)
 
         // separate null if present and calculate literal
         val enumValuesWithoutNull = ed.enumValues.filter[ev|ev.name != ENUM_NULL_VAL_NAME]
@@ -325,7 +327,100 @@ class ToJavaCompiler {
         '''
     }
 
+    def generateSetDefinition(SetDeclaration sd) {
+        val setName = sd.name.toFirstUpper
+        val setEncoderName = setName + 'Encoder'
+        val setJavaType = primitiveToJavaWireType(sd.encodingType)
+        val setEncodingOctetLength = SbeUtils.getPrimitiveTypeOctetLength(sd.encodingType)
+        val optionalEndian = endianParam(setJavaType)
+        val putSetter = 'put' + setJavaType.toFirstUpper
+        
+        '''
+            package  «parsedSchema.schemaName»;
+            
+            import org.agrona.MutableDirectBuffer;
+            
+            public class «setEncoderName»
+            {
+                public static final int ENCODED_LENGTH = «setEncodingOctetLength»;
+                
+                private MutableDirectBuffer buffer;
+                private int offset;
+                
+                public «setEncoderName» wrap( final MutableDirectBuffer buffer, final int offset )
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+                
+                    return this;
+                }
+                
+                public MutableDirectBuffer buffer()
+                {
+                    return buffer;
+                }
+                
+                public int offset()
+                {
+                    return offset;
+                }
+                
+                public int encodedLength()
+                {
+                    return ENCODED_LENGTH;
+                }
+                
+                public «setEncoderName» clear()
+                {
+                    buffer.«putSetter»( offset, («setJavaType») 0«optionalEndian» );
+                    return this;
+                }
+                
+                «FOR setChoice : sd.setChoices»
+                    // choice: «setChoice.name»
+                    «generateSetChoiceDefinition(sd, setChoice)»
+                    
+                «ENDFOR»
+            }
+        '''
+    }
+    
+    private def generateSetChoiceDefinition(SetDeclaration sd, SetChoiceDeclaration setChoice) {
+        val setName = sd.name.toFirstUpper
+        val setEncoderName = setName + 'Encoder'
+        val setChoiceName = setChoice.name.toFirstLower
+        val setJavaType = primitiveToJavaWireType(sd.encodingType)
+        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
+        val optionalEndian = endianParam(setJavaType)
+        val getFetcher = 'get' + setJavaType.toFirstUpper
+        val putSetter = 'put' + setJavaType.toFirstUpper
+        val bitPos = setChoice.value
+        
+        '''
+            public «setEncoderName» «setChoiceName»( final boolean value )
+            {
+                «setJavaType» bits = buffer.«getFetcher»( offset«optionalEndian» );
+                bits = («setJavaType») ( value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
+                buffer.«putSetter»( offset, bits«optionalEndian» );
+                return this;
+            }
+            
+            public static «setJavaType» «setChoiceName»( final short bits, final boolean value )
+            {
+                return («setJavaType») (value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
+            }
+        '''
+    }
+
     // java utils ----------------------------------------------------
+    private def endianParam(String primitiveJavaType) {
+        if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
+    }
+
+    private def boolean isEnumWithExplicitNull(EList<EnumValueDeclaration> enumValues) {
+        enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]
+    }
+
     private def enumDefaultNullValueLiteral(String enumEncodingType) {
         switch (enumEncodingType) {
             case 'char': '0'
@@ -333,23 +428,6 @@ class ToJavaCompiler {
             case 'uint16': '65535'
             default: throw new IllegalStateException("Encoding not supported for enums: " + enumEncodingType)
         }
-    }
-
-    private def boolean isEnumWithExplicitNull(EList<EnumValueDeclaration> enumValues) {
-        enumValues.exists[evd|evd.name == ENUM_NULL_VAL_NAME]
-    }
-
-    private def enumJavaType(String sbePrimitive) {
-        switch sbePrimitive {
-            case 'char': 'byte'
-            case 'uint8': 'short'
-            case 'uint16': 'int'
-            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
-        }
-    }
-
-    private def endianParam(String primitiveJavaType) {
-        if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
     }
 
     // these are used for encoding. here the unsigned integers are

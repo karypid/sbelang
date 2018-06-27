@@ -12,6 +12,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
 import org.sbelang.dsl.sbeLangDsl.OptionalSchemaAttrs;
+import org.sbelang.dsl.sbeLangDsl.SetDeclaration;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration;
 
 import com.google.common.collect.ImmutableMap;
@@ -95,6 +96,17 @@ public class ParsedSchema
             if (type instanceof EnumDeclaration)
             {
                 op.apply((EnumDeclaration) type);
+            }
+        }
+    }
+
+    public void forAllSets(Procedure1<SetDeclaration> op)
+    {
+        for (TypeDeclaration type : allRootNames.values())
+        {
+            if (type instanceof SetDeclaration)
+            {
+                op.apply((SetDeclaration) type);
             }
         }
     }

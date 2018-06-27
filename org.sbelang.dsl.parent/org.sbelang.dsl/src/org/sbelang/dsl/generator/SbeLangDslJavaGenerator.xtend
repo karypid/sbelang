@@ -25,6 +25,10 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             fsa.generateFile(compiler.filename(ed.name.toFirstUpper + ".java"), compiler.generateEnumDefinition(ed))
         ]
 
+        schema.forAllSets [ sd |
+            fsa.generateFile(compiler.filename(sd.name.toFirstUpper + "Encoder.java"), compiler.generateSetDefinition(sd))
+        ]
+
         schema.forAllComposites [ ctd |
             fsa.generateFile(compiler.filename(ctd.name.toFirstUpper + "Encoder.java"),
                 compiler.generateCompositeEncoder(ctd))
