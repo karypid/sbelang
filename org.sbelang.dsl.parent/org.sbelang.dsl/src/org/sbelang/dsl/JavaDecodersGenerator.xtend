@@ -108,7 +108,7 @@ class JavaDecodersGenerator {
                         EnumDeclaration:
                             generateComposite_EnumMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
                         SetDeclaration:
-                            generateComposite_SetMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateComposite_SetMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
                         CompositeTypeDeclaration:
                             generateComposite_CompositeMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
                         default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
@@ -122,7 +122,7 @@ class JavaDecodersGenerator {
             EnumDeclaration:
                 generateComposite_EnumMember_Decoder(ownerComposite, member, member.name.toFirstLower)
             SetDeclaration:
-                generateComposite_SetMember_Encoder(ownerComposite, member, member.name.toFirstLower)
+                generateComposite_SetMember_Decoder(ownerComposite, member, member.name.toFirstLower)
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
@@ -227,7 +227,7 @@ class JavaDecodersGenerator {
         '''
     }
     
-    private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite,
+    private def generateComposite_SetMember_Decoder(CompositeTypeDeclaration ownerComposite,
         SetDeclaration setMember, String memberVarName) {
         val setDecoderClassName = setMember.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
