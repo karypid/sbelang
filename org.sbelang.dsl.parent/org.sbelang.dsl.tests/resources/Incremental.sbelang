@@ -139,26 +139,26 @@ types
 
     set Set8 : uint8
     {
-        ZERO(0)
-        SEVEN(7)
+        zero(0)
+        seven(7)
     }
 
     set Set16 : uint16
     {
-        ZERO(0)
-        FIFTEEN(15)
+        zero (0)
+        fifteen (15)
     }
 
     set Set32 : uint32
     {
-        ZERO(0)
-        THIRTY_ONE(31)
+        zero (0)
+        thirtyOne (31)
     }
 
     set Set64 : uint64
     {
-        ZERO(0)
-        SIXTY_THREE(63)
+        zero(0)
+        sixtyThree(63)
     }
 
 //  set CompSimpleTypes : uint16 { // set name collides with composite name
@@ -183,8 +183,8 @@ types
 //      }
         set SetNested16 : uint16
         {
-            NESTED_ZERO(0)
-            NESTED_FIFTEEN(15)
+            nestedZero(0)
+            nestedFifteen(15)
         }
     }
 
@@ -320,7 +320,9 @@ types
         primFloat  : float optional
         primDouble : double optional
         // constant presence -----------------------------
-        constChar   : char   constant='a'
+        constChar   : char   constant='a' 
+        // FIXME: non-ascii literal should fail
+        // constDelta   : char   constant='Δ'
         constInt8   : int8   constant=42
         constInt16  : int16  constant=42
         constInt32  : int32  constant=42
@@ -350,29 +352,29 @@ types
 // TODO: support float/double constants
 //        nv_primFloat  : float nullValue=42
 //        nv_primDouble : double nullValue=42
-        // some illegal null value literals ------------
+    // some illegal null value literals ------------
 //      int_for_char_null     : char  nullValue=55
 //      char_for_int8_null    : int8  nullValue='x'
 //      char_for_uint8_null   : uint8 nullValue='x'
-        /*
-         * The set of members below reference enumerations, sets and simple types.
-         * 
-         * It is not possible to define presence for references to these types. For
-         * simple types there is an alternative: just re-declare it as a member type
-         * using its underlying primitive. For enumerations and sets (whether through
-         * reference or inline) there is no way to set the presence of that member. 
-         * 
-         * The specification is lax on this topic. You can assume the presence is
-         * required and design around this limitation, or you can assume the presence
-         * is optional but you must use the default null value for the type (all bits
-         * set for the underlying encoding type). Note that for sets were all bits are
-         * used the default null value would collide with the case of all choices in
-         * the set being active.
-         * 
-         * We treat presence modifiers as illegal, but leave it to the application to
-         * decide which interpretation to use.
-         */
-        // types where presence  does not apply -------
+    /*
+     * The set of members below reference enumerations, sets and simple types.
+     * 
+     * It is not possible to define presence for references to these types. For
+     * simple types there is an alternative: just re-declare it as a member type
+     * using its underlying primitive. For enumerations and sets (whether through
+     * reference or inline) there is no way to set the presence of that member. 
+     * 
+     * The specification is lax on this topic. You can assume the presence is
+     * required and design around this limitation, or you can assume the presence
+     * is optional but you must use the default null value for the type (all bits
+     * set for the underlying encoding type). Note that for sets were all bits are
+     * used the default null value would collide with the case of all choices in
+     * the set being active.
+     * 
+     * We treat presence modifiers as illegal, but leave it to the application to
+     * decide which interpretation to use.
+     */
+    // types where presence  does not apply -------
 //      int_for_enum_null     : EnumChar nullValue = 1
 //      char_for_enum_null    : EnumChar nullValue = 'x'
 //      int_for_enum_const    : EnumChar constant = 1

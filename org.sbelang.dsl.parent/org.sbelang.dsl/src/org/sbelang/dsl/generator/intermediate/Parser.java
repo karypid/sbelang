@@ -14,6 +14,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier;
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration;
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration;
@@ -164,7 +165,12 @@ public class Parser
 
                 if (m.getPrimitiveType() != null)
                 {
+                    // length defaults to 1, but may be >1 for fixed-length arrays...
                     int length = m.getLength() == null ? 1 : m.getLength();
+                    // ...HOWEVER: there is the special case of presence being constant
+                    // in which case we use zero for length as the field does not occupy
+                    // space since it is not transferred on the wire
+                    if (m.getPresence() instanceof PresenceConstantModifier) length = 0;
                     fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), length, m);
                 }
                 else

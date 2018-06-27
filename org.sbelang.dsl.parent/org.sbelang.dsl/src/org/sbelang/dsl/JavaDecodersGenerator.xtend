@@ -15,6 +15,7 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 
 /**
  * @author karypid
@@ -90,8 +91,12 @@ class JavaDecodersGenerator {
                     val fieldOffset = fieldIndex.getOffset(member.name)
                     val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
+                    val presence = member.presence
+                    val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                        presence.constantValue
+                    } else null
                     generateComposite_PrimitiveMember_Decoder(ownerCompositeDecoderClass, memberVarName,
-                        member.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
+                        member.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                 } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
@@ -102,8 +107,12 @@ class JavaDecodersGenerator {
                             val fieldOffset = fieldIndex.getOffset(member.name)
                             val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
+                            val presence = member.presence
+                            val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                                presence.constantValue
+                            } else null
                             generateComposite_PrimitiveMember_Decoder(ownerCompositeDecoderClass, memberVarName,
-                                memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
+                                memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                         }
                         EnumDeclaration:
                             generateComposite_EnumMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
@@ -130,7 +139,7 @@ class JavaDecodersGenerator {
     }
 
     private def generateComposite_PrimitiveMember_Decoder(String ownerCompositeEncoderClass, String memberVarName,
-        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
+        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constantLiteral) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
         val getFetcher = 'get' + memberValueWireType.toFirstUpper
@@ -149,7 +158,12 @@ class JavaDecodersGenerator {
                 return «fieldOctetLength»;
             }
             
-            «IF arrayLength <= 1»
+            «IF constantLiteral !== null»
+                public «memberValueParamType» «memberVarName»()
+                {
+                    return «constantLiteral»;
+                }
+            «ELSEIF arrayLength <= 1»
                 public «memberValueParamType» «memberVarName»()
                 {
                     return buffer.«getFetcher»( offset + «fieldOffset» «optionalEndian»);
