@@ -14,6 +14,7 @@ import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 
 /**
  * @author karypid
@@ -94,22 +95,42 @@ class ToJavaCompiler {
                 }
                 
                 «FOR cm : ctd.compositeMembers»
-                    «generateCompositeEncoderMember(ctd, cm)»
+                    «generateComposite_CompositeMember_Encoder(ctd, cm)»
                 «ENDFOR»
             }
         '''
     }
 
-    private def generateCompositeEncoderMember(CompositeTypeDeclaration ownerComposite, CompositeMember member) {
+    private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
+        CompositeMember member) {
         switch member {
             MemberRefTypeDeclaration: {
-                if (member.primitiveType !== null)
-                    generateCompositePrimitiveEncoderMember(ownerComposite, member)
-                else if (member.type !== null) {
+                if (member.primitiveType !== null) {
+                    val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+                    val memberVarName = member.name.toFirstLower
+                    val memberValueParamType = primitiveToJavaDataType(member.primitiveType)
+                    val memberValueWireType = primitiveToJavaWireType(member.primitiveType)
+                    val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+                    val fieldOffset = fieldIndex.getOffset(member.name)
+                    val fieldOctetLength = fieldIndex.getLength(member.name)
+                    generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
+                        memberValueParamType, memberValueWireType, fieldOffset, fieldOctetLength)
+                } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
+                        SimpleTypeDeclaration: {
+                            val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+                            val memberVarName = member.name.toFirstLower
+                            val memberValueParamType = primitiveToJavaDataType(memberType.primitiveType)
+                            val memberValueWireType = primitiveToJavaWireType(memberType.primitiveType)
+                            val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+                            val fieldOffset = fieldIndex.getOffset(member.name)
+                            val fieldOctetLength = fieldIndex.getLength(member.name)
+                            generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
+                                memberValueParamType, memberValueWireType, fieldOffset, fieldOctetLength)
+                        }
                         EnumDeclaration:
-                            generateCompositeEnumMemberEncoder(ownerComposite, memberType, member.name)
+                            generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name)
                         default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
                     }
                 } else
@@ -117,24 +138,21 @@ class ToJavaCompiler {
             }
             // all inline declarations below --------------------
             CompositeTypeDeclaration:
-                generateCompositeEncoderMember(ownerComposite, member)
+                generateComposite_CompositeMember_Encoder(ownerComposite, member)
             EnumDeclaration:
-                generateCompositeEnumMemberEncoder(ownerComposite, member, member.name.toFirstLower)
+                generateComposite_EnumMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
     }
 
-    private def generateCompositePrimitiveEncoderMember(CompositeTypeDeclaration ownerComposite,
-        MemberRefTypeDeclaration member) {
-        val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-        val memberVarName = member.name.toFirstLower
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
-        val fieldOffset = fieldIndex.getOffset(member.name)
-        val memberValueJavaType = primitiveToJavaType(member.primitiveType)
-        val putSetter = 'put' + memberValueJavaType.toFirstUpper
-        val optionalEndian = endianParam(memberValueJavaType)
+    private def generateComposite_PrimitiveMember_Encoder(String ownerCompositeEncoderClass, String memberVarName,
+        String memberValueParamType, String memberValueWireType, int fieldOffset, int fieldOctetLength) {
+        val putSetter = 'put' + memberValueWireType.toFirstUpper
+        val optionalEndian = endianParam(memberValueWireType)
+        val value = if (memberValueWireType ==
+                memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
 
         '''
             // «memberVarName»
@@ -145,26 +163,26 @@ class ToJavaCompiler {
             
             public static int «memberVarName»EncodingLength()
             {
-                return «fieldIndex.getLength(member.name)»;
+                return «fieldOctetLength»;
             }
             
-            public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueJavaType» value )
+            public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
             {
-                buffer.«putSetter»( offset + «fieldOffset», value «optionalEndian»);
+                buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
                 return this;
             }
             
         '''
     }
 
-    private def generateCompositeEnumMemberEncoder(CompositeTypeDeclaration ownerComposite, EnumDeclaration enumMember,
-        String memberVarName) {
+    private def generateComposite_EnumMember_Encoder(CompositeTypeDeclaration ownerComposite,
+        EnumDeclaration enumMember, String memberVarName) {
         val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
-        val memberEnumEncodingJavaType = primitiveToJavaType(enumMember.encodingType)
+        val memberEnumEncodingJavaType = primitiveToJavaWireType(enumMember.encodingType)
         val putSetter = 'put' + memberEnumEncodingJavaType.toFirstUpper
         val optionalEndian = endianParam(memberEnumEncodingJavaType)
 
@@ -189,11 +207,7 @@ class ToJavaCompiler {
         '''
     }
 
-    def endianParam(String primitiveJavaType) {
-        if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
-    }
-
-    private def generateCompositeEncoderMember(CompositeTypeDeclaration ownerComposite,
+    private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
         CompositeTypeDeclaration member) {
 
         val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
@@ -274,7 +288,7 @@ class ToJavaCompiler {
         '''
     }
 
-    // enum utils ----------------------------------------------------
+    // java utils ----------------------------------------------------
     private def enumDefaultNullValueLiteral(String enumEncodingType) {
         switch (enumEncodingType) {
             case 'char': '0'
@@ -297,7 +311,14 @@ class ToJavaCompiler {
         }
     }
 
-    private def primitiveToJavaType(String sbePrimitive) {
+    private def endianParam(String primitiveJavaType) {
+        if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
+    }
+
+    // these are used for encoding. here the unsigned integers are
+    // mapped to the signed version as we simply cast when populating
+    // buffer values.
+    private def primitiveToJavaWireType(String sbePrimitive) {
         switch sbePrimitive {
             case 'char': 'byte' // sbe chars are ascii
             case 'int8': 'byte'
@@ -309,7 +330,32 @@ class ToJavaCompiler {
             case 'uint32': 'int'
             case 'uint64': 'long'
             case 'float': 'float'
-            case 'double': 'float'
+            case 'double': 'double'
+            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
+        }
+    }
+
+    // these are used in parameters for convenience; here we have wider
+    // types for unsigned values where possible (e.g. uint16 is int) to
+    // facilitate ease of use, but uint64 naturally remains long as Java
+    // has no wider primitive...
+    //
+    // notably for char we don't widen to java's char as that is a 
+    // unicode 16-bit value whereas SBE char is ASCII, therefore we 
+    // want to emphasize that...
+    private def primitiveToJavaDataType(String sbePrimitive) {
+        switch sbePrimitive {
+            case 'char': 'byte'
+            case 'int8': 'byte'
+            case 'int16': 'short'
+            case 'int32': 'int'
+            case 'int64': 'long'
+            case 'uint8': 'short'
+            case 'uint16': 'int'
+            case 'uint32': 'long'
+            case 'uint64': 'long'
+            case 'float': 'float'
+            case 'double': 'double'
             default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
         }
     }
