@@ -188,36 +188,6 @@ types
         }
     }
 
-    composite CompEverything
-    {
-        m_prim_int      : int32
-        m_st_char       : t_char
-
-        enum CompEverythingEnumNestedUint16 : uint16
-        {
-            ONE(1)
-            TWO(2)
-            THREE(3)
-        }
-
-        set CompEverythingSetNested32 : uint32
-        {
-            ZERO(0)
-            THIRTY_ONE(31)
-        }
-
-        composite CompEverythingNestedComposite
-        { // inline composite
-            m_nested_prim   : uint16
-            m_st_float      :   float
-        }
-        // m_ref_comp_array    : CompEnums[3] // length is illegal in composite references
-        m_ref_comp_enum     : CompEnums
-        m_ref_comp_sets     : CompSets
-        m_ref_comp_prims   : CompPrimitives // reference composite
-        m_ref_comp_simple   : CompSimpleTypes // reference composite
-    }
-
     /*================================================================================================
      * The section above covers all core features. Every kind of type declaration (simple/enum/set and
      * composite) is demonstrated, along with all kinds of inline/reference members for composites. We
@@ -320,7 +290,7 @@ types
         primFloat  : float optional
         primDouble : double optional
         // constant presence -----------------------------
-        constChar   : char   constant='a' 
+        constChar   : char   constant='a'
         // FIXME: non-ascii literal should fail
         // constDelta   : char   constant='Δ'
         constInt8   : int8   constant=42
@@ -390,6 +360,36 @@ types
 //      simple_type_optional  : t_uint8 optional
     }
 
+    composite CompEverything
+    {
+        m_prim_int      : int32
+        m_st_char       : t_char
+
+        enum CompEverythingEnumNestedUint16 : uint16
+        {
+            ONE(1)
+            TWO(2)
+            THREE(3)
+        }
+
+        set CompEverythingSetNested32 : uint32
+        {
+            ZERO(0)
+            THIRTY_ONE(31)
+        }
+
+        composite CompEverythingNestedComposite
+        { // inline composite
+            m_nested_prim   : uint16
+            m_st_float      :   float
+        }
+        // m_ref_comp_array    : CompEnums[3] // length is illegal in composite references
+        m_ref_comp_enum     : CompEnums
+        m_ref_comp_sets     : CompSets
+        m_ref_comp_prims   : CompPrimitives // reference composite
+        m_ref_comp_simple   : CompSimpleTypes // reference composite
+    }
+
     // this is required to exist (composite with name messageHeader ; can be overwritten by schema's headerType)
     composite messageHeader
     {
@@ -406,9 +406,136 @@ types
     }
 }
 
-message MessageOne id=1
+/*
+ * Messages are very similar to composites.
+ * 
+ * The differences with composites are:
+ * 
+ * 1. Instead of a list of members you declare a list of fields, which are very similar
+ * 2. After the list of fields you can declare groups
+ * 3. After the list of groups you can declare variable-length data items
+ * 
+ * With regard to fields vs members: you cannot define inline types (simple/enum/set/composite)
+ * so you must use only already-defined types from the types section above. While it is possible
+ * to also use primitive types, those are the default ones with length 1. If you need fixed-length
+ * arrays of char/int8/.../double you need to use simple types.
+ * 
+ * On the other hand, all fields can have presence defined (default is required), even fields that
+ * of enum/composite type! Fields of enumeration type that are optional must be set to that
+ * enumeration's NULL_VAL to indicate absence: you cannot override that value at the field level.
+ * Optional fields of composite type indicate their absence by setting the first field of that
+ * composite to null (or if that member is also a composite then recurse into the first member of
+ * that). It is technically an error to define a field as optional if its type cannot be null. One
+ * example is the set type which does not have a clearly defined null value in the specification.
+ * Also composites where the first member is not of optional should not be used.
+ * 
+ */
+message MessagePrimitives id=1
 {
-    f_comp_everything   : CompEverything @ 1
-    f_comp_ranges       : CompRanges @ 2
-    f_comp_presence     : CompPresence @ 3
+    t_char     : char @1 // member name does not collide with simple type
+    primChar   : char @2
+    primInt8  : int8 @3
+    primInt16 : int16 @4
+    primInt32 : int32 @5
+    primInt64 : int64 @6
+    primUint8  : uint8 @7
+    primUint16 : uint16 @8
+    primUint32 : uint32 @9
+    primUint64 : uint64 @10
+//   primChaR   : char @9999// same name in different letter case
+//   primChar   : int8 @9999// exactly same name
+    primFloat  : float @11
+    primDouble : double @12
+//  primCharArr : char[123] @2 // length not allowed for message fields, even on primitives!
+}
+
+message MessageSimpleTypes id=2
+{
+    t_char       : t_char @1 // member name does not collide with simple type
+    st_char      : t_char @2
+    st_int8      : t_int8 @3
+    st_int16     : t_int16 @4
+    st_int32     : t_int32 @5
+    st_int64     : t_int64 @6
+    st_uint8     : t_uint8 @7
+    st_uint16    : t_uint16 @8
+    st_uint32    : t_uint32 @9
+    st_uint64    : t_uint64 @10
+    // st_chAr   : char @9999// same name in different letter case
+    // st_char   : t_char @9999// exactly same name
+    st_float  : t_float @11
+    st_double : t_double @12
+    // st_char_array   : t_char[123] // length not allowed here!
+    arr_st_char  : array_char @13 // but you can refer to an array...
+    arr_st_int32 : array_int32 @14
+}
+
+message MessageEnums id=3
+{
+    m_enum_char     : EnumChar @1
+    // m_array_enum_char     : EnumChar[3] @9999 // length is illegal in enum references
+    m_enum_uint8    : EnumUint8 @ 2
+    m_enum_uint16   : EnumUint16 @ 3
+}
+
+message MessageSets id = 4
+{
+    m_set_8     : Set8 @ 1
+    m_set_16    : Set16 @ 2
+    m_set_32    : Set32 @ 3
+    m_set_64    : Set64 @ 4
+}
+
+message MessageRanges id = 5
+{
+    m_char_lower        : char @1 range=['a', 'z']
+    m_int8_2_digits     : int8 @2 range=[-99, 99]
+    m_int16_4_digits    : int16 @3 range = [-9999, 9999]
+    m_int32_6_digits    : int32 @4 range = [-999999, 999999]
+    m_int64_10_digit    : int64 @5 range = [-9999999999, 9999999999]
+    // range specification errors -----------------------
+//   m_char_range_inverted    : char  @90000 range=['z', 'a']
+//   m_int_range_inverted     : char  @90001 range=[5, -1]
+//   m_uint_range_inverted    : char  @90002 range=[5, 0]
+//   m_int_max_out_of_range   : int8  @90003 range=[1, 128]
+//   m_uint_max_out_of_range  : uint8 @90004 range=[0, 256]
+//   m_int_min_out_of_range   : int8  @90005 range=[-129, 127]
+//   m_uint_min_out_of_range  : uint8 @90006 range=[-1, 255]
+    m_uint8_2_digits    : uint8 @6 range=[0, 99]
+    m_uint16_4_digits   : uint16 @7 range = [0, 9999]
+    m_uint32_6_digits   : uint32 @8 range = [0, 999999]
+    m_uint64_10_digit   : uint64 @9 range = [0, 9999999999]
+    /*
+     * Enums and sets cannot have a range as that is defined by the list of values. Composites cannot
+     * have a range as it would not make sense (they comprise of many items each with its own range).
+     * For each member of a composite the range is specified for by that item. Enums/sets automatically
+     * define their range from their content and member data types can specify it as per below examples.
+     * References to enums/sets use their target's range and REFERENCES TO SIMPLE TYPES CAN NOT have a
+     * range but if one is required they can simply replace the reference with an inline member type
+     * definition (same primitive/length but with range attribute).
+     */
+    m_float : float @10 // TODO: support float range
+    m_double : double @11 // TODO: support double range
+    // ------------------------------------------------------
+    // Ranges can NOT be applied to simple type references
+    m_t_char_lower      : t_char   @90007 range = ['a', 'z']
+    m_t_int8_2_digits   : t_int8   @90008 range = [-99, 99]
+    m_t_int16_4_digits  : t_int16  @90009 range = [-9999, 9999]
+    m_t_int32_6_digits  : t_int32  @90010 range = [-999999, 999999]
+    m_t_int64_10_digit  : t_int64  @90011 range = [-9999999999, 9999999999]
+    m_enum_range        : EnumChar @90012 range = ['a','z']
+    m_set_range         : Set16    @90013 range = [1, 5]
+}
+
+message MessageEverything id=9999
+{
+    m_prim_int          : int32           @1
+    m_st_char           : t_char          @2
+    m_ref_simple_array  : array_float     @3
+    m_ref_comp_enum     : CompEnums       @4
+    m_ref_comp_sets     : CompSets        @5
+    m_ref_comp_prims    : CompPrimitives  @6
+    m_ref_comp_simple   : CompSimpleTypes @7
+    m_ref_comp_ranges   : CompRanges      @8
+    m_ref_comp_presence : CompPresence    @9
 }
