@@ -131,8 +131,8 @@ class JavaDecodersGenerator {
 
     private def generateComposite_PrimitiveMember_Decoder(String ownerCompositeEncoderClass, String memberVarName,
         String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
-        val memberValueParamType = primitiveToJavaDataType(sbePrimitiveType)
-        val memberValueWireType = primitiveToJavaWireType(sbePrimitiveType)
+        val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
+        val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
         val getFetcher = 'get' + memberValueWireType.toFirstUpper
         val optionalEndian = endianParam(memberValueWireType)
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
@@ -196,8 +196,8 @@ class JavaDecodersGenerator {
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
-        val memberEnumJavaWireType = primitiveToJavaWireType(enumMember.encodingType)
-        val memberEnumJavaDataType = primitiveToJavaDataType(enumMember.encodingType)
+        val memberEnumJavaWireType = JavaGenerator.primitiveToJavaWireType(enumMember.encodingType)
+        val memberEnumJavaDataType = JavaGenerator.primitiveToJavaDataType(enumMember.encodingType)
         val getFetcher = 'get' + memberEnumJavaWireType.toFirstUpper
         val optionalEndian = endianParam(memberEnumJavaWireType)
         
@@ -338,7 +338,7 @@ class JavaDecodersGenerator {
     
     private def generateSetChoiceDecoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
         val setChoiceName = setChoice.name.toFirstLower
-        val setJavaType = primitiveToJavaWireType(sd.encodingType)
+        val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
         val getFetcher = 'get' + setJavaType.toFirstUpper
         val optionalEndian = endianParam(setJavaType)
         val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
@@ -368,51 +368,6 @@ class JavaDecodersGenerator {
             case 'uint8' : '0xFF'
             case 'uint16' : '0xFFFF'
             default: throw new IllegalStateException('Why would you need this? Enums should not be of type: ' + sbeEnumEncodingType)
-        }
-    }
-
-    // these are used for encoding. here the unsigned integers are
-    // mapped to the signed version as we simply cast when populating
-    // buffer values.
-    private def primitiveToJavaWireType(String sbePrimitive) {
-        switch sbePrimitive {
-            case 'char': 'byte' // sbe chars are ascii
-            case 'int8': 'byte'
-            case 'int16': 'short'
-            case 'int32': 'int'
-            case 'int64': 'long'
-            case 'uint8': 'byte'
-            case 'uint16': 'short'
-            case 'uint32': 'int'
-            case 'uint64': 'long'
-            case 'float': 'float'
-            case 'double': 'double'
-            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
-        }
-    }
-
-    // these are used in parameters for convenience; here we have wider
-    // types for unsigned values where possible (e.g. uint16 is int) to
-    // facilitate ease of use, but uint64 naturally remains long as Java
-    // has no wider primitive...
-    //
-    // notably for char we don't widen to java's char as that is a 
-    // unicode 16-bit value whereas SBE char is ASCII, therefore we 
-    // want to emphasize that...
-    private def primitiveToJavaDataType(String sbePrimitive) {
-        switch sbePrimitive {
-            case 'char': 'byte'
-            case 'int8': 'byte'
-            case 'int16': 'short'
-            case 'int32': 'int'
-            case 'int64': 'long'
-            case 'uint8': 'short'
-            case 'uint16': 'int'
-            case 'uint32': 'long'
-            case 'uint64': 'long'
-            case 'float': 'float'
-            case 'double': 'double'
-            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
         }
     }
 
