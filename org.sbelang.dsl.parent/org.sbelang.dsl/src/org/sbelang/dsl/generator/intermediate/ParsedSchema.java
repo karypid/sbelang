@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 import java.util.Map;
 
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration;
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
@@ -28,6 +29,7 @@ public class ParsedSchema
     private final MessageSchema                         messageSchema;
     private final ImmutableMap<String, TypeDeclaration> allRootNames;
     private final ImmutableMap<String, ParsedComposite> allParsedComposites;
+    private final ImmutableMap<String, ParsedBlock>     allParsedBlocks;
 
     private final int       schemaId;
     private final String    schemaName;
@@ -36,11 +38,13 @@ public class ParsedSchema
     private final String    schemaHeaderType;
 
     public ParsedSchema(MessageSchema messageSchema, Map<String, TypeDeclaration> allRootNames,
-                    Map<String, ParsedComposite> allParsedComposites)
+                    Map<String, ParsedComposite> allParsedComposites,
+                    Map<String, ParsedBlock> allParsedBlocks)
     {
         this.messageSchema = messageSchema;
         this.allRootNames = ImmutableMap.copyOf(allRootNames);
         this.allParsedComposites = ImmutableMap.copyOf(allParsedComposites);
+        this.allParsedBlocks = ImmutableMap.copyOf(allParsedBlocks);
 
         OptionalSchemaAttrs schemaOptionalAttrs = messageSchema.getSchema().getOptionalAttrs();
         this.schemaByteOrder = ((schemaOptionalAttrs == null)
@@ -84,9 +88,14 @@ public class ParsedSchema
         return schemaByteOrder;
     }
 
-    public FieldIndex getFieldIndex(String compositeName)
+    public FieldIndex getCompositeFieldIndex(String compositeName)
     {
         return allParsedComposites.get(compositeName).getFieldIndex();
+    }
+
+    public FieldIndex getBlockFieldIndex(String blockName)
+    {
+        return allParsedBlocks.get(blockName).getFieldIndex();
     }
 
     public void forAllEnums(Procedure1<EnumDeclaration> op)
@@ -118,6 +127,18 @@ public class ParsedSchema
             if (type instanceof CompositeTypeDeclaration)
             {
                 op.apply((CompositeTypeDeclaration) type);
+            }
+        }
+    }
+
+    public void forAllMessages(Procedure1<BlockDeclaration> op)
+    {
+        for (ParsedBlock block : allParsedBlocks.values())
+        {
+            // messages are always top-level; groups are always in messages...
+            if (block.getContainerBlock() == null)
+            {
+                op.apply(block.getBlockDeclaration());
             }
         }
     }

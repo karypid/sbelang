@@ -37,7 +37,7 @@ class JavaDecodersGenerator {
 
     def generateCompositeDecoder(CompositeTypeDeclaration ctd) {
         val compositeName = ctd.name.toFirstUpper + 'Decoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ctd.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
         '''
             package  «parsedSchema.schemaName»;
             
@@ -87,7 +87,7 @@ class JavaDecodersGenerator {
                 if (member.primitiveType !== null) {
                     val ownerCompositeDecoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
                     val memberVarName = member.name.toFirstLower
-                    val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+                    val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                     val fieldOffset = fieldIndex.getOffset(member.name)
                     val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
@@ -103,7 +103,7 @@ class JavaDecodersGenerator {
                         SimpleTypeDeclaration: {
                             val ownerCompositeDecoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
                             val memberVarName = member.name.toFirstLower
-                            val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+                            val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                             val fieldOffset = fieldIndex.getOffset(member.name)
                             val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
@@ -206,7 +206,7 @@ class JavaDecodersGenerator {
 
     private def generateComposite_EnumMember_Decoder(CompositeTypeDeclaration ownerComposite,
         EnumDeclaration enumMember, String memberVarName) {
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
@@ -244,7 +244,7 @@ class JavaDecodersGenerator {
     private def generateComposite_SetMember_Decoder(CompositeTypeDeclaration ownerComposite,
         SetDeclaration setMember, String memberVarName) {
         val setDecoderClassName = setMember.name.toFirstUpper + 'Decoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(setMember.name)
 
         '''
@@ -274,7 +274,7 @@ class JavaDecodersGenerator {
         CompositeTypeDeclaration member, String memberVarName) {
 
         val memberDecoderClass = member.name.toFirstUpper + 'Decoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(memberVarName)
         val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
 

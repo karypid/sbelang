@@ -15,6 +15,7 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 
 /**
  * @author karypid
@@ -36,7 +37,7 @@ class JavaEncodersGenerator {
 
     def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
         val compositeName = ctd.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ctd.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
         '''
             package  «parsedSchema.schemaName»;
             
@@ -86,7 +87,7 @@ class JavaEncodersGenerator {
                 if (member.primitiveType !== null) {
                     val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
                     val memberVarName = member.name.toFirstLower
-                    val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+                    val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                     val fieldOffset = fieldIndex.getOffset(member.name)
                     val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
@@ -98,7 +99,7 @@ class JavaEncodersGenerator {
                         SimpleTypeDeclaration: {
                             val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
                             val memberVarName = member.name.toFirstLower
-                            val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+                            val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                             val fieldOffset = fieldIndex.getOffset(member.name)
                             val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
@@ -198,7 +199,7 @@ class JavaEncodersGenerator {
     private def generateComposite_EnumMember_Encoder(CompositeTypeDeclaration ownerComposite,
         EnumDeclaration enumMember, String memberVarName) {
         val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
@@ -230,7 +231,7 @@ class JavaEncodersGenerator {
     private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite, SetDeclaration setMember,
         String memberVarName) {
         val setEncoderClassName = setMember.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(setMember.name)
 
         '''
@@ -260,7 +261,7 @@ class JavaEncodersGenerator {
         CompositeTypeDeclaration member, String memberVarName) {
 
         val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
+        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(memberVarName)
         val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
 
@@ -372,6 +373,52 @@ class JavaEncodersGenerator {
         '''
     }
 
+    def generateMessageEncoder(BlockDeclaration block) {
+        val blockName = block.name.toFirstUpper + 'Encoder'
+        val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
+        '''
+            package  «parsedSchema.schemaName»;
+            
+            import org.agrona.MutableDirectBuffer;
+            
+            public class «blockName»
+            {
+                public static final int TEMPLATE_ID = «block.id»;
+                public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
+                
+                private int offset;
+                private MutableDirectBuffer buffer;
+                
+                public «blockName» wrap( final MutableDirectBuffer buffer, final int offset )
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+                    
+                    return this;
+                }
+                
+                public MutableDirectBuffer buffer()
+                {
+                    return buffer;
+                }
+                
+                public int offset()
+                {
+                    return offset;
+                }
+                
+                public int encodedLength()
+                {
+                    return ENCODED_LENGTH;
+                }
+                
+                «FOR field : block.fieldDeclarations»
+                    // TODO: generateComposite_CompositeMember_Encoder(ctd, cm)
+                «ENDFOR»
+            }
+        '''
+    }
+
     // java utils ----------------------------------------------------
     private def endianParam(String primitiveJavaType) {
         if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
@@ -381,5 +428,5 @@ class JavaEncodersGenerator {
     def filename(String filename) {
         packagePath.toString + File.separatorChar + filename
     }
-
+    
 }

@@ -24,11 +24,13 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             JavaGenerator.generateMessageSchema(parsedSchema)
         )
 
+        // enumerations each define a Java enum type (common for encoders and decoders)
         parsedSchema.forAllEnums [ ed |
             fsa.generateFile(encodersGenerator.filename(ed.name.toFirstUpper + ".java"),
                 JavaGenerator.generateEnumDefinition(parsedSchema, ed))
         ]
 
+        // sets generate encoders and decoders
         parsedSchema.forAllSets [ sd |
             fsa.generateFile(encodersGenerator.filename(sd.name.toFirstUpper + "Encoder.java"),
                 encodersGenerator.generateSetEncoder(sd))
@@ -38,6 +40,7 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
                 decodersGenerator.generateSetDecoder(sd))
         ]
 
+        // composites generate encoders and decoders
         parsedSchema.forAllComposites [ ctd |
             fsa.generateFile(encodersGenerator.filename(ctd.name.toFirstUpper + "Encoder.java"),
                 encodersGenerator.generateCompositeEncoder(ctd))
@@ -45,6 +48,19 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
         parsedSchema.forAllComposites [ ctd |
             fsa.generateFile(encodersGenerator.filename(ctd.name.toFirstUpper + "Decoder.java"),
                 decodersGenerator.generateCompositeDecoder(ctd))
+        ]
+
+        // messages generate encoders and decoders
+        parsedSchema.forAllMessages [ bd |
+            fsa.generateFile(
+                encodersGenerator.filename(bd.name.toFirstUpper + "Encoder.java"),
+                encodersGenerator.generateMessageEncoder(bd)
+            )
+        ]
+        parsedSchema.forAllMessages [ bd |
+            fsa.generateFile(encodersGenerator.filename(bd.name.toFirstUpper + "Decoder.java"), '''
+                // FIXME
+            ''')
         ]
     }
 }

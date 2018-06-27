@@ -7,12 +7,17 @@ package org.sbelang.dsl.generator.intermediate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.ICompositeNode;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration;
 import org.sbelang.dsl.sbeLangDsl.CompositeMember;
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration;
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration;
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration;
+import org.sbelang.dsl.sbeLangDsl.GroupDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration;
+import org.sbelang.dsl.sbeLangDsl.MessageDeclaration;
 import org.sbelang.dsl.sbeLangDsl.MessageSchema;
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier;
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration;
@@ -47,6 +52,8 @@ public class Parser
 
     private final Map<String, ParsedComposite> allParsedComposites;
 
+    private final Map<String, ParsedBlock> allParsedBlocks;
+
     private Parser(MessageSchema schema)
     {
         super();
@@ -60,6 +67,7 @@ public class Parser
 
         this.allRootNames = new LinkedHashMap<>();
         this.allParsedComposites = new LinkedHashMap<>();
+        this.allParsedBlocks = new LinkedHashMap<>();
 
         // we define simple types for all primitives
         for (String pt : SbeUtils.PRIMITIVE_TYPES)
@@ -114,7 +122,12 @@ public class Parser
             parseComposite(ctd, null);
         }
 
-        return new ParsedSchema(schema, allRootNames, allParsedComposites);
+        for (MessageDeclaration md : schema.getMessageDeclarations())
+        {
+            parseMessageOrGroupBlock(md.getBlock(), null);
+        }
+
+        return new ParsedSchema(schema, allRootNames, allParsedComposites, allParsedBlocks);
     }
 
     private void parseComposite(CompositeTypeDeclaration ctd, ParsedComposite container)
@@ -165,10 +178,13 @@ public class Parser
 
                 if (m.getPrimitiveType() != null)
                 {
-                    // length defaults to 1, but may be >1 for fixed-length arrays...
+                    // length defaults to 1, but may be >1 for fixed-length
+                    // arrays...
                     int length = m.getLength() == null ? 1 : m.getLength();
-                    // ...HOWEVER: there is the special case of presence being constant
-                    // in which case we use zero for length as the field does not occupy
+                    // ...HOWEVER: there is the special case of presence being
+                    // constant
+                    // in which case we use zero for length as the field does
+                    // not occupy
                     // space since it is not transferred on the wire
                     if (m.getPresence() instanceof PresenceConstantModifier) length = 0;
                     fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), length, m);
@@ -176,40 +192,7 @@ public class Parser
                 else
                 {
                     TypeDeclaration refTargetType = m.getType();
-                    if (refTargetType instanceof SimpleTypeDeclaration)
-                    {
-                        SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
-                        int stLength = st.getLength() == null ? 1 : st.getLength();
-                        fieldIndex.addPrimitiveField(m.getName(), st.getPrimitiveType(), stLength,
-                                        m);
-                    }
-                    else if (refTargetType instanceof EnumDeclaration)
-                    {
-                        EnumDeclaration ed = (EnumDeclaration) refTargetType;
-                        String encodingType = ed.getEncodingType();
-                        SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
-                        fieldIndex.addPrimitiveField(ed.getName(), st.getPrimitiveType(), 1, m);
-                    }
-                    else if (refTargetType instanceof SetDeclaration)
-                    {
-                        SetDeclaration sd = (SetDeclaration) refTargetType;
-                        String encodingType = sd.getEncodingType();
-                        SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
-                        fieldIndex.addPrimitiveField(sd.getName(), st.getPrimitiveType(), 1, m);
-                    }
-                    else if (refTargetType instanceof CompositeTypeDeclaration)
-                    {
-                        CompositeTypeDeclaration reftCtd = (CompositeTypeDeclaration) refTargetType;
-                        ParsedComposite refParsedComposite = allParsedComposites
-                                        .get(reftCtd.getName());
-                        if (refParsedComposite.getCompositeType() != reftCtd)
-                            throw new IllegalStateException("Composite index lookup mismatch");
-                        fieldIndex.addCompositeField(m.getName(), reftCtd,
-                                        refParsedComposite.getFieldIndex().getTotalOctetLength());
-                    }
-                    else throw new IllegalStateException("Don't know how to handle type: "
-                                    + refTargetType.getClass().getName());
-
+                    addToFieldIndex(m.getName(), m, fieldIndex, refTargetType);
                 }
             }
             else if (cm instanceof EnumDeclaration)
@@ -241,6 +224,72 @@ public class Parser
         }
 
         allParsedComposites.put(ctd.getName(), parsedComposite);
+    }
+
+    private void parseMessageOrGroupBlock(BlockDeclaration block, ParsedBlock container)
+                    throws DuplicateIdentifierException, AttributeErrorException
+    {
+        ParsedBlock parsedBlock = new ParsedBlock(block, container);
+
+        FieldIndex fieldIndex = parsedBlock.getFieldIndex();
+
+        for (FieldDeclaration field : block.getFieldDeclarations())
+        {
+            if (field.getPrimitiveType() != null)
+            {
+                // fields don't have length; primitives must be of length 1
+                fieldIndex.addPrimitiveField(field.getName(), field.getPrimitiveType(), 1, field);
+            }
+            else
+            {
+                TypeDeclaration refTargetType = field.getFieldType();
+                addToFieldIndex(field.getName(), field, fieldIndex, refTargetType);
+            }
+        }
+
+        for (GroupDeclaration group : block.getGroupDeclarations())
+        {
+            parseMessageOrGroupBlock(group.getBlock(), parsedBlock);
+        }
+
+        allParsedBlocks.put(block.getName(), parsedBlock);
+    }
+
+    private void addToFieldIndex(String entryName, EObject grammarElement, FieldIndex fieldIndex,
+                    TypeDeclaration refTargetType) throws DuplicateIdentifierException
+    {
+        if (refTargetType instanceof SimpleTypeDeclaration)
+        {
+            SimpleTypeDeclaration st = (SimpleTypeDeclaration) refTargetType;
+            int stLength = st.getLength() == null ? 1 : st.getLength();
+            fieldIndex.addPrimitiveField(entryName, st.getPrimitiveType(), stLength,
+                            grammarElement);
+        }
+        else if (refTargetType instanceof EnumDeclaration)
+        {
+            EnumDeclaration ed = (EnumDeclaration) refTargetType;
+            String encodingType = ed.getEncodingType();
+            SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
+            fieldIndex.addPrimitiveField(ed.getName(), st.getPrimitiveType(), 1, grammarElement);
+        }
+        else if (refTargetType instanceof SetDeclaration)
+        {
+            SetDeclaration sd = (SetDeclaration) refTargetType;
+            String encodingType = sd.getEncodingType();
+            SimpleTypeDeclaration st = rootSimpleTypes.get(encodingType);
+            fieldIndex.addPrimitiveField(sd.getName(), st.getPrimitiveType(), 1, grammarElement);
+        }
+        else if (refTargetType instanceof CompositeTypeDeclaration)
+        {
+            CompositeTypeDeclaration reftCtd = (CompositeTypeDeclaration) refTargetType;
+            ParsedComposite refParsedComposite = allParsedComposites.get(reftCtd.getName());
+            if (refParsedComposite.getCompositeType() != reftCtd)
+                throw new IllegalStateException("Composite index lookup mismatch");
+            fieldIndex.addCompositeField(entryName, reftCtd,
+                            refParsedComposite.getFieldIndex().getTotalOctetLength());
+        }
+        else throw new IllegalStateException(
+                        "Don't know how to handle type: " + refTargetType.getClass().getName());
     }
 
     private void checkRootUnique(TypeDeclaration td) throws DuplicateIdentifierException
