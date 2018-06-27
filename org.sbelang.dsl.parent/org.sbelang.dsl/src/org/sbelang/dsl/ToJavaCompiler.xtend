@@ -60,6 +60,7 @@ class ToJavaCompiler {
 
     def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
         val compositeName = ctd.name.toFirstUpper + 'Encoder'
+        val fieldIndex = parsedSchema.getFieldIndex(ctd.name)
         '''
             package  «parsedSchema.schemaName»;
             
@@ -67,7 +68,7 @@ class ToJavaCompiler {
             
             public class «compositeName»
             {
-                public static final int ENCODED_LENGTH = (-1 /* TODO */);
+                public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 
                 private int offset;
                 private MutableDirectBuffer buffer;
