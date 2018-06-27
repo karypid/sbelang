@@ -2,7 +2,8 @@ package org.sbelang.dsl.generator
 
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.ToJavaCompiler
+import org.sbelang.dsl.JavaDecodersGenerator
+import org.sbelang.dsl.JavaEncodersGenertor
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
@@ -13,25 +14,36 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     override void compile(ParsedSchema schema, IFileSystemAccess2 fsa, IGeneratorContext context) {
         if(!genJava) return;
 
-        val ToJavaCompiler compiler = new ToJavaCompiler(schema)
+        val JavaEncodersGenertor encodersGenerator = new JavaEncodersGenertor(schema)
+        val JavaDecodersGenerator decodersGenerator = new JavaDecodersGenerator(schema)
 
         // meta-data for overall message schema
         fsa.generateFile(
-            compiler.filename('MessageSchema.java'),
-            compiler.generateMessageSchema()
+            encodersGenerator.filename('MessageSchema.java'),
+            encodersGenerator.generateMessageSchema()
         )
 
         schema.forAllEnums [ ed |
-            fsa.generateFile(compiler.filename(ed.name.toFirstUpper + ".java"), compiler.generateEnumDefinition(ed))
+            fsa.generateFile(encodersGenerator.filename(ed.name.toFirstUpper + ".java"),
+                encodersGenerator.generateEnumDefinition(ed))
         ]
 
         schema.forAllSets [ sd |
-            fsa.generateFile(compiler.filename(sd.name.toFirstUpper + "Encoder.java"), compiler.generateSetDefinition(sd))
+            fsa.generateFile(encodersGenerator.filename(sd.name.toFirstUpper + "Encoder.java"),
+                encodersGenerator.generateSetEncoder(sd))
+        ]
+        schema.forAllSets [ sd |
+            fsa.generateFile(encodersGenerator.filename(sd.name.toFirstUpper + "Decoder.java"),
+                decodersGenerator.generateSetDecoder(sd))
         ]
 
         schema.forAllComposites [ ctd |
-            fsa.generateFile(compiler.filename(ctd.name.toFirstUpper + "Encoder.java"),
-                compiler.generateCompositeEncoder(ctd))
+            fsa.generateFile(encodersGenerator.filename(ctd.name.toFirstUpper + "Encoder.java"),
+                encodersGenerator.generateCompositeEncoder(ctd))
+        ]
+        schema.forAllComposites [ ctd |
+            fsa.generateFile(encodersGenerator.filename(ctd.name.toFirstUpper + "Decoder.java"),
+                decodersGenerator.generateCompositeDecoder(ctd))
         ]
     }
 }

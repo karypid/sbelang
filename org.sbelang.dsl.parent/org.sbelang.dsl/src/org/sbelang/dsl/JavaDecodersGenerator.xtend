@@ -5,25 +5,24 @@
 package org.sbelang.dsl
 
 import java.io.File
-import java.nio.ByteOrder
 import java.nio.file.Paths
 import org.eclipse.emf.common.util.EList
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
+import org.sbelang.dsl.generator.intermediate.SbeUtils
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.generator.intermediate.SbeUtils
-import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
+import org.sbelang.dsl.sbeLangDsl.SetDeclaration
+import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 
 /**
  * @author karypid
  * 
  */
-class ToJavaCompiler {
+class JavaDecodersGenerator {
     val ParsedSchema parsedSchema
     val String packagePath
 
@@ -39,43 +38,22 @@ class ToJavaCompiler {
         }
     }
 
-    def generateMessageSchema() {
-        val schemaByteOrderConstant = if(parsedSchema.schemaByteOrder ===
-                ByteOrder.BIG_ENDIAN) "BIG_ENDIAN" else "LITTLE_ENDIAN"
-        '''
-            package  «parsedSchema.schemaName»;
-            
-            import java.nio.ByteOrder;
-            
-            public class MessageSchema
-            {
-                
-                public static final int SCHEMA_ID = «parsedSchema.schemaId»;
-                
-                public static final int SCHEMA_VERSION = «parsedSchema.schemaVersion»;
-                
-                public static final ByteOrder BYTE_ORDER = ByteOrder.«schemaByteOrderConstant»;
-                
-            }
-        '''
-    }
-
-    def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
-        val compositeName = ctd.name.toFirstUpper + 'Encoder'
+    def generateCompositeDecoder(CompositeTypeDeclaration ctd) {
+        val compositeName = ctd.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getFieldIndex(ctd.name)
         '''
             package  «parsedSchema.schemaName»;
             
-            import org.agrona.MutableDirectBuffer;
+            import org.agrona.DirectBuffer;
             
             public class «compositeName»
             {
                 public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 
                 private int offset;
-                private MutableDirectBuffer buffer;
+                private DirectBuffer buffer;
                 
-                public «compositeName» wrap(final MutableDirectBuffer buffer, final int offset)
+                public «compositeName» wrap( final DirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -83,7 +61,7 @@ class ToJavaCompiler {
                     return this;
                 }
                 
-                public MutableDirectBuffer buffer()
+                public DirectBuffer buffer()
                 {
                     return buffer;
                 }
@@ -110,29 +88,29 @@ class ToJavaCompiler {
         switch member {
             MemberRefTypeDeclaration: {
                 if (member.primitiveType !== null) {
-                    val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+                    val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
                     val memberVarName = member.name.toFirstLower
                     val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
                     val fieldOffset = fieldIndex.getOffset(member.name)
                     val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
-                    generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
+                    generateComposite_PrimitiveMember_Decoder(ownerCompositeEncoderClass, memberVarName,
                         member.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                 } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
                         SimpleTypeDeclaration: {
-                            val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+                            val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
                             val memberVarName = member.name.toFirstLower
                             val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
                             val fieldOffset = fieldIndex.getOffset(member.name)
                             val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
-                            generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
+                            generateComposite_PrimitiveMember_Decoder(ownerCompositeEncoderClass, memberVarName,
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                         }
                         EnumDeclaration:
-                            generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateComposite_EnumMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
                         SetDeclaration:
                             generateComposite_SetMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
                         CompositeTypeDeclaration:
@@ -146,7 +124,7 @@ class ToJavaCompiler {
             CompositeTypeDeclaration:
                 generateComposite_CompositeMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             EnumDeclaration:
-                generateComposite_EnumMember_Encoder(ownerComposite, member, member.name.toFirstLower)
+                generateComposite_EnumMember_Decoder(ownerComposite, member, member.name.toFirstLower)
             SetDeclaration:
                 generateComposite_SetMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             default: {
@@ -155,14 +133,12 @@ class ToJavaCompiler {
         }
     }
 
-    private def generateComposite_PrimitiveMember_Encoder(String ownerCompositeEncoderClass, String memberVarName,
+    private def generateComposite_PrimitiveMember_Decoder(String ownerCompositeEncoderClass, String memberVarName,
         String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
         val memberValueParamType = primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = primitiveToJavaWireType(sbePrimitiveType)
-        val putSetter = 'put' + memberValueWireType.toFirstUpper
+        val getFetcher = 'get' + memberValueWireType.toFirstUpper
         val optionalEndian = endianParam(memberValueWireType)
-        val value = if (memberValueWireType ==
-                memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
 
         '''
@@ -178,10 +154,9 @@ class ToJavaCompiler {
             }
             
             «IF arrayLength <= 1»
-                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
+                public «memberValueParamType» «memberVarName»()
                 {
-                    buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
-                    return this;
+                    return buffer.«getFetcher»( offset + «fieldOffset» «optionalEndian»);
                 }
             «ELSE»
                 public static int «memberVarName»Length()
@@ -189,7 +164,7 @@ class ToJavaCompiler {
                     return «arrayLength»;
                 }
                 
-                public «ownerCompositeEncoderClass» «memberVarName»( final int index, final «memberValueParamType» value )
+                public «memberValueParamType» «memberVarName»( final int index )
                 {
                     if (index < 0 || index >= «arrayLength»)
                     {
@@ -197,22 +172,21 @@ class ToJavaCompiler {
                     }
                     
                     final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
-                    buffer.«putSetter»(pos, «value» «optionalEndian»);
-                    return this;
+                    return buffer.«getFetcher»(pos «optionalEndian»);
                 }
                 «IF sbePrimitiveType == 'char'»
                 
-                public «ownerCompositeEncoderClass» put«memberVarName.toFirstUpper»( final byte[] src, final int srcOffset )
+                public int get«memberVarName.toFirstUpper»( final byte[] dst, final int dstOffset )
                 {
                     final int length = «arrayLength»;
-                    if (srcOffset < 0 || srcOffset > (src.length - length))
+                    if (dstOffset < 0 || dstOffset > (dst.length - length))
                     {
-                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + dstOffset);
                     }
                     
-                    buffer.putBytes(this.offset + «fieldOffset», src, srcOffset, length);
+                    buffer.getBytes(this.offset + «fieldOffset», dst, dstOffset, length);
                     
-                    return this;
+                    return length;
                 }
                 «ENDIF»
             «ENDIF»
@@ -220,16 +194,22 @@ class ToJavaCompiler {
         '''
     }
 
-    private def generateComposite_EnumMember_Encoder(CompositeTypeDeclaration ownerComposite,
+    private def generateComposite_EnumMember_Decoder(CompositeTypeDeclaration ownerComposite,
         EnumDeclaration enumMember, String memberVarName) {
-        val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
-        val memberEnumEncodingJavaType = primitiveToJavaWireType(enumMember.encodingType)
-        val putSetter = 'put' + memberEnumEncodingJavaType.toFirstUpper
-        val optionalEndian = endianParam(memberEnumEncodingJavaType)
+        val memberEnumJavaWireType = primitiveToJavaWireType(enumMember.encodingType)
+        val memberEnumJavaDataType = primitiveToJavaDataType(enumMember.encodingType)
+        val getFetcher = 'get' + memberEnumJavaWireType.toFirstUpper
+        val optionalEndian = endianParam(memberEnumJavaWireType)
+        
+        val mask = enumAllBitsMask(enumMember.encodingType)
+        val maskStart = if (mask=='') '''''' else '''('''
+        val maskEnd = if (mask=='') '''''' else ''' & «mask»)'''
+
+        val cast = if (memberEnumJavaWireType !== memberEnumJavaDataType) '''(«memberEnumJavaDataType»)'''
 
         '''
             // «enumMember.name»
@@ -243,18 +223,17 @@ class ToJavaCompiler {
                 return «fieldIndex.getOctectLength(enumMember.name)»;
             }
             
-            public «ownerCompositeEncoderClass» «memberVarName»( final «memberEnumType» value )
+            public «memberEnumType» «memberVarName»()
             {
-                buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
-                return this;
+                return «memberEnumType».get( «cast» «maskStart»buffer.«getFetcher»( offset + «fieldOffset»«optionalEndian»)«maskEnd» );
             }
             
         '''
     }
-
+    
     private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite,
         SetDeclaration setMember, String memberVarName) {
-        val setEncoderClassName = setMember.name.toFirstUpper + 'Encoder'
+        val setEncoderClassName = setMember.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(setMember.name)
 
@@ -284,7 +263,7 @@ class ToJavaCompiler {
     private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
         CompositeTypeDeclaration member, String memberVarName) {
 
-        val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
+        val memberEncoderClass = member.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(memberVarName)
         val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
@@ -362,27 +341,24 @@ class ToJavaCompiler {
         '''
     }
 
-    def generateSetDefinition(SetDeclaration sd) {
+    def generateSetDecoder(SetDeclaration sd) {
         val setName = sd.name.toFirstUpper
-        val setEncoderName = setName + 'Encoder'
-        val setJavaType = primitiveToJavaWireType(sd.encodingType)
+        val setDecoderName = setName + 'Decoder'
         val setEncodingOctetLength = SbeUtils.getPrimitiveTypeOctetLength(sd.encodingType)
-        val optionalEndian = endianParam(setJavaType)
-        val putSetter = 'put' + setJavaType.toFirstUpper
         
         '''
             package  «parsedSchema.schemaName»;
             
-            import org.agrona.MutableDirectBuffer;
+            import org.agrona.DirectBuffer;
             
-            public class «setEncoderName»
+            public class «setDecoderName»
             {
                 public static final int ENCODED_LENGTH = «setEncodingOctetLength»;
                 
-                private MutableDirectBuffer buffer;
+                private DirectBuffer buffer;
                 private int offset;
                 
-                public «setEncoderName» wrap( final MutableDirectBuffer buffer, final int offset )
+                public «setDecoderName» wrap( final DirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -390,7 +366,7 @@ class ToJavaCompiler {
                     return this;
                 }
                 
-                public MutableDirectBuffer buffer()
+                public DirectBuffer buffer()
                 {
                     return buffer;
                 }
@@ -405,44 +381,32 @@ class ToJavaCompiler {
                     return ENCODED_LENGTH;
                 }
                 
-                public «setEncoderName» clear()
-                {
-                    buffer.«putSetter»( offset, («setJavaType») 0«optionalEndian» );
-                    return this;
-                }
-                
                 «FOR setChoice : sd.setChoices»
                     // choice: «setChoice.name»
-                    «generateSetChoiceDefinition(sd, setChoice)»
+                    «generateSetChoiceDecoder(sd, setChoice)»
                     
                 «ENDFOR»
             }
         '''
     }
     
-    private def generateSetChoiceDefinition(SetDeclaration sd, SetChoiceDeclaration setChoice) {
-        val setName = sd.name.toFirstUpper
-        val setEncoderName = setName + 'Encoder'
+    private def generateSetChoiceDecoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
         val setChoiceName = setChoice.name.toFirstLower
         val setJavaType = primitiveToJavaWireType(sd.encodingType)
-        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
-        val optionalEndian = endianParam(setJavaType)
         val getFetcher = 'get' + setJavaType.toFirstUpper
-        val putSetter = 'put' + setJavaType.toFirstUpper
+        val optionalEndian = endianParam(setJavaType)
+        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
         val bitPos = setChoice.value
         
         '''
-            public «setEncoderName» «setChoiceName»( final boolean value )
+            public boolean «setChoiceName»()
             {
-                «setJavaType» bits = buffer.«getFetcher»( offset«optionalEndian» );
-                bits = («setJavaType») ( value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
-                buffer.«putSetter»( offset, bits«optionalEndian» );
-                return this;
+                return 0 !=  ( buffer.«getFetcher»( offset«optionalEndian» ) & («constOne» << «bitPos») );
             }
             
-            public static «setJavaType» «setChoiceName»( final short bits, final boolean value )
+            public static boolean «setChoiceName»( final «setJavaType» value )
             {
-                return («setJavaType») (value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
+                return 0 !=  ( value & («constOne» << «bitPos») );
             }
         '''
     }
@@ -462,6 +426,15 @@ class ToJavaCompiler {
             case 'uint8': '255'
             case 'uint16': '65535'
             default: throw new IllegalStateException("Encoding not supported for enums: " + enumEncodingType)
+        }
+    }
+
+    private def enumAllBitsMask(String sbeEnumEncodingType) {
+        switch (sbeEnumEncodingType) {
+            case 'char' : ''
+            case 'uint8' : '0xFF'
+            case 'uint16' : '0xFFFF'
+            default: throw new IllegalStateException('Why would you need this? Enums should not be of type: ' + sbeEnumEncodingType)
         }
     }
 
