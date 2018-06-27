@@ -24,7 +24,8 @@ public class FieldIndex
 
     private ArrayList<String>  fieldNames;
     private ArrayList<Integer> fieldOffsets;
-    private ArrayList<Integer> fieldLengths;
+    private ArrayList<Integer> fieldElementLengths;
+    private ArrayList<Integer> fieldOctectLengths;
     private ArrayList<EObject> fieldGrammarElements;
 
     private Map<String, Integer> fieldIndexes;
@@ -38,7 +39,8 @@ public class FieldIndex
 
         fieldNames = new ArrayList<>();
         fieldOffsets = new ArrayList<>();
-        fieldLengths = new ArrayList<>();
+        fieldElementLengths = new ArrayList<>();
+        fieldOctectLengths = new ArrayList<>();
         fieldGrammarElements = new ArrayList<>();
 
         fieldIndexes = new HashMap<>();
@@ -55,7 +57,7 @@ public class FieldIndex
         int offset = totalLength;
         int octetLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType) * length;
 
-        int idx = addField(name, offset, octetLength, grammarElement);
+        int idx = addField(name, offset, length, octetLength, grammarElement);
         totalLength += octetLength;
 
         return idx;
@@ -66,17 +68,18 @@ public class FieldIndex
     {
         int offset = totalLength;
 
-        int idx = addField(name, offset, length, grammarElement);
+        int idx = addField(name, offset, 1, length, grammarElement);
         totalLength += length;
 
         return idx;
     }
 
-    private int addField(String name, int offset, int octetLength, EObject grammarElement)
-                    throws DuplicateIdentifierException
+    private int addField(String name, int offset, int elementsLength, int octetsLength,
+                    EObject grammarElement) throws DuplicateIdentifierException
     {
-        System.out.format("        Adding %s to %s at offset %d with octet length %d%n", name,
-                        container.getContainerName(), offset, octetLength);
+        System.out.format(
+                        "        Adding %s to %s at offset %d with element length %d and octets length %d%n",
+                        name, container.getContainerName(), offset, elementsLength, octetsLength);
 
         String indexName = caseSensitive ? name : name.toUpperCase();
         int idx = fieldNames.size(); // the next entry in arraylist group...
@@ -94,7 +97,8 @@ public class FieldIndex
 
         fieldNames.add(name);
         fieldOffsets.add(offset);
-        fieldLengths.add(octetLength);
+        fieldElementLengths.add(elementsLength);
+        fieldOctectLengths.add(octetsLength);
         fieldGrammarElements.add(grammarElement);
 
         return idx;
@@ -109,13 +113,13 @@ public class FieldIndex
         return fieldOffsets.get(idx);
     }
 
-    public int getLength(String fieldName)
+    public int getOctectLength(String fieldName)
     {
         Integer idx = getIndex(fieldName);
         if (idx == null) return -1;
         // throw new NullPointerException("Could not find field by name: " +
         // fieldName);
-        return fieldLengths.get(idx);
+        return fieldOctectLengths.get(idx);
     }
 
     private Integer getIndex(String fieldName)

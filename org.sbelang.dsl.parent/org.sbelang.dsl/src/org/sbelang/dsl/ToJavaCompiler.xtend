@@ -108,26 +108,24 @@ class ToJavaCompiler {
                 if (member.primitiveType !== null) {
                     val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
                     val memberVarName = member.name.toFirstLower
-                    val memberValueParamType = primitiveToJavaDataType(member.primitiveType)
-                    val memberValueWireType = primitiveToJavaWireType(member.primitiveType)
                     val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
                     val fieldOffset = fieldIndex.getOffset(member.name)
-                    val fieldOctetLength = fieldIndex.getLength(member.name)
+                    val fieldOctetLength = fieldIndex.getOctectLength(member.name)
+                    val arrayLength = if(member.length === null) 1 else member.length
                     generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
-                        memberValueParamType, memberValueWireType, fieldOffset, fieldOctetLength)
+                        member.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                 } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
                         SimpleTypeDeclaration: {
                             val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
                             val memberVarName = member.name.toFirstLower
-                            val memberValueParamType = primitiveToJavaDataType(memberType.primitiveType)
-                            val memberValueWireType = primitiveToJavaWireType(memberType.primitiveType)
                             val fieldIndex = parsedSchema.getFieldIndex(ownerComposite.name)
                             val fieldOffset = fieldIndex.getOffset(member.name)
-                            val fieldOctetLength = fieldIndex.getLength(member.name)
+                            val fieldOctetLength = fieldIndex.getOctectLength(member.name)
+                            val arrayLength = if(memberType.length === null) 1 else memberType.length
                             generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
-                                memberValueParamType, memberValueWireType, fieldOffset, fieldOctetLength)
+                                memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                         }
                         EnumDeclaration:
                             generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name)
@@ -148,7 +146,9 @@ class ToJavaCompiler {
     }
 
     private def generateComposite_PrimitiveMember_Encoder(String ownerCompositeEncoderClass, String memberVarName,
-        String memberValueParamType, String memberValueWireType, int fieldOffset, int fieldOctetLength) {
+        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
+        val memberValueParamType = primitiveToJavaDataType(sbePrimitiveType)
+        val memberValueWireType = primitiveToJavaWireType(sbePrimitiveType)
         val putSetter = 'put' + memberValueWireType.toFirstUpper
         val optionalEndian = endianParam(memberValueWireType)
         val value = if (memberValueWireType ==
@@ -166,11 +166,45 @@ class ToJavaCompiler {
                 return «fieldOctetLength»;
             }
             
-            public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
-            {
-                buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
-                return this;
-            }
+            «IF arrayLength <= 1»
+                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
+                {
+                    buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
+                    return this;
+                }
+            «ELSE»
+                public static int «memberVarName»Length()
+                {
+                    return «arrayLength»;
+                }
+                
+                public «ownerCompositeEncoderClass» «memberVarName»( final int index, final «memberValueParamType» value )
+                {
+                    if (index < 0 || index >= «arrayLength»)
+                    {
+                        throw new IndexOutOfBoundsException("index out of range: index=" + index);
+                    }
+                    
+                    final int pos = this.offset + «fieldOffset» + (index * 2);
+                    buffer.«putSetter»(pos, «value» «optionalEndian»);
+                    return this;
+                }
+                «IF sbePrimitiveType == 'char'»
+                
+                public «ownerCompositeEncoderClass» put«memberVarName.toFirstUpper»( final byte[] src, final int srcOffset )
+                {
+                    final int length = «arrayLength»;
+                    if (srcOffset < 0 || srcOffset > (src.length - length))
+                    {
+                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                    }
+                    
+                    buffer.putBytes(this.offset + «fieldOffset», src, srcOffset, length);
+                    
+                    return this;
+                }
+                «ENDIF»
+            «ENDIF»
             
         '''
     }
@@ -195,7 +229,7 @@ class ToJavaCompiler {
             
             public static int «memberVarName»EncodingLength()
             {
-                return «fieldIndex.getLength(enumMember.name)»;
+                return «fieldIndex.getOctectLength(enumMember.name)»;
             }
             
             public «ownerCompositeEncoderClass» «memberVarName»( final «memberEnumType» value )
@@ -224,7 +258,7 @@ class ToJavaCompiler {
             
             public static int «memberVarName»EncodingLength()
             {
-                return «fieldIndex.getLength(member.name)»;
+                return «fieldIndex.getOctectLength(member.name)»;
             }
             
             private «memberEncoderClass» «memberVarName» = new «memberEncoderClass»();
