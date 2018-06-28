@@ -171,12 +171,12 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             field.range,
             field.presence,
             field.primitiveType,
-            field.fieldType,
+            field.type,
             SbeLangDslPackage.Literals.FIELD_DECLARATION__RANGE
         )
         validatePresenceModifiers(
             field.presence,
-            field.fieldType,
+            field.type,
             field.primitiveType,
             SbeLangDslPackage.Literals.FIELD_DECLARATION__PRESENCE
         )

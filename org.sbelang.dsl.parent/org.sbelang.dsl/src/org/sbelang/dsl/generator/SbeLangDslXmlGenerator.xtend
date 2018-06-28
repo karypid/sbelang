@@ -214,7 +214,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     }
 
     def compile(FieldDeclaration field) {
-        val fieldType = if(field.primitiveType === null) field.fieldType.name else field.primitiveType
+        val fieldType = if(field.primitiveType === null) field.type.name else field.primitiveType
         '''
             <field name="«field.name»" id="«field.id»" type="«fieldType»"«presenceAttrs(field.presence)»«versionAttrs(field.versionModifiers)»«closeTag("field", field.presence)»
         '''

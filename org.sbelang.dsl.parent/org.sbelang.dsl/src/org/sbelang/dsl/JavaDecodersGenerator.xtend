@@ -326,7 +326,7 @@ class JavaDecodersGenerator {
             )
         }
 
-        val type = field.fieldType
+        val type = field.type
 
         switch type {
             SimpleTypeDeclaration: {

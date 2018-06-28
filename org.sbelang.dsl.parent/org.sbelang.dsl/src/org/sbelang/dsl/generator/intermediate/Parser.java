@@ -242,7 +242,7 @@ public class Parser
             }
             else
             {
-                TypeDeclaration refTargetType = field.getFieldType();
+                TypeDeclaration refTargetType = field.getType();
                 addToFieldIndex(field.getName(), field, fieldIndex, refTargetType);
             }
         }
