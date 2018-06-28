@@ -38,6 +38,94 @@ class JavaEncodersGenerator {
     }
 
     // -----------------------------------------------------------------------------
+    // Code for generating set encoders
+    // -----------------------------------------------------------------------------
+    def generateSetEncoder(SetDeclaration sd) {
+        val setName = sd.name.toFirstUpper
+        val setEncoderName = setName + 'Encoder'
+        val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
+        val setEncodingOctetLength = SbeUtils.getPrimitiveTypeOctetLength(sd.encodingType)
+        val optionalEndian = endianParam(setJavaType)
+        val putSetter = 'put' + setJavaType.toFirstUpper
+
+        '''
+            package  «parsedSchema.schemaName»;
+            
+            import org.agrona.MutableDirectBuffer;
+            
+            public class «setEncoderName»
+            {
+                public static final int ENCODED_LENGTH = «setEncodingOctetLength»;
+                
+                private MutableDirectBuffer buffer;
+                private int offset;
+                
+                public «setEncoderName» wrap( final MutableDirectBuffer buffer, final int offset )
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+                
+                    return this;
+                }
+                
+                public MutableDirectBuffer buffer()
+                {
+                    return buffer;
+                }
+                
+                public int offset()
+                {
+                    return offset;
+                }
+                
+                public int encodedLength()
+                {
+                    return ENCODED_LENGTH;
+                }
+                
+                public «setEncoderName» clear()
+                {
+                    buffer.«putSetter»( offset, («setJavaType») 0«optionalEndian» );
+                    return this;
+                }
+                
+                «FOR setChoice : sd.setChoices»
+                    // choice: «setChoice.name»
+                    «generateSetChoiceEncoder(sd, setChoice)»
+                    
+                «ENDFOR»
+            }
+        '''
+    }
+
+    private def generateSetChoiceEncoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
+        val setName = sd.name.toFirstUpper
+        val setEncoderName = setName + 'Encoder'
+        val setChoiceName = setChoice.name.toFirstLower
+        val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
+        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
+        val optionalEndian = endianParam(setJavaType)
+        val getFetcher = 'get' + setJavaType.toFirstUpper
+        val putSetter = 'put' + setJavaType.toFirstUpper
+        val bitPos = setChoice.value
+
+        '''
+            public «setEncoderName» «setChoiceName»( final boolean value )
+            {
+                «setJavaType» bits = buffer.«getFetcher»( offset«optionalEndian» );
+                bits = («setJavaType») ( value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
+                buffer.«putSetter»( offset, bits«optionalEndian» );
+                return this;
+            }
+            
+            public static «setJavaType» «setChoiceName»( final short bits, final boolean value )
+            {
+                return («setJavaType») (value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
+            }
+        '''
+    }
+
+    // -----------------------------------------------------------------------------
     // Code for generating composite encoders
     // -----------------------------------------------------------------------------
     def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
@@ -151,94 +239,6 @@ class JavaEncodersGenerator {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
-    }
-
-    // -----------------------------------------------------------------------------
-    // Code for generating set encoders
-    // -----------------------------------------------------------------------------
-    def generateSetEncoder(SetDeclaration sd) {
-        val setName = sd.name.toFirstUpper
-        val setEncoderName = setName + 'Encoder'
-        val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
-        val setEncodingOctetLength = SbeUtils.getPrimitiveTypeOctetLength(sd.encodingType)
-        val optionalEndian = endianParam(setJavaType)
-        val putSetter = 'put' + setJavaType.toFirstUpper
-
-        '''
-            package  «parsedSchema.schemaName»;
-            
-            import org.agrona.MutableDirectBuffer;
-            
-            public class «setEncoderName»
-            {
-                public static final int ENCODED_LENGTH = «setEncodingOctetLength»;
-                
-                private MutableDirectBuffer buffer;
-                private int offset;
-                
-                public «setEncoderName» wrap( final MutableDirectBuffer buffer, final int offset )
-                {
-                    this.buffer = buffer;
-                    this.offset = offset;
-                
-                    return this;
-                }
-                
-                public MutableDirectBuffer buffer()
-                {
-                    return buffer;
-                }
-                
-                public int offset()
-                {
-                    return offset;
-                }
-                
-                public int encodedLength()
-                {
-                    return ENCODED_LENGTH;
-                }
-                
-                public «setEncoderName» clear()
-                {
-                    buffer.«putSetter»( offset, («setJavaType») 0«optionalEndian» );
-                    return this;
-                }
-                
-                «FOR setChoice : sd.setChoices»
-                    // choice: «setChoice.name»
-                    «generateSetChoiceEncoder(sd, setChoice)»
-                    
-                «ENDFOR»
-            }
-        '''
-    }
-
-    private def generateSetChoiceEncoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
-        val setName = sd.name.toFirstUpper
-        val setEncoderName = setName + 'Encoder'
-        val setChoiceName = setChoice.name.toFirstLower
-        val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
-        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
-        val optionalEndian = endianParam(setJavaType)
-        val getFetcher = 'get' + setJavaType.toFirstUpper
-        val putSetter = 'put' + setJavaType.toFirstUpper
-        val bitPos = setChoice.value
-
-        '''
-            public «setEncoderName» «setChoiceName»( final boolean value )
-            {
-                «setJavaType» bits = buffer.«getFetcher»( offset«optionalEndian» );
-                bits = («setJavaType») ( value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
-                buffer.«putSetter»( offset, bits«optionalEndian» );
-                return this;
-            }
-            
-            public static «setJavaType» «setChoiceName»( final short bits, final boolean value )
-            {
-                return («setJavaType») (value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
-            }
-        '''
     }
 
     // -----------------------------------------------------------------------------
