@@ -1,4 +1,4 @@
-schema org.sbelang.examples.v2.ExampleSchema 
+schema org.sbelang.examples.v2.AllFeatures 
     id = 1 version = 100
 //  headerType = a.b.c.D
 //  bigEndian
@@ -403,10 +403,6 @@ types
     composite CompSimpleTypes
     {
         stRequiredChar : t_char // just use it as a required field
-        // TODO: these don't make it into the XML
-        stOptionalChar : t_char optional // make it optional with default null value
-        stOptionalCharWithPlusMeaningAbset : t_char nullValue = '+' // optional with custom null
-        stConstantChar : t_char constant = 'X' // constant char
         // -----------------------------------------------------------------------------------------
         // TODO: Specify range ; currently not accepted here
         stUpperCaseChar : t_char // range=['A','Z'] // just use it as a required field
@@ -414,7 +410,7 @@ types
 
     composite TestReferencesComposite
     {
-        ref_st_uint16 : t_uint16 nullValue = 0
+        ref_st_uint16 : t_uint16
         ref_st_doubleArray : t_doubleArray
         ref_enum : E_Uint16
         ref_set : S_uint32
@@ -450,7 +446,7 @@ types
         cInt64Array : int64[2] range=[1,10]
         cUInt8Array : uint8[16]
         cUInt16Array : uint16[8] optional
-        cUInt32Array : uint32[4] nullValue=-42
+        cUInt32Array : uint32[4] nullValue=42
         cUInt64Array : uint64[2]
 
         enum ce_Uint16 : uint16
@@ -488,9 +484,9 @@ types
 
 message MsgEnumerations id=1
 {
-    f_e_Char : E_Char @ 1 optional
-    f_e_Char_nvd : E_Char_nvd @ 2 optional
-    f_e_Char_nvo : E_Char_nvo @ 3 optional
+    f_e_Char : E_Char @ 1 // FIXME: optional
+    f_e_Char_nvd : E_Char_nvd @ 2 // FIXME: optional
+    f_e_Char_nvo : E_Char_nvo @ 3 // FIXME: optional
     f_e_Uint8 : E_Uint8 @ 4
     f_e_Uint8_nvd : E_Uint8_nvd @ 5
     f_e_Uint8_nvo : E_Uint8_nvo @ 6

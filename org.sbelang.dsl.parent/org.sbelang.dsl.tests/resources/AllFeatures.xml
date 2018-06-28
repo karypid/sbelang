@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:schemaLocation="http://fixprotocol.io/2016/sbe/sbe.xsd"
     
-    package="org.sbelang.examples.v2.ExampleSchema"
+    package="org.sbelang.examples.v2.AllFeatures"
     id="1" version="100">
     
     <types>
@@ -236,20 +236,17 @@
             <type name="primUint16" primitiveType="uint16"/>
             <type name="primUint32" primitiveType="uint32"/>
             <type name="primUint64" primitiveType="uint64"/>
-            <type name="lowerCaseChar" primitiveType="char" minValue="a" maxValue="z" presence="optional"/>
-            <type name="month" primitiveType="int8" minValue="1" maxValue="12" presence="optional"/>
-            <type name="yeadAD" primitiveType="uint16" minValue="0" maxValue="64999" presence="optional"/>
+            <type name="lowerCaseChar" primitiveType="char" minValue="a" maxValue="z" presence="optional" nullValue=" "/>
+            <type name="month" primitiveType="int8" minValue="1" maxValue="12" presence="optional" nullValue="-1"/>
+            <type name="yeadAD" primitiveType="uint16" minValue="0" maxValue="64999" presence="optional" nullValue="65000"/>
             <type name="optionalChar" primitiveType="char" presence="optional"/>
-            <type name="optionalCharWithSpaceForNull" primitiveType="char" presence="optional"/>
+            <type name="optionalCharWithSpaceForNull" primitiveType="char" presence="optional" nullValue=" "/>
             <type name="marksTheSpotChar" primitiveType="char" presence="constant">X</type>
             <type name="zero" primitiveType="int8" presence="constant">0</type>
             <type name="requiredChar" primitiveType="char" minValue="A" maxValue="Z"/>
         </composite>
         <composite name="CompSimpleTypes">
             <ref name="stRequiredChar" type="t_char" />
-            <ref name="stOptionalChar" type="t_char" />
-            <ref name="stOptionalCharWithPlusMeaningAbset" type="t_char" />
-            <ref name="stConstantChar" type="t_char" />
             <ref name="stUpperCaseChar" type="t_char" />
         </composite>
         <composite name="TestReferencesComposite">
@@ -283,7 +280,7 @@
             <type name="cInt64Array" primitiveType="int64" length="2" minValue="1" maxValue="10"/>
             <type name="cUInt8Array" primitiveType="uint8" length="16"/>
             <type name="cUInt16Array" primitiveType="uint16" length="8" presence="optional"/>
-            <type name="cUInt32Array" primitiveType="uint32" length="4" presence="optional"/>
+            <type name="cUInt32Array" primitiveType="uint32" length="4" presence="optional" nullValue="42"/>
             <type name="cUInt64Array" primitiveType="uint64" length="2"/>
             <enum name="ce_Uint16" encodingType="uint16">
                 <validValue name="NESTED_NO">0</validValue>
@@ -295,15 +292,15 @@
                     <type name="nestedNestedInt8" primitiveType="int8"/>
                 </composite>
             </composite>
-            <type name="cCharMinMax" primitiveType="char" minValue="a" maxValue="d" presence="optional"/>
+            <type name="cCharMinMax" primitiveType="char" minValue="a" maxValue="d" presence="optional" nullValue="a"/>
             <type name="cInt8Min" primitiveType="int8" minValue="-128" maxValue="127"/>
             <type name="cUInt8Min" primitiveType="uint8" minValue="0" maxValue="127"/>
             <type name="cInt32Min" primitiveType="int8" minValue="-1"/>
             <type name="cInt32Max" primitiveType="int32" maxValue="100"/>
             <type name="cInt32MinMax" primitiveType="int32" minValue="11" maxValue="99"/>
             <type name="cInt32MinOpt" primitiveType="int32" minValue="1" presence="optional"/>
-            <type name="cInt32MaxOpt" primitiveType="int32" maxValue="100" presence="optional"/>
-            <type name="cInt32MinMaxOpt" primitiveType="int32" minValue="-111" maxValue="-9" presence="optional"/>
+            <type name="cInt32MaxOpt" primitiveType="int32" maxValue="100" presence="optional" nullValue="0"/>
+            <type name="cInt32MinMaxOpt" primitiveType="int32" minValue="-111" maxValue="-9" presence="optional" nullValue="-1"/>
             <type name="cInt32MinConst" primitiveType="int32" presence="constant">2</type>
             <composite name="TestCompositeSecondNested">
                 <type name="nestedInt8" primitiveType="int8"/>
@@ -312,9 +309,9 @@
     </types>
     
     <message name="MsgEnumerations" id="1">
-        <field name="f_e_Char" id="1" type="E_Char" presence="optional"/>
-        <field name="f_e_Char_nvd" id="2" type="E_Char_nvd" presence="optional"/>
-        <field name="f_e_Char_nvo" id="3" type="E_Char_nvo" presence="optional"/>
+        <field name="f_e_Char" id="1" type="E_Char"/>
+        <field name="f_e_Char_nvd" id="2" type="E_Char_nvd"/>
+        <field name="f_e_Char_nvo" id="3" type="E_Char_nvo"/>
         <field name="f_e_Uint8" id="4" type="E_Uint8"/>
         <field name="f_e_Uint8_nvd" id="5" type="E_Uint8_nvd"/>
         <field name="f_e_Uint8_nvo" id="6" type="E_Uint8_nvo"/>

@@ -43,7 +43,7 @@ class SbeLangDslGenerateTest {
         g.afterGenerate(sbeLangFileResource, fsa, ctx)
 
         val CharSequence xmlOutput = fsa.textFiles.get(IFileSystemAccess.DEFAULT_OUTPUT +
-            "org.sbelang.examples.v2.ExampleSchema.xml");
+            "org.sbelang.examples.v2.AllFeatures.xml");
         Assert.assertNotNull(xmlOutput)
 
         val String expectedXmlOutput = new String(
@@ -71,6 +71,7 @@ class SbeLangDslGenerateTest {
         g.doGenerate(resource, fsa, ctx)
         g.afterGenerate(resource, fsa, ctx)
 
+        System.out.println(fsa.textFiles.keySet)
         Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('MessageSchema')))
         Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('DATAEncoder')))
     }
@@ -79,6 +80,6 @@ class SbeLangDslGenerateTest {
         IFileSystemAccess.DEFAULT_OUTPUT + EXPECTED_PACKAGE_PATH + className + '.java';
     }
 
-    static val EXPECTED_PACKAGE_PATH = "org/sbelang/examples/v2/ExampleSchema/".replace('/', File.separatorChar)
+    static val EXPECTED_PACKAGE_PATH = "org/sbelang/examples/v2/AllFeatures/".replace('/', File.separatorChar)
 
 }
