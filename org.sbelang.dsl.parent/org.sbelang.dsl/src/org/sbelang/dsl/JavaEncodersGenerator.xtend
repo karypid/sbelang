@@ -92,7 +92,7 @@ class JavaEncodersGenerator {
                     val fieldOffset = fieldIndex.getOffset(member.name)
                     val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
-                    generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
+                    generatePrimitiveEncoder(ownerCompositeEncoderClass, memberVarName,
                         member.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                 } else if (member.type !== null) {
                     val memberType = member.type
@@ -104,7 +104,7 @@ class JavaEncodersGenerator {
                             val fieldOffset = fieldIndex.getOffset(member.name)
                             val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
-                            generateComposite_PrimitiveMember_Encoder(ownerCompositeEncoderClass, memberVarName,
+                            generatePrimitiveEncoder(ownerCompositeEncoderClass, memberVarName,
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                         }
                         EnumDeclaration:
@@ -130,71 +130,6 @@ class JavaEncodersGenerator {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
-    }
-
-    private def generateComposite_PrimitiveMember_Encoder(String ownerCompositeEncoderClass, String memberVarName,
-        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
-        val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
-        val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
-        val putSetter = 'put' + memberValueWireType.toFirstUpper
-        val optionalEndian = endianParam(memberValueWireType)
-        val value = if (memberValueWireType ==
-                memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
-        val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
-
-        '''
-            // «memberVarName»
-            public static int «memberVarName»EncodingOffset()
-            {
-                return «fieldOffset»;
-            }
-            
-            public static int «memberVarName»EncodingLength()
-            {
-                return «fieldOctetLength»;
-            }
-            
-            «IF arrayLength <= 1»
-                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
-                {
-                    buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
-                    return this;
-                }
-            «ELSE»
-                public static int «memberVarName»Length()
-                {
-                    return «arrayLength»;
-                }
-                
-                public «ownerCompositeEncoderClass» «memberVarName»( final int index, final «memberValueParamType» value )
-                {
-                    if (index < 0 || index >= «arrayLength»)
-                    {
-                        throw new IndexOutOfBoundsException("index out of range: index=" + index);
-                    }
-                    
-                    final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
-                    buffer.«putSetter»(pos, «value» «optionalEndian»);
-                    return this;
-                }
-                «IF sbePrimitiveType == 'char'»
-                    
-                    public «ownerCompositeEncoderClass» put«memberVarName.toFirstUpper»( final byte[] src, final int srcOffset )
-                    {
-                        final int length = «arrayLength»;
-                        if (srcOffset < 0 || srcOffset > (src.length - length))
-                        {
-                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
-                        }
-                        
-                        buffer.putBytes(this.offset + «fieldOffset», src, srcOffset, length);
-                        
-                        return this;
-                    }
-                «ENDIF»
-            «ENDIF»
-            
-        '''
     }
 
     private def generateComposite_EnumMember_Encoder(CompositeTypeDeclaration ownerComposite,
@@ -385,7 +320,7 @@ class JavaEncodersGenerator {
             public class «blockName»
             {
                 public static final int TEMPLATE_ID = «block.id»;
-                public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
+                public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
                 
                 private MutableDirectBuffer buffer;
                 private int offset;
@@ -393,7 +328,7 @@ class JavaEncodersGenerator {
                 
                 public int sbeBlockLength()
                 {
-                    return ENCODED_LENGTH;
+                    return BLOCK_LENGTH;
                 }
                 
                 public int sbeTemplateId()
@@ -445,26 +380,110 @@ class JavaEncodersGenerator {
                 }
                 
                 «FOR field : block.fieldDeclarations»
-                    «generateBlockField(block, field)»
+                    «generateEncoderForPrimitiveType(block, field)»
                 «ENDFOR»
             }
         '''
     }
 
-    def generateBlockField(BlockDeclaration block, FieldDeclaration field) {
+    def generateEncoderForPrimitiveType(BlockDeclaration block, FieldDeclaration field) {
+        val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
+        
         if (field.primitiveType !== null) {
-            return '''// TODO: pimitive type -  «field.name» : «field.primitiveType»'''
+            return generatePrimitiveEncoder(
+                block.name.toFirstUpper + "Encoder",
+                field.name,
+                field.primitiveType,
+                fieldIndex.getOffset(field.name),
+                fieldIndex.getOctectLength(field.name),
+                /* Fixed array length of ONE because fields can't have length */ 1
+            )
         }
 
         val type = field.fieldType
 
         switch type {
-            SimpleTypeDeclaration: '''// TODO: simple type -  «field.name» : «type.name»'''
+            SimpleTypeDeclaration: {
+                val arrayLength = if (type.length === null) 1 else type.length
+                generatePrimitiveEncoder(
+                    block.name.toFirstUpper + "Encoder",
+                    field.name,
+                    type.primitiveType,
+                    fieldIndex.getOffset(field.name),
+                    fieldIndex.getOctectLength(field.name),
+                    arrayLength
+                )
+            }
             EnumDeclaration: '''// TODO: enum -  «field.name» : «type.name»'''
             SetDeclaration: '''// TODO: set -  «field.name» : «type.name»'''
             CompositeTypeDeclaration: '''// TODO: composite -  «field.name» : «type.name»'''
             default: '''// TODO: ???? - «field.name» : «type.name»'''
         }
+    }
+
+    private def generatePrimitiveEncoder(String ownerCompositeEncoderClass, String memberVarName,
+        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
+        val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
+        val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
+        val putSetter = 'put' + memberValueWireType.toFirstUpper
+        val optionalEndian = endianParam(memberValueWireType)
+        val value = if (memberValueWireType ==
+                memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
+        val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
+
+        '''
+            // «memberVarName»
+            public static int «memberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «memberVarName»EncodingLength()
+            {
+                return «fieldOctetLength»;
+            }
+            
+            «IF arrayLength <= 1»
+                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
+                {
+                    buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
+                    return this;
+                }
+            «ELSE»
+                public static int «memberVarName»Length()
+                {
+                    return «arrayLength»;
+                }
+                
+                public «ownerCompositeEncoderClass» «memberVarName»( final int index, final «memberValueParamType» value )
+                {
+                    if (index < 0 || index >= «arrayLength»)
+                    {
+                        throw new IndexOutOfBoundsException("index out of range: index=" + index);
+                    }
+                    
+                    final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
+                    buffer.«putSetter»(pos, «value» «optionalEndian»);
+                    return this;
+                }
+                «IF sbePrimitiveType == 'char'»
+                    
+                    public «ownerCompositeEncoderClass» put«memberVarName.toFirstUpper»( final byte[] src, final int srcOffset )
+                    {
+                        final int length = «arrayLength»;
+                        if (srcOffset < 0 || srcOffset > (src.length - length))
+                        {
+                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                        }
+                        
+                        buffer.putBytes(this.offset + «fieldOffset», src, srcOffset, length);
+                        
+                        return this;
+                    }
+                «ENDIF»
+            «ENDIF»
+            
+        '''
     }
 
 // java utils ----------------------------------------------------

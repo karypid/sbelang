@@ -33,7 +33,7 @@ class JavaGenerator {
             case 'uint64': 'long'
             case 'float': 'float'
             case 'double': 'double'
-            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
+            default: throw new IllegalArgumentException('No java WIRE type mapping for SBE primitive: ' + sbePrimitive)
         }
     }
 
@@ -58,7 +58,7 @@ class JavaGenerator {
             case 'uint64': 'long'
             case 'float': 'float'
             case 'double': 'double'
-            default: throw new IllegalArgumentException('No enum mapping for: ' + sbePrimitive)
+            default: throw new IllegalArgumentException('No java type mapping for SBE primitive: ' + sbePrimitive)
         }
     }
 
