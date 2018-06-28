@@ -195,25 +195,25 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkRangeIsProper(MemberRefTypeDeclaration mptd) {
-        validateRangeModifiers(mptd.rangeModifiers, mptd.presence, mptd.primitiveType, mptd.type,
-            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS)
+        validateRangeModifiers(mptd.range, mptd.presence, mptd.primitiveType, mptd.type,
+            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE)
     }
 
     @Check
     def checkField(FieldDeclaration field) {
         validateRangeModifiers(
-            field.rangeModifiers,
+            field.range,
             field.presence,
             field.primitiveType,
             field.fieldType,
-            SbeLangDslPackage.Literals.FIELD_DECLARATION__RANGE_MODIFIERS
+            SbeLangDslPackage.Literals.FIELD_DECLARATION__RANGE
         )
     }
 
-    private def validateRangeModifiers(RangeModifiers rangeModifiers, PresenceModifiers presence, String primitiveType,
+    private def validateRangeModifiers(RangeModifiers range, PresenceModifiers presence, String primitiveType,
         TypeDeclaration type, EReference errorMarkerTarget) {
         // basic checks for existence or constant presence
-        if(rangeModifiers === null) return; // no range can't be wrong
+        if(range === null) return; // no range can't be wrong
         if (presence !== null) { // if constant, range does not make sense...
             if (presence instanceof PresenceConstantModifier)
                 error(
@@ -223,26 +223,26 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
         }
 
         // check their relative value; min cannot exceed max regardless of anything else
-        if ((rangeModifiers.min !== null) && (rangeModifiers.max !== null)) {
+        if ((range.min !== null) && (range.max !== null)) {
             switch (primitiveType) {
                 case 'char': {
-                    val min = SbeLangDslValueUtils.parseCharacter(rangeModifiers.min)
-                    val max = SbeLangDslValueUtils.parseCharacter(rangeModifiers.max)
+                    val min = SbeLangDslValueUtils.parseCharacter(range.min)
+                    val max = SbeLangDslValueUtils.parseCharacter(range.max)
 
                     if (min.isPresent && max.isPresent)
                         if (min.get.compareTo(max.get) > 0)
                             error(
-                                '''Minimum range of («rangeModifiers.min») cannot exceed maximum of («rangeModifiers.max»)''',
+                                '''Minimum range of («range.min») cannot exceed maximum of («range.max»)''',
                                 errorMarkerTarget
                             )
                 }
                 default: { // assume number...
-                    val min = SbeLangDslValueUtils.parseBigDecimal(rangeModifiers.min)
-                    val max = SbeLangDslValueUtils.parseBigDecimal(rangeModifiers.max)
+                    val min = SbeLangDslValueUtils.parseBigDecimal(range.min)
+                    val max = SbeLangDslValueUtils.parseBigDecimal(range.max)
                     if (min.isPresent && max.isPresent)
                         if (min.get.compareTo(max.get) > 0)
                             error(
-                                '''Minimum range of («rangeModifiers.min») cannot exceed maximum of («rangeModifiers.max»)''',
+                                '''Minimum range of («range.min») cannot exceed maximum of («range.max»)''',
                                 errorMarkerTarget
                             )
                 }
@@ -251,15 +251,15 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
         // check the literals; if it's not a primitive type, must pick up from reference type
         if (primitiveType !== null) {
-            if (!isValidLiteral(rangeModifiers.min.toString, primitiveType)) {
+            if (!isValidLiteral(range.min.toString, primitiveType)) {
                 error(
-                    '''Minimum range of («rangeModifiers.min») is not within range of type («primitiveType»)''',
+                    '''Minimum range of («range.min») is not within range of type («primitiveType»)''',
                     errorMarkerTarget
                 )
             }
-            if (!isValidLiteral(rangeModifiers.max.toString, primitiveType)) {
+            if (!isValidLiteral(range.max.toString, primitiveType)) {
                 error(
-                    '''Maximum range of («rangeModifiers.max») is not within range of type («primitiveType»)''',
+                    '''Maximum range of («range.max») is not within range of type («primitiveType»)''',
                     errorMarkerTarget
                 )
             }

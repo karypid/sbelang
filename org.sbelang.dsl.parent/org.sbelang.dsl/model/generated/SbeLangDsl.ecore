@@ -62,7 +62,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//TypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//RangeModifiers"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="range" eType="#//RangeModifiers"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>
@@ -72,7 +72,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="fieldType" eType="#//TypeDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="primitiveType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="rangeModifiers" eType="#//RangeModifiers"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="range" eType="#//RangeModifiers"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="presence" eType="#//PresenceModifiers"
         containment="true"/>

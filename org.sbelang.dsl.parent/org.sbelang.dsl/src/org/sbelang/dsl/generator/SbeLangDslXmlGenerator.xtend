@@ -209,8 +209,8 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
     }
 
     private def memberTypeRange(MemberRefTypeDeclaration mtd) {
-        if (mtd.rangeModifiers !== null)
-            '''«IF mtd.rangeModifiers.min !== null» minValue="«constLiteral(mtd.rangeModifiers.min)»"«ENDIF»«IF mtd.rangeModifiers.max !== null» maxValue="«constLiteral(mtd.rangeModifiers.max)»"«ENDIF»'''
+        if (mtd.range !== null)
+            '''«IF mtd.range.min !== null» minValue="«constLiteral(mtd.range.min)»"«ENDIF»«IF mtd.range.max !== null» maxValue="«constLiteral(mtd.range.max)»"«ENDIF»'''
     }
 
     def compile(FieldDeclaration field) {

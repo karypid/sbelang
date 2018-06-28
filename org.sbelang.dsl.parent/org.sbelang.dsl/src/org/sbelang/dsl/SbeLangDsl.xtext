@@ -67,11 +67,11 @@ MemberInlineDeclaration:
 
 MemberRefTypeDeclaration:
     name=Name ':' (type=[TypeDeclaration] | primitiveType=PrimitiveType) ('[' length=OptionalInt ']')? ('range' '='
-    rangeModifiers=RangeModifiers)? presence=PresenceModifiers?;
+    range=RangeModifiers)? presence=PresenceModifiers?;
 
 FieldDeclaration:
     name=Name ':' (fieldType=[TypeDeclaration] | primitiveType=PrimitiveType) '@' id=INT ('range' '='
-    rangeModifiers=RangeModifiers)? presence=PresenceModifiers?
+    range=RangeModifiers)? presence=PresenceModifiers?
     // TODO: add "valueRef" - Constant value of a field as a valid value of an enumeration; Valid only if presence= ”constant”  
     versionModifiers=VersionModifiers;
 
