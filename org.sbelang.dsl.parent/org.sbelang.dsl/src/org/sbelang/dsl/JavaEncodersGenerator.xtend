@@ -8,6 +8,7 @@ import java.io.File
 import java.nio.file.Paths
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.SbeUtils
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
@@ -15,7 +16,7 @@ import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 
 /**
  * @author karypid
@@ -113,7 +114,7 @@ class JavaEncodersGenerator {
                         CompositeTypeDeclaration:
                             generateComposite_CompositeMember_Encoder(ownerComposite, memberType,
                                 member.name.toFirstLower)
-                        default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
+                        default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class .name» */'''
                     }
                 } else
                     ''' /* TODO: «member.toString» */'''
@@ -386,8 +387,29 @@ class JavaEncodersGenerator {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 
-                private int offset;
                 private MutableDirectBuffer buffer;
+                private int offset;
+                private int limit;
+                
+                public int sbeBlockLength()
+                {
+                    return ENCODED_LENGTH;
+                }
+                
+                public int sbeTemplateId()
+                {
+                    return TEMPLATE_ID;
+                }
+                
+                public int sbeSchemaId()
+                {
+                    return MessageSchema.SCHEMA_ID;
+                }
+                
+                public int sbeSchemaVersion()
+                {
+                    return MessageSchema.SCHEMA_VERSION;
+                }
                 
                 public «blockName» wrap( final MutableDirectBuffer buffer, final int offset )
                 {
@@ -409,17 +431,43 @@ class JavaEncodersGenerator {
                 
                 public int encodedLength()
                 {
-                    return ENCODED_LENGTH;
+                    return limit - offset;
+                }
+                
+                public int limit()
+                {
+                    return limit;
+                }
+                
+                public void limit(final int limit)
+                {
+                    this.limit = limit;
                 }
                 
                 «FOR field : block.fieldDeclarations»
-                    // TODO: generateComposite_CompositeMember_Encoder(ctd, cm)
+                    «generateBlockField(block, field)»
                 «ENDFOR»
             }
         '''
     }
 
-    // java utils ----------------------------------------------------
+    def generateBlockField(BlockDeclaration block, FieldDeclaration field) {
+        if (field.primitiveType !== null) {
+            return '''// TODO: pimitive type -  «field.name» : «field.primitiveType»'''
+        }
+
+        val type = field.fieldType
+
+        switch type {
+            SimpleTypeDeclaration: '''// TODO: simple type -  «field.name» : «type.name»'''
+            EnumDeclaration: '''// TODO: enum -  «field.name» : «type.name»'''
+            SetDeclaration: '''// TODO: set -  «field.name» : «type.name»'''
+            CompositeTypeDeclaration: '''// TODO: composite -  «field.name» : «type.name»'''
+            default: '''// TODO: ???? - «field.name» : «type.name»'''
+        }
+    }
+
+// java utils ----------------------------------------------------
     private def endianParam(String primitiveJavaType) {
         if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
     }
@@ -428,5 +476,5 @@ class JavaEncodersGenerator {
     def filename(String filename) {
         packagePath.toString + File.separatorChar + filename
     }
-    
+
 }
