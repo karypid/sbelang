@@ -17,6 +17,7 @@ import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
+import org.sbelang.dsl.generator.intermediate.FieldIndex
 
 /**
  * @author karypid
@@ -92,7 +93,7 @@ class JavaEncodersGenerator {
                     val fieldOffset = fieldIndex.getOffset(member.name)
                     val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
-                    generatePrimitiveEncoder(ownerCompositeEncoderClass, memberVarName,
+                    generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName,
                         member.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                 } else if (member.type !== null) {
                     val memberType = member.type
@@ -104,11 +105,12 @@ class JavaEncodersGenerator {
                             val fieldOffset = fieldIndex.getOffset(member.name)
                             val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
-                            generatePrimitiveEncoder(ownerCompositeEncoderClass, memberVarName,
+                            generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName,
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
                         }
                         EnumDeclaration:
-                            generateComposite_EnumMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateEncoderCodeForEnumerationData(ownerComposite.name, memberType,
+                                member.name.toFirstLower, parsedSchema.getCompositeFieldIndex(ownerComposite.name))
                         SetDeclaration:
                             generateComposite_SetMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
                         CompositeTypeDeclaration:
@@ -123,45 +125,15 @@ class JavaEncodersGenerator {
             CompositeTypeDeclaration:
                 generateComposite_CompositeMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             EnumDeclaration:
-                generateComposite_EnumMember_Encoder(ownerComposite, member, member.name.toFirstLower)
+                // val ownerEncoderClassName = ownerComposite.name.toFirstUpper + 'Encoder'
+                generateEncoderCodeForEnumerationData(ownerComposite.name, member, member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             SetDeclaration:
                 generateComposite_SetMember_Encoder(ownerComposite, member, member.name.toFirstLower)
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
-    }
-
-    private def generateComposite_EnumMember_Encoder(CompositeTypeDeclaration ownerComposite,
-        EnumDeclaration enumMember, String memberVarName) {
-        val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-        val fieldOffset = fieldIndex.getOffset(enumMember.name)
-
-        val memberEnumType = enumMember.name.toFirstUpper
-        val memberEnumEncodingJavaType = JavaGenerator.primitiveToJavaWireType(enumMember.encodingType)
-        val putSetter = 'put' + memberEnumEncodingJavaType.toFirstUpper
-        val optionalEndian = endianParam(memberEnumEncodingJavaType)
-
-        '''
-            // «enumMember.name»
-            public static int «memberVarName»EncodingOffset()
-            {
-                return «fieldOffset»;
-            }
-            
-            public static int «memberVarName»EncodingLength()
-            {
-                return «fieldIndex.getOctectLength(enumMember.name)»;
-            }
-            
-            public «ownerCompositeEncoderClass» «memberVarName»( final «memberEnumType» value )
-            {
-                buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
-                return this;
-            }
-            
-        '''
     }
 
     private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite, SetDeclaration setMember,
@@ -380,17 +352,17 @@ class JavaEncodersGenerator {
                 }
                 
                 «FOR field : block.fieldDeclarations»
-                    «generateEncoderForPrimitiveType(block, field)»
+                    «generateEncoderForBlockField(block, field)»
                 «ENDFOR»
             }
         '''
     }
 
-    def generateEncoderForPrimitiveType(BlockDeclaration block, FieldDeclaration field) {
+    def generateEncoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
-        
+
         if (field.primitiveType !== null) {
-            return generatePrimitiveEncoder(
+            return generateEncoderCodeForPrimitiveData(
                 block.name.toFirstUpper + "Encoder",
                 field.name,
                 field.primitiveType,
@@ -404,8 +376,8 @@ class JavaEncodersGenerator {
 
         switch type {
             SimpleTypeDeclaration: {
-                val arrayLength = if (type.length === null) 1 else type.length
-                generatePrimitiveEncoder(
+                val arrayLength = if(type.length === null) 1 else type.length
+                generateEncoderCodeForPrimitiveData(
                     block.name.toFirstUpper + "Encoder",
                     field.name,
                     type.primitiveType,
@@ -414,14 +386,23 @@ class JavaEncodersGenerator {
                     arrayLength
                 )
             }
-            EnumDeclaration: '''// TODO: enum -  «field.name» : «type.name»'''
+            EnumDeclaration:
+                generateEncoderCodeForEnumerationData(
+                    block.name,
+                    type,
+                    field.name.toFirstLower,
+                    parsedSchema.getBlockFieldIndex(block.name)
+                )
             SetDeclaration: '''// TODO: set -  «field.name» : «type.name»'''
             CompositeTypeDeclaration: '''// TODO: composite -  «field.name» : «type.name»'''
             default: '''// TODO: ???? - «field.name» : «type.name»'''
         }
     }
 
-    private def generatePrimitiveEncoder(String ownerCompositeEncoderClass, String memberVarName,
+    // -----------------------------------------------------------------------------
+    // Common code fragment templates used for both composites and  blocks
+    // -----------------------------------------------------------------------------
+    private def generateEncoderCodeForPrimitiveData(String ownerCompositeEncoderClass, String memberVarName,
         String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
@@ -482,6 +463,37 @@ class JavaEncodersGenerator {
                     }
                 «ENDIF»
             «ENDIF»
+            
+        '''
+    }
+
+    private def generateEncoderCodeForEnumerationData(String ownerName, EnumDeclaration enumMember,
+        String memberVarName, FieldIndex fieldIndex) {
+        val ownerEncoderClassName = ownerName.toFirstUpper + 'Encoder'
+        val fieldOffset = fieldIndex.getOffset(enumMember.name)
+
+        val memberEnumType = enumMember.name.toFirstUpper
+        val memberEnumEncodingJavaType = JavaGenerator.primitiveToJavaWireType(enumMember.encodingType)
+        val putSetter = 'put' + memberEnumEncodingJavaType.toFirstUpper
+        val optionalEndian = endianParam(memberEnumEncodingJavaType)
+
+        '''
+            // «enumMember.name»
+            public static int «memberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «memberVarName»EncodingLength()
+            {
+                return «fieldIndex.getOctectLength(enumMember.name)»;
+            }
+            
+            public «ownerEncoderClassName» «memberVarName»( final «memberEnumType» value )
+            {
+                buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
+                return this;
+            }
             
         '''
     }
