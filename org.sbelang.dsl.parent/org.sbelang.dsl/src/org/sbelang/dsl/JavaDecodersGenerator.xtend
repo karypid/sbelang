@@ -6,16 +6,17 @@ package org.sbelang.dsl
 
 import java.io.File
 import java.nio.file.Paths
+import org.sbelang.dsl.generator.intermediate.FieldIndex
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.SbeUtils
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 
 /**
  * @author karypid
@@ -42,7 +43,7 @@ class JavaDecodersGenerator {
         val setName = sd.name.toFirstUpper
         val setDecoderName = setName + 'Decoder'
         val setEncodingOctetLength = SbeUtils.getPrimitiveTypeOctetLength(sd.encodingType)
-        
+
         '''
             package  «parsedSchema.schemaName»;
             
@@ -86,7 +87,7 @@ class JavaDecodersGenerator {
             }
         '''
     }
-    
+
     private def generateSetChoiceDecoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
         val setChoiceName = setChoice.name.toFirstLower
         val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
@@ -94,7 +95,7 @@ class JavaDecodersGenerator {
         val optionalEndian = endianParam(setJavaType)
         val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
         val bitPos = setChoice.value
-        
+
         '''
             public boolean «setChoiceName»()
             {
@@ -111,7 +112,6 @@ class JavaDecodersGenerator {
     // -----------------------------------------------------------------------------
     // Code for generating composite decoders
     // -----------------------------------------------------------------------------
-
     def generateCompositeDecoder(CompositeTypeDeclaration ctd) {
         val compositeName = ctd.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
@@ -170,9 +170,10 @@ class JavaDecodersGenerator {
                     val arrayLength = if(member.length === null) 1 else member.length
                     val presence = member.presence
                     val constLiteral = if (presence instanceof PresenceConstantModifier) {
-                        presence.constantValue
-                    } else null
-                    generateComposite_PrimitiveMember_Decoder(ownerCompositeDecoderClass, memberVarName,
+                            presence.constantValue
+                        } else
+                            null
+                    generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName,
                         member.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                 } else if (member.type !== null) {
                     val memberType = member.type
@@ -186,17 +187,31 @@ class JavaDecodersGenerator {
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
                             val presence = member.presence
                             val constLiteral = if (presence instanceof PresenceConstantModifier) {
-                                presence.constantValue
-                            } else null
-                            generateComposite_PrimitiveMember_Decoder(ownerCompositeDecoderClass, memberVarName,
+                                    presence.constantValue
+                                } else
+                                    null
+                            generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName,
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                         }
                         EnumDeclaration:
-                            generateComposite_EnumMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateDecoderCodeForEnumerationData(
+                                ownerComposite.name,
+                                memberType,
+                                member.name.toFirstLower,
+                                parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                            )
                         SetDeclaration:
-                            generateComposite_SetMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateDecoderCodeForSetData(
+                                memberType,
+                                member.name.toFirstLower,
+                                parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                            )
                         CompositeTypeDeclaration:
-                            generateComposite_CompositeMember_Decoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateDecoderCodeForCompositeData(
+                                memberType,
+                                member.name.toFirstLower,
+                                parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                            )
                         default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
                     }
                 } else
@@ -204,11 +219,14 @@ class JavaDecodersGenerator {
             }
             // all inline declarations below --------------------
             CompositeTypeDeclaration:
-                generateComposite_CompositeMember_Decoder(ownerComposite, member, member.name.toFirstLower)
+                generateDecoderCodeForCompositeData(member, member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             EnumDeclaration:
-                generateComposite_EnumMember_Decoder(ownerComposite, member, member.name.toFirstLower)
+                generateDecoderCodeForEnumerationData(ownerComposite.name, member, member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             SetDeclaration:
-                generateComposite_SetMember_Decoder(ownerComposite, member, member.name.toFirstLower)
+                generateDecoderCodeForSetData(member, member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
@@ -218,14 +236,11 @@ class JavaDecodersGenerator {
     // -----------------------------------------------------------------------------
     // Code for generating message decoders
     // -----------------------------------------------------------------------------
-
     // TODO: implement this
-
     // -----------------------------------------------------------------------------
     // Common code fragment templates used for both composites and  blocks
     // -----------------------------------------------------------------------------
-
-    private def generateComposite_PrimitiveMember_Decoder(String ownerCompositeEncoderClass, String memberVarName,
+    private def generateDecoderCodeForPrimitiveData(String ownerCompositeEncoderClass, String memberVarName,
         String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constantLiteral) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
@@ -272,28 +287,28 @@ class JavaDecodersGenerator {
                     return buffer.«getFetcher»(pos «optionalEndian»);
                 }
                 «IF sbePrimitiveType == 'char'»
-                
-                public int get«memberVarName.toFirstUpper»( final byte[] dst, final int dstOffset )
-                {
-                    final int length = «arrayLength»;
-                    if (dstOffset < 0 || dstOffset > (dst.length - length))
+                    
+                    public int get«memberVarName.toFirstUpper»( final byte[] dst, final int dstOffset )
                     {
-                        throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + dstOffset);
+                        final int length = «arrayLength»;
+                        if (dstOffset < 0 || dstOffset > (dst.length - length))
+                        {
+                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + dstOffset);
+                        }
+                        
+                        buffer.getBytes(this.offset + «fieldOffset», dst, dstOffset, length);
+                        
+                        return length;
                     }
-                    
-                    buffer.getBytes(this.offset + «fieldOffset», dst, dstOffset, length);
-                    
-                    return length;
-                }
                 «ENDIF»
             «ENDIF»
             
         '''
     }
 
-    private def generateComposite_EnumMember_Decoder(CompositeTypeDeclaration ownerComposite,
-        EnumDeclaration enumMember, String memberVarName) {
-        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+    private def generateDecoderCodeForEnumerationData(String ownerName, EnumDeclaration enumMember,
+        String memberVarName, FieldIndex fieldIndex) {
+
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
@@ -301,10 +316,10 @@ class JavaDecodersGenerator {
         val memberEnumJavaDataType = JavaGenerator.primitiveToJavaDataType(enumMember.encodingType)
         val getFetcher = 'get' + memberEnumJavaWireType.toFirstUpper
         val optionalEndian = endianParam(memberEnumJavaWireType)
-        
+
         val mask = enumAllBitsMask(enumMember.encodingType)
-        val maskStart = if (mask=='') '''''' else '''('''
-        val maskEnd = if (mask=='') '''''' else ''' & «mask»)'''
+        val maskStart = if (mask == '') '''''' else '''('''
+        val maskEnd = if (mask == '') '''''' else ''' & «mask»)'''
 
         val cast = if (memberEnumJavaWireType !== memberEnumJavaDataType) '''(«memberEnumJavaDataType»)'''
 
@@ -327,11 +342,9 @@ class JavaDecodersGenerator {
             
         '''
     }
-    
-    private def generateComposite_SetMember_Decoder(CompositeTypeDeclaration ownerComposite,
-        SetDeclaration setMember, String memberVarName) {
+
+    private def generateDecoderCodeForSetData(SetDeclaration setMember, String memberVarName, FieldIndex fieldIndex) {
         val setDecoderClassName = setMember.name.toFirstUpper + 'Decoder'
-        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(setMember.name)
 
         '''
@@ -357,11 +370,10 @@ class JavaDecodersGenerator {
         '''
     }
 
-    private def generateComposite_CompositeMember_Decoder(CompositeTypeDeclaration ownerComposite,
-        CompositeTypeDeclaration member, String memberVarName) {
+    private def generateDecoderCodeForCompositeData(CompositeTypeDeclaration member, String memberVarName,
+        FieldIndex fieldIndex) {
 
         val memberDecoderClass = member.name.toFirstUpper + 'Decoder'
-        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
         val fieldOffset = fieldIndex.getOffset(memberVarName)
         val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
 
@@ -395,10 +407,15 @@ class JavaDecodersGenerator {
 
     private def enumAllBitsMask(String sbeEnumEncodingType) {
         switch (sbeEnumEncodingType) {
-            case 'char' : ''
-            case 'uint8' : '0xFF'
-            case 'uint16' : '0xFFFF'
-            default: throw new IllegalStateException('Why would you need this? Enums should not be of type: ' + sbeEnumEncodingType)
+            case 'char':
+                ''
+            case 'uint8':
+                '0xFF'
+            case 'uint16':
+                '0xFFFF'
+            default:
+                throw new IllegalStateException('Why would you need this? Enums should not be of type: ' +
+                    sbeEnumEncodingType)
         }
     }
 
