@@ -37,6 +37,9 @@ class JavaEncodersGenerator {
         }
     }
 
+    // -----------------------------------------------------------------------------
+    // Code for generating composite encoders
+    // -----------------------------------------------------------------------------
     def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
         val compositeName = ctd.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
@@ -150,6 +153,9 @@ class JavaEncodersGenerator {
         }
     }
 
+    // -----------------------------------------------------------------------------
+    // Code for generating set encoders
+    // -----------------------------------------------------------------------------
     def generateSetEncoder(SetDeclaration sd) {
         val setName = sd.name.toFirstUpper
         val setEncoderName = setName + 'Encoder'
@@ -235,6 +241,9 @@ class JavaEncodersGenerator {
         '''
     }
 
+    // -----------------------------------------------------------------------------
+    // Code for generating message encoders
+    // -----------------------------------------------------------------------------
     def generateMessageEncoder(BlockDeclaration block) {
         val blockName = block.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
@@ -312,7 +321,7 @@ class JavaEncodersGenerator {
         '''
     }
 
-    def generateEncoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
+    private def generateEncoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
         if (field.primitiveType !== null) {
