@@ -112,7 +112,11 @@ class JavaEncodersGenerator {
                             generateEncoderCodeForEnumerationData(ownerComposite.name, memberType,
                                 member.name.toFirstLower, parsedSchema.getCompositeFieldIndex(ownerComposite.name))
                         SetDeclaration:
-                            generateComposite_SetMember_Encoder(ownerComposite, memberType, member.name.toFirstLower)
+                            generateEncoderCodeForSetData(
+                                memberType,
+                                member.name.toFirstLower,
+                                parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                            )
                         CompositeTypeDeclaration:
                             generateComposite_CompositeMember_Encoder(ownerComposite, memberType,
                                 member.name.toFirstLower)
@@ -129,40 +133,15 @@ class JavaEncodersGenerator {
                 generateEncoderCodeForEnumerationData(ownerComposite.name, member, member.name.toFirstLower,
                     parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             SetDeclaration:
-                generateComposite_SetMember_Encoder(ownerComposite, member, member.name.toFirstLower)
+                generateEncoderCodeForSetData(
+                    member,
+                    member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                )
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
-    }
-
-    private def generateComposite_SetMember_Encoder(CompositeTypeDeclaration ownerComposite, SetDeclaration setMember,
-        String memberVarName) {
-        val setEncoderClassName = setMember.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-        val fieldOffset = fieldIndex.getOffset(setMember.name)
-
-        '''
-            // «setMember.name»
-            public static int «memberVarName»EncodingOffset()
-            {
-                return «fieldOffset»;
-            }
-            
-            public static int «memberVarName»EncodingLength()
-            {
-                return «fieldIndex.getOctectLength(setMember.name)»;
-            }
-            
-            private final «setEncoderClassName» «memberVarName» = new «setEncoderClassName»();
-            
-            public «setEncoderClassName» «memberVarName»()
-            {
-                «memberVarName».wrap(buffer, offset + «fieldOffset»);
-                return «memberVarName»;
-            }
-            
-        '''
     }
 
     private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
@@ -393,7 +372,9 @@ class JavaEncodersGenerator {
                     field.name.toFirstLower,
                     parsedSchema.getBlockFieldIndex(block.name)
                 )
-            SetDeclaration: '''// TODO: set -  «field.name» : «type.name»'''
+            SetDeclaration:
+                generateEncoderCodeForSetData(type, field.name.toFirstLower,
+                    parsedSchema.getBlockFieldIndex(block.name))
             CompositeTypeDeclaration: '''// TODO: composite -  «field.name» : «type.name»'''
             default: '''// TODO: ???? - «field.name» : «type.name»'''
         }
@@ -493,6 +474,33 @@ class JavaEncodersGenerator {
             {
                 buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
                 return this;
+            }
+            
+        '''
+    }
+
+    private def generateEncoderCodeForSetData(SetDeclaration setMember, String memberVarName, FieldIndex fieldIndex) {
+        val setEncoderClassName = setMember.name.toFirstUpper + 'Encoder'
+        val fieldOffset = fieldIndex.getOffset(setMember.name)
+
+        '''
+            // «setMember.name»
+            public static int «memberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «memberVarName»EncodingLength()
+            {
+                return «fieldIndex.getOctectLength(setMember.name)»;
+            }
+            
+            private final «setEncoderClassName» «memberVarName» = new «setEncoderClassName»();
+            
+            public «setEncoderClassName» «memberVarName»()
+            {
+                «memberVarName».wrap(buffer, offset + «fieldOffset»);
+                return «memberVarName»;
             }
             
         '''
