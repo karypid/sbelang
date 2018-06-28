@@ -2,9 +2,9 @@ package org.sbelang.dsl.generator
 
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.sbelang.dsl.JavaDecodersGenerator
-import org.sbelang.dsl.JavaEncodersGenerator
-import org.sbelang.dsl.JavaGenerator
+import org.sbelang.dsl.generator.JavaDecodersGenerator
+import org.sbelang.dsl.generator.JavaEncodersGenerator
+import org.sbelang.dsl.generator.JavaGenerator
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {

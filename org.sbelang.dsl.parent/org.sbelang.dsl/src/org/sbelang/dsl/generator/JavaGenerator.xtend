@@ -2,14 +2,14 @@
  * Copyright (C) by Alexandros Karypidis
  * Created on 27 Jun 2018
  */
-package org.sbelang.dsl
+package org.sbelang.dsl.generator
 
+import java.math.BigInteger
 import java.nio.ByteOrder
 import org.eclipse.emf.common.util.EList
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
-import java.math.BigInteger
 
 /**
  * @author karypid
@@ -17,6 +17,16 @@ import java.math.BigInteger
  */
 class JavaGenerator {
     static val ENUM_NULL_VAL_NAME = "NULL_VAL"
+
+    static def loadExt() {
+        val extClassName = System.getProperty("org.sbelang.dsl.generator.JavaGenerator.ext");
+        if (extClassName === null)
+            null
+        else {
+            val extClass = Thread.currentThread.contextClassLoader.loadClass(extClassName);
+            extClass.asSubclass(JavaGeneratorExt).newInstance
+        }
+    }
 
     // these are used for encoding. here the unsigned integers are
     // mapped to the signed version as we simply cast when populating

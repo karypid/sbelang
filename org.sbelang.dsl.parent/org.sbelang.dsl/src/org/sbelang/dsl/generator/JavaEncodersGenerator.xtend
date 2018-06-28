@@ -2,7 +2,7 @@
  * Copyright (C) by Alexandros Karypidis
  * Created on 22 Jun 2018
  */
-package org.sbelang.dsl
+package org.sbelang.dsl.generator
 
 import java.io.File
 import java.nio.file.Paths
@@ -28,8 +28,11 @@ class JavaEncodersGenerator {
     val ParsedSchema parsedSchema
     val String packagePath
 
+    val JavaGeneratorExt extensions
+
     new(ParsedSchema parsedSchema) {
         this.parsedSchema = parsedSchema
+        this.extensions = JavaGenerator.loadExt
 
         this.packagePath = {
             val String[] components = parsedSchema.schemaName.split("\\.")
@@ -391,7 +394,7 @@ class JavaEncodersGenerator {
             else
                 JavaGenerator.javaLiteral(sbePrimitiveType, constLiteral)
 
-        '''
+        val defaultCode = '''
             // «memberVarName»
             public static int «memberVarName»EncodingOffset()
             {
@@ -451,6 +454,13 @@ class JavaEncodersGenerator {
             «ENDIF»
             
         '''
+        if (extensions === null)
+            defaultCode
+        else {
+            val extensionExtras = extensions.generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass,
+                memberVarName, sbePrimitiveType, fieldOffset, fieldOctetLength, arrayLength, constantLiteral)
+            defaultCode + extensionExtras
+        }
     }
 
     private def generateEncoderCodeForEnumerationData(String ownerName, EnumDeclaration enumMember,
