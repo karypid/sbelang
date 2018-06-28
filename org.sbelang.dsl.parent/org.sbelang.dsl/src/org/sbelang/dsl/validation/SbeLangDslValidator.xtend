@@ -27,6 +27,12 @@ import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.VersionModifiers
 
 import static org.sbelang.dsl.SbeLangDslValueUtils.isValidLiteral
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
+import org.sbelang.dsl.sbeLangDsl.RangeModifiers
+import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
+import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
+import org.eclipse.emf.ecore.EReference
 
 /**
  * This class contains custom validation rules. 
@@ -39,6 +45,9 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val NULL_VAL = 'NULL_VAL'
 
+    // TODO: add check for unique IDs for each message in schema
+    // TODO: add check for unique names for messages and groups
+    // TODO: add check for char literals to ensure they're not out of ASCII range (e.g. Greek delta letter)
     @Check
     def checkAllTypeNamesAreUnique(MessageSchema messageSchema) {
         try {
@@ -136,24 +145,6 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
-    def checkComposite(CompositeTypeDeclaration ctd) {
-        val Map<String, CompositeMember> names = new HashMap()
-        for (cm : ctd.compositeMembers) {
-            if (cm instanceof MemberRefTypeDeclaration) {
-                val existingName = names.put(cm.name.toUpperCase, cm)
-                if (existingName !== null) {
-                    val existingNode = NodeModelUtils.getNode(existingName)
-                    error(
-                        '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
-                        cm,
-                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
-                    )
-                }
-            }
-        }
-    }
-
-    @Check
     def checkEnum(EnumDeclaration ed) {
         val Map<String, EnumValueDeclaration> names = new HashMap()
         val Map<String, EnumValueDeclaration> values = new HashMap()
@@ -204,55 +195,72 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkRangeIsProper(MemberRefTypeDeclaration mptd) {
+        validateRangeModifiers(mptd.rangeModifiers, mptd.presence, mptd.primitiveType, mptd.type,
+            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS)
+    }
+
+    @Check
+    def checkField(FieldDeclaration field) {
+        validateRangeModifiers(
+            field.rangeModifiers,
+            field.presenceModifiers,
+            field.primitiveType,
+            field.fieldType,
+            SbeLangDslPackage.Literals.FIELD_DECLARATION__RANGE_MODIFIERS
+        )
+    }
+
+    private def validateRangeModifiers(RangeModifiers rangeModifiers, PresenceModifiers presence, String primitiveType,
+        TypeDeclaration type, EReference errorMarkerTarget) {
         // basic checks for existence or constant presence
-        if(mptd.rangeModifiers === null) return; // no range can't be wrong
-        if (mptd.presence !== null) { // if constant, range does not make sense...
-            if (mptd.presence instanceof PresenceConstantModifier)
+        if(rangeModifiers === null) return; // no range can't be wrong
+        if (presence !== null) { // if constant, range does not make sense...
+            if (presence instanceof PresenceConstantModifier)
                 error(
                     "You can't specify a range for a constant!",
-                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                    errorMarkerTarget
                 )
         }
 
         // check their relative value; min cannot exceed max regardless of anything else
-        if ((mptd.rangeModifiers.min !== null) && (mptd.rangeModifiers.max !== null)) {
-            switch (mptd.primitiveType) {
+        if ((rangeModifiers.min !== null) && (rangeModifiers.max !== null)) {
+            switch (primitiveType) {
                 case 'char': {
-                    val min = SbeLangDslValueUtils.parseCharacter(mptd.rangeModifiers.min)
-                    val max = SbeLangDslValueUtils.parseCharacter(mptd.rangeModifiers.max)
+                    val min = SbeLangDslValueUtils.parseCharacter(rangeModifiers.min)
+                    val max = SbeLangDslValueUtils.parseCharacter(rangeModifiers.max)
 
                     if (min.isPresent && max.isPresent)
                         if (min.get.compareTo(max.get) > 0)
                             error(
-                                '''Minimum range of («mptd.rangeModifiers.min») cannot exceed maximum of («mptd.rangeModifiers.max»)''',
-                                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                                '''Minimum range of («rangeModifiers.min») cannot exceed maximum of («rangeModifiers.max»)''',
+                                errorMarkerTarget
                             )
                 }
                 default: { // assume number...
-                    val min = SbeLangDslValueUtils.parseBigDecimal(mptd.rangeModifiers.min)
-                    val max = SbeLangDslValueUtils.parseBigDecimal(mptd.rangeModifiers.max)
+                    val min = SbeLangDslValueUtils.parseBigDecimal(rangeModifiers.min)
+                    val max = SbeLangDslValueUtils.parseBigDecimal(rangeModifiers.max)
                     if (min.isPresent && max.isPresent)
                         if (min.get.compareTo(max.get) > 0)
                             error(
-                                '''Minimum range of («mptd.rangeModifiers.min») cannot exceed maximum of («mptd.rangeModifiers.max»)''',
-                                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                                '''Minimum range of («rangeModifiers.min») cannot exceed maximum of («rangeModifiers.max»)''',
+                                errorMarkerTarget
                             )
                 }
             }
         }
 
         // check the literals; if it's not a primitive type, must pick up from reference type
-        if (mptd.primitiveType !== null) {
-            if (!isValidLiteral(mptd.rangeModifiers.min.toString, mptd.primitiveType)) {
+        if (primitiveType !== null) {
+            if (!isValidLiteral(rangeModifiers.min.toString, primitiveType)) {
                 error(
-                    '''Minimum range of («mptd.rangeModifiers.min») is not within range of type («mptd.primitiveType»)''',
-                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                    '''Minimum range of («rangeModifiers.min») is not within range of type («primitiveType»)''',
+                    errorMarkerTarget
                 )
             }
-            if (!isValidLiteral(mptd.rangeModifiers.max.toString, mptd.primitiveType)) {
+            if (!isValidLiteral(rangeModifiers.max.toString, primitiveType)) {
                 error(
-                    '''Maximum range of («mptd.rangeModifiers.max») is not within range of type («mptd.primitiveType»)''',
-                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                    '''Maximum range of («rangeModifiers.max») is not within range of type («primitiveType»)''',
+                    errorMarkerTarget
                 )
             }
         } else {
@@ -266,16 +274,16 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
              * definition (same primitive/length but with range attribute).
              */
             // reject range for reference to anything other than simple type
-            if (mptd.type instanceof SimpleTypeDeclaration) {
-                val st = mptd.type as SimpleTypeDeclaration
+            if (type instanceof SimpleTypeDeclaration) {
+                val st = type as SimpleTypeDeclaration
                 error(
                     '''Range cannot be applied to simple type reference. You should just use the primitive type [«st.primitiveType»] directy''',
-                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                    errorMarkerTarget
                 )
             } else {
                 error(
                     '''Range cannot be applied to this type''',
-                    SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__RANGE_MODIFIERS
+                    errorMarkerTarget
                 )
             }
         }
@@ -311,6 +319,48 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
                     '''The deprecatedSinceVersion(«vm.deprecatedSinceVersion») value cannot be greater than the schema version(«ms.schema.version») value!''',
                     vm,
                     SbeLangDslPackage.Literals.VERSION_MODIFIERS__DEPRECATED_SINCE_VERSION
+                )
+            }
+        }
+    }
+
+    @Check
+    def checkLengthModifier(MemberRefTypeDeclaration memberRef) {
+        if ((memberRef.length !== null) && (memberRef.type !== null)) {
+            error('''Only composite members of primitive type are allowed to have fixed length''', memberRef,
+                SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__LENGTH)
+        }
+    }
+
+    @Check
+    def checkComposite(CompositeTypeDeclaration ctd) {
+        val Map<String, CompositeMember> names = new HashMap()
+        for (cm : ctd.compositeMembers) {
+            if (cm instanceof MemberRefTypeDeclaration) {
+                val existingName = names.put(cm.name.toUpperCase, cm)
+                if (existingName !== null) {
+                    val existingNode = NodeModelUtils.getNode(existingName)
+                    error(
+                        '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
+                        cm,
+                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__NAME
+                    )
+                }
+            }
+        }
+    }
+
+    @Check
+    def checkBlock(BlockDeclaration bd) {
+        val Map<String, FieldDeclaration> names = new HashMap()
+        for (cm : bd.fieldDeclarations) {
+            val existingName = names.put(cm.name.toUpperCase, cm)
+            if (existingName !== null) {
+                val existingNode = NodeModelUtils.getNode(existingName)
+                error(
+                    '''Duplicate (case-insensitive) name [«cm.name»]; previous declaration at line «existingNode.startLine»''',
+                    cm,
+                    SbeLangDslPackage.Literals.FIELD_DECLARATION__NAME
                 )
             }
         }

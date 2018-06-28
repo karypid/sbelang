@@ -9,6 +9,7 @@ import org.eclipse.emf.common.util.EList
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumValueDeclaration
+import java.math.BigInteger
 
 /**
  * @author karypid
@@ -59,6 +60,33 @@ class JavaGenerator {
             case 'float': 'float'
             case 'double': 'double'
             default: throw new IllegalArgumentException('No java type mapping for SBE primitive: ' + sbePrimitive)
+        }
+    }
+
+    static def String javaLiteral(String sbePrimitiveType, String constLiteral) {
+        switch sbePrimitiveType {
+            case 'char',
+            case 'int8',
+            case 'uint8',
+            case 'int16',
+            case 'uint16',
+            case 'float',
+            case 'double',
+            case 'int32':
+                constLiteral
+            case 'uint32',
+            case 'int64': {
+                if (constLiteral.endsWith("L") || constLiteral.endsWith("l"))
+                    constLiteral
+                else
+                    constLiteral + "L"
+            }
+            case 'uint64': {
+                val bi = new BigInteger(constLiteral)
+                "0x" + bi.toString(16) + "L"
+            }
+            default:
+                throw new IllegalStateException("Not an SBE primitive type: " + sbePrimitiveType)
         }
     }
 

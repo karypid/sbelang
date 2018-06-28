@@ -163,35 +163,26 @@ class JavaDecodersGenerator {
         CompositeMember member) {
         switch member {
             MemberRefTypeDeclaration: {
+                val memberVarName = member.name.toFirstLower
+                val ownerCompositeDecoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
+                val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                val fieldOffset = fieldIndex.getOffset(member.name)
+                val fieldOctetLength = fieldIndex.getOctectLength(member.name)
+                val presence = member.presence
+                val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                        presence.constantValue
+                    } else
+                        null
+
                 if (member.primitiveType !== null) {
-                    val ownerCompositeDecoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
-                    val memberVarName = member.name.toFirstLower
-                    val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-                    val fieldOffset = fieldIndex.getOffset(member.name)
-                    val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
-                    val presence = member.presence
-                    val constLiteral = if (presence instanceof PresenceConstantModifier) {
-                            presence.constantValue
-                        } else
-                            null
                     generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName,
                         member.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                 } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
                         SimpleTypeDeclaration: {
-                            val ownerCompositeDecoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
-                            val memberVarName = member.name.toFirstLower
-                            val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-                            val fieldOffset = fieldIndex.getOffset(member.name)
-                            val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
-                            val presence = member.presence
-                            val constLiteral = if (presence instanceof PresenceConstantModifier) {
-                                    presence.constantValue
-                                } else
-                                    null
                             generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName,
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                         }
@@ -376,12 +367,15 @@ class JavaDecodersGenerator {
     // Common code fragment templates used for both composites and  blocks
     // -----------------------------------------------------------------------------
     private def generateDecoderCodeForPrimitiveData(String ownerCompositeDecoderClass, String memberVarName,
-        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constantLiteral) {
+        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constLiteral) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
         val getFetcher = 'get' + memberValueWireType.toFirstUpper
         val optionalEndian = endianParam(memberValueWireType)
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
+
+        val constantLiteral = if(constLiteral === null) null else JavaGenerator.javaLiteral(sbePrimitiveType,
+                constLiteral)
 
         '''
             // «memberVarName»

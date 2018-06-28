@@ -18,6 +18,7 @@ import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.generator.intermediate.FieldIndex
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 
 /**
  * @author karypid
@@ -176,27 +177,27 @@ class JavaEncodersGenerator {
     private def generateEncoderCodeForCompositeData(CompositeTypeDeclaration ownerComposite, CompositeMember member) {
         switch member {
             MemberRefTypeDeclaration: {
+                val memberVarName = member.name.toFirstLower
+                val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+                val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                val fieldOffset = fieldIndex.getOffset(member.name)
+                val fieldOctetLength = fieldIndex.getOctectLength(member.name)
+                val constLiteral = if (member.presence instanceof PresenceConstantModifier) {
+                        (member.presence as PresenceConstantModifier).constantValue
+                    } else
+                        null
+
                 if (member.primitiveType !== null) {
-                    val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-                    val memberVarName = member.name.toFirstLower
-                    val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-                    val fieldOffset = fieldIndex.getOffset(member.name)
-                    val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                     val arrayLength = if(member.length === null) 1 else member.length
                     generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName,
-                        member.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
+                        member.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                 } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
                         SimpleTypeDeclaration: {
-                            val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
-                            val memberVarName = member.name.toFirstLower
-                            val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-                            val fieldOffset = fieldIndex.getOffset(member.name)
-                            val fieldOctetLength = fieldIndex.getOctectLength(member.name)
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
                             generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName,
-                                memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength)
+                                memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                         }
                         EnumDeclaration:
                             generateEncoderCodeForEnumerationData(ownerComposite.name, memberType,
@@ -323,6 +324,10 @@ class JavaEncodersGenerator {
 
     private def generateEncoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
+        val constLiteral = if (field.presenceModifiers instanceof PresenceConstantModifier) {
+                (field.presenceModifiers as PresenceConstantModifier).constantValue
+            } else
+                null
 
         if (field.primitiveType !== null) {
             return generateEncoderCodeForPrimitiveData(
@@ -331,7 +336,8 @@ class JavaEncodersGenerator {
                 field.primitiveType,
                 fieldIndex.getOffset(field.name),
                 fieldIndex.getOctectLength(field.name),
-                /* Fixed array length of ONE because fields can't have length */ 1
+                /* Fixed array length of ONE because fields can't have length */ 1,
+                constLiteral
             )
         }
 
@@ -346,7 +352,8 @@ class JavaEncodersGenerator {
                     type.primitiveType,
                     fieldIndex.getOffset(field.name),
                     fieldIndex.getOctectLength(field.name),
-                    arrayLength
+                    arrayLength,
+                    constLiteral
                 )
             }
             EnumDeclaration:
@@ -370,7 +377,7 @@ class JavaEncodersGenerator {
     // Common code fragment templates used for both composites and  blocks
     // -----------------------------------------------------------------------------
     private def generateEncoderCodeForPrimitiveData(String ownerCompositeEncoderClass, String memberVarName,
-        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength) {
+        String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constLiteral) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
         val putSetter = 'put' + memberValueWireType.toFirstUpper
@@ -378,6 +385,11 @@ class JavaEncodersGenerator {
         val value = if (memberValueWireType ==
                 memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
+
+        val constantLiteral = if (constLiteral === null)
+                null
+            else
+                JavaGenerator.javaLiteral(sbePrimitiveType, constLiteral)
 
         '''
             // «memberVarName»
@@ -391,7 +403,14 @@ class JavaEncodersGenerator {
                 return «fieldOctetLength»;
             }
             
-            «IF arrayLength <= 1»
+            «IF constantLiteral !== null»
+                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
+                {
+                    if ( value != «constantLiteral» )
+                        throw new IllegalArgumentException("This is a constant not transmitted on the wire; legal value is only: «constLiteral»");
+                    return this;
+                }
+            «ELSEIF arrayLength <= 1»
                 public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
                 {
                     buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);

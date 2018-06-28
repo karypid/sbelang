@@ -84,7 +84,9 @@ types
         // st_char   : t_char // exactly same name
         st_float  : t_float
         st_double : t_double
-        // st_char_array   : t_char[123] // length not allowed here!
+//       st_char_array   : t_char[123] // length not allowed here!
+//       st_enum_array   : EnumChar[123] // length not allowed here!
+//       st_set_array   : Set32[123] // length not allowed here!
         arr_st_char  : array_char // but you can refer to an array...
         arr_st_int32 : array_int32
 //   composite CompPrimitives { // nested composite name collides with existing composite
@@ -119,7 +121,7 @@ types
     composite CompEnums
     {
         m_enum_char     : EnumChar
-        // m_array_enum_char     : EnumChar[3] // length is illegal in enum references
+//       m_array_enum_char     : EnumChar[3] // length is illegal in enumeration references
         m_enum_uint8    : EnumUint8
         m_enum_uint16   : EnumUint16
 
@@ -166,6 +168,9 @@ types
 //  }
 //  composite Set16 { // composite name collides with set
 //      m_set_32     : Set32
+//  }
+//  enum Set32 : char { // set name collides with enum name
+//    NORMA_VALUE('X')
 //  }
     composite CompSets
     {
@@ -214,13 +219,13 @@ types
         m_int32_6_digits    : int32 range = [-999999, 999999]
         m_int64_10_digit    : int64 range = [-9999999999, 9999999999]
         // range specification errors -----------------------
-        // m_char_range_inverted    : char range=['z', 'a']
-        // m_int_range_inverted     : char range=[5, -1]
-        // m_uint_range_inverted    : char range=[5, 0]
-        // m_int_max_out_of_range   : int8 range=[1, 128]
-        // m_uint_max_out_of_range  : uint8 range=[0, 256]
-        // m_int_min_out_of_range   : int8 range=[-129, 127]
-        // m_uint_min_out_of_range  : uint8 range=[-1, 255]
+//       m_char_range_inverted    : char range=['z', 'a']
+//       m_int_range_inverted     : int8 range=[5, -1]
+//       m_uint_range_inverted    : uint8 range=[5, 0]
+//       m_int_max_out_of_range   : int8 range=[1, 128]
+//       m_uint_max_out_of_range  : uint8 range=[0, 256]
+//       m_int_min_out_of_range   : int8 range=[-129, 127]
+//       m_uint_min_out_of_range  : uint8 range=[-1, 255]
         m_uint8_2_digits    : uint8 range=[0, 99]
         m_uint16_4_digits   : uint16 range = [0, 9999]
         m_uint32_6_digits   : uint32 range = [0, 999999]
@@ -293,14 +298,14 @@ types
         constChar   : char   constant='a'
         // FIXME: non-ascii literal should fail
         // constDelta   : char   constant='Δ'
-        constInt8   : int8   constant=42
-        constInt16  : int16  constant=42
-        constInt32  : int32  constant=42
-        constInt64  : int64  constant=42
-        constUint8  : uint8  constant=42
-        constUint16 : uint16 constant=42
-        constUint32 : uint32 constant=42
-        constUint64 : uint64 constant=42
+        constInt8   : int8   constant=127
+        constInt16  : int16  constant=32767
+        constInt32  : int32  constant=2147483647
+        constInt64  : int64  constant=9223372036854775807
+        constUint8  : uint8  constant=255
+        constUint16 : uint16 constant=65535
+        constUint32 : uint32 constant=4294967295
+        constUint64 : uint64 constant=18446744073709551615
 // TODO: support float/double constants
 //        constFloat  : float  constant=42
 //        constDouble : double constant=42
@@ -465,7 +470,9 @@ message MessageSimpleTypes id=2
     // st_char   : t_char @9999// exactly same name
     st_float  : t_float @11
     st_double : t_double @12
-    // st_char_array   : t_char[123] // length not allowed here!
+//       st_char_array   : t_char[123] // length not allowed here!
+//       st_enum_array   : EnumChar[123] // length not allowed here!
+//       st_set_array   : Set32[123] // length not allowed here!
     arr_st_char  : array_char @13 // but you can refer to an array...
     arr_st_int32 : array_int32 @14
 }
@@ -473,7 +480,7 @@ message MessageSimpleTypes id=2
 message MessageEnums id=3
 {
     m_enum_char     : EnumChar @1
-    // m_array_enum_char     : EnumChar[3] @9999 // length is illegal in enum references
+//   m_array_enum_char     : EnumChar[3] @9999 // length is illegal in enumeration references
     m_enum_uint8    : EnumUint8 @ 2
     m_enum_uint16   : EnumUint16 @ 3
 }
@@ -482,6 +489,7 @@ message MessageSets id = 4
 {
     m_set_8     : Set8 @ 1
     m_set_16    : Set16 @ 2
+//   m_array_set_16     : Set16[3] @9999 // length is illegal in set references
     m_set_32    : Set32 @ 3
     m_set_64    : Set64 @ 4
 }
@@ -495,8 +503,8 @@ message MessageRanges id = 5
     m_int64_10_digit    : int64 @5 range = [-9999999999, 9999999999]
     // range specification errors -----------------------
 //   m_char_range_inverted    : char  @90000 range=['z', 'a']
-//   m_int_range_inverted     : char  @90001 range=[5, -1]
-//   m_uint_range_inverted    : char  @90002 range=[5, 0]
+//   m_int_range_inverted     : int8  @90001 range=[5, -1]
+//   m_uint_range_inverted    : uint8 @90002 range=[5, 0]
 //   m_int_max_out_of_range   : int8  @90003 range=[1, 128]
 //   m_uint_max_out_of_range  : uint8 @90004 range=[0, 256]
 //   m_int_min_out_of_range   : int8  @90005 range=[-129, 127]
@@ -518,13 +526,41 @@ message MessageRanges id = 5
     m_double : double @11 // TODO: support double range
     // ------------------------------------------------------
     // Ranges can NOT be applied to simple type references
-    m_t_char_lower      : t_char   @90007 range = ['a', 'z']
-    m_t_int8_2_digits   : t_int8   @90008 range = [-99, 99]
-    m_t_int16_4_digits  : t_int16  @90009 range = [-9999, 9999]
-    m_t_int32_6_digits  : t_int32  @90010 range = [-999999, 999999]
-    m_t_int64_10_digit  : t_int64  @90011 range = [-9999999999, 9999999999]
-    m_enum_range        : EnumChar @90012 range = ['a','z']
-    m_set_range         : Set16    @90013 range = [1, 5]
+//  m_t_char_lower      : t_char   @90007 range = ['a', 'z']
+//  m_t_int8_2_digits   : t_int8   @90008 range = [-99, 99]
+//  m_t_int16_4_digits  : t_int16  @90009 range = [-9999, 9999]
+//  m_t_int32_6_digits  : t_int32  @90010 range = [-999999, 999999]
+//  m_t_int64_10_digit  : t_int64  @90011 range = [-9999999999, 9999999999]
+//  m_enum_range        : EnumChar @90012 range = ['a','z']
+//  m_set_range         : Set16    @90013 range = [1, 5]
+}
+
+message MessagePresence id = 6
+{
+        // use default null value
+        primChar   : char @1 optional
+        primInt8   : int8 @2 optional
+        primInt16  : int16 @3 optional
+        primInt32  : int32 @4 optional
+        primInt64  : int64 @5 optional
+        primUint8  : uint8 @6 optional
+        primUint16 : uint16 @7 optional
+        primUint32 : uint32 @8 optional
+        primUint64 : uint64 @9 optional
+        primFloat  : float @10 optional
+        primDouble : double @11 optional
+        // constant presence -----------------------------
+        constChar   : char   @13 constant='a'
+        // FIXME: non-ascii literal should fail
+        // constDelta   : char   constant='Δ'
+//      constInt8   : int8   constant=127
+//      constInt16  : int16  constant=32767
+//      constInt32  : int32  constant=2147483647
+//      constInt64  : int64  constant=9223372036854775807 L
+//      constUint8  : uint8  constant=255
+//      constUint16 : uint16 constant=65535
+//      constUint32 : uint32 constant=4294967295
+//      constUint64 : uint64 constant=18446744073709551615
 }
 
 message MessageEverything id=9999
