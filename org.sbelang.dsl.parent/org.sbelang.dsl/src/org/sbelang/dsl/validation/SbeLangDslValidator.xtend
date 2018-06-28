@@ -203,7 +203,7 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     def checkField(FieldDeclaration field) {
         validateRangeModifiers(
             field.rangeModifiers,
-            field.presenceModifiers,
+            field.presence,
             field.primitiveType,
             field.fieldType,
             SbeLangDslPackage.Literals.FIELD_DECLARATION__RANGE_MODIFIERS

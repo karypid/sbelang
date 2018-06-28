@@ -310,7 +310,7 @@ class JavaDecodersGenerator {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
         if (field.primitiveType !== null) {
-            val presence = field.presenceModifiers
+            val presence = field.presence
             val constLiteral = if (presence instanceof PresenceConstantModifier) {
                     presence.constantValue
                 } else
@@ -331,7 +331,7 @@ class JavaDecodersGenerator {
         switch type {
             SimpleTypeDeclaration: {
                 val arrayLength = if(type.length === null) 1 else type.length
-                val presence = field.presenceModifiers
+                val presence = field.presence
                 val constLiteral = if (presence instanceof PresenceConstantModifier) {
                         presence.constantValue
                     } else

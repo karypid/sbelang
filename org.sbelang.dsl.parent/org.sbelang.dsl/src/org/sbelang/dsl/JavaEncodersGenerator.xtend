@@ -324,8 +324,8 @@ class JavaEncodersGenerator {
 
     private def generateEncoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
-        val constLiteral = if (field.presenceModifiers instanceof PresenceConstantModifier) {
-                (field.presenceModifiers as PresenceConstantModifier).constantValue
+        val constLiteral = if (field.presence instanceof PresenceConstantModifier) {
+                (field.presence as PresenceConstantModifier).constantValue
             } else
                 null
 
