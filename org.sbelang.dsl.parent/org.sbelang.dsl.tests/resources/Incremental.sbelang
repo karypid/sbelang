@@ -296,8 +296,6 @@ types
         primDouble : double optional
         // constant presence -----------------------------
         constChar   : char   constant='a'
-        // FIXME: non-ascii literal should fail
-        // constDelta   : char   constant='Δ'
         constInt8   : int8   constant=127
         constInt16  : int16  constant=32767
         constInt32  : int32  constant=2147483647
@@ -310,29 +308,50 @@ types
 //        constFloat  : float  constant=42
 //        constDouble : double constant=42
         //
-        // some illegal const value literals ------------
-//      int_for_char_const    : char constant=42
-//      char_for_uint8_const  : uint8 constant='x'
+        // some out-of-range value literals -------------
+        // constDelta   : char   constant='Δ' // non-ascii literal should fail
+//      constInt8LOutOfLowRange    : int8    constant = -129
+//      constInt8LOutOfHiRange     : int8    constant = 128
+//      constInt16LOutOfLowRange   : int16   constant = -32769
+//      constInt16LOutOfHiRange    : int16   constant = 32768
+//      constInt32LOutOfLowRange   : int32   constant = -2147483649
+//      constInt32LOutOfHiRange    : int32   constant = 2147483648
+//      constInt64LOutOfLowRange   : int64   constant = -9223372036854775809
+//      constInt64LOutOfHiRange    : int64   constant = 9223372036854775808
+//      constUint8LOutOfLowRange   : uint8   constant = -1
+//      constUint8LOutOfHiRange    : uint8   constant = 256
+//      constUint16LOutOfLowRange  : uint16  constant = -1
+//      constUint16LOutOfHiRange   : uint16  constant = 65536
+//      constUint32LOutOfLowRange  : uint32  constant = -1
+//      constUint32LOutOfHiRange   : uint32  constant = 4294967296
+//      constUint64LOutOfLowRange  : uint64  constant = -1
+//      constUint64LOutOfHiRange   : uint64  constant = 18446744073709551616
         //
         // override default null value
         nv_primChar   : char   nullValue='.'
-        nv_primInt8   : int8   nullValue=42
-        nv_primInt16  : int16  nullValue=42
-        nv_primInt32  : int32  nullValue=42
-        nv_primInt64  : int64  nullValue=42
-        nv_primUint8  : uint8  nullValue=42
-        nv_primUint16 : uint16 nullValue=42
-        nv_primUint32 : uint32 nullValue=42
-        nv_primUint64 : uint64 nullValue=42
+        nv_primInt8   : int8   nullValue=127
+        nv_primInt16  : int16  nullValue=32767
+        nv_primInt32  : int32  nullValue=2147483647
+        nv_primInt64  : int64  nullValue=9223372036854775807
+        nv_primUint8  : uint8  nullValue=255
+        nv_primUint16 : uint16 nullValue=65535
+        nv_primUint32 : uint32 nullValue=4294967295
+        nv_primUint64 : uint64 nullValue=18446744073709551615
 // TODO: support float/double constants
 //        nv_primFloat  : float nullValue=42
 //        nv_primDouble : double nullValue=42
-    // some illegal null value literals ------------
+//
+//
+//
+        // some illegal const value literals ------------
+//      int_for_char_const    : char constant=42
+//      char_for_uint8_const  : uint8 constant='x'
+        // some illegal null value literals ------------
 //      int_for_char_null     : char  nullValue=55
 //      char_for_int8_null    : int8  nullValue='x'
 //      char_for_uint8_null   : uint8 nullValue='x'
     /*
-     * The set of members below reference enumerations, sets and simple types.
+     * The composite members below reference enumerations, sets and simple types.
      * 
      * It is not possible to define presence for references to these types. For
      * simple types there is an alternative: just re-declare it as a member type
@@ -393,6 +412,9 @@ types
         m_ref_comp_sets     : CompSets
         m_ref_comp_prims   : CompPrimitives // reference composite
         m_ref_comp_simple   : CompSimpleTypes // reference composite
+        
+        m_ref_enum          : EnumUint16
+        m_ref_set           : Set32
     }
 
     // this is required to exist (composite with name messageHeader ; can be overwritten by schema's headerType)
@@ -537,41 +559,103 @@ message MessageRanges id = 5
 
 message MessagePresence id = 6
 {
-        // use default null value
-        primChar   : char @1 optional
-        primInt8   : int8 @2 optional
-        primInt16  : int16 @3 optional
-        primInt32  : int32 @4 optional
-        primInt64  : int64 @5 optional
-        primUint8  : uint8 @6 optional
-        primUint16 : uint16 @7 optional
-        primUint32 : uint32 @8 optional
-        primUint64 : uint64 @9 optional
-        primFloat  : float @10 optional
-        primDouble : double @11 optional
-        // constant presence -----------------------------
-        constChar   : char   @13 constant='a'
-        // FIXME: non-ascii literal should fail
-        // constDelta   : char   constant='Δ'
-//      constInt8   : int8   constant=127
-//      constInt16  : int16  constant=32767
-//      constInt32  : int32  constant=2147483647
-//      constInt64  : int64  constant=9223372036854775807 L
-//      constUint8  : uint8  constant=255
-//      constUint16 : uint16 constant=65535
-//      constUint32 : uint32 constant=4294967295
-//      constUint64 : uint64 constant=18446744073709551615
+    // use default null value
+    primChar   : char @1 optional
+    primInt8   : int8 @2 optional
+    primInt16  : int16 @3 optional
+    primInt32  : int32 @4 optional
+    primInt64  : int64 @5 optional
+    primUint8  : uint8 @6 optional
+    primUint16 : uint16 @7 optional
+    primUint32 : uint32 @8 optional
+    primUint64 : uint64 @9 optional
+    primFloat  : float @10 optional
+    primDouble : double @11 optional
+    // constant presence -----------------------------
+    constChar   : char   @12 constant='a'
+    constInt8   : int8   @13 constant=127
+    constInt16  : int16  @14 constant=32767
+    constInt32  : int32  @15 constant=2147483647
+    constInt64  : int64  @16 constant=9223372036854775807
+    constUint8  : uint8  @17 constant=255
+    constUint16 : uint16 @18 constant=65535
+    constUint32 : uint32 @19 constant=4294967295
+    constUint64 : uint64 @20 constant=18446744073709551615
+// TODO: support float/double constants
+//        constFloat  : float  @21 constant=42
+//        constDouble : double @22 constant=42
+    // some out-of-range value literals -------------
+//  constDelta                 : char    @90099 constant = 'Δ' // non-ascii literal should fail
+//  constInt8LOutOfLowRange    : int8    @90100 constant = -129
+//  constInt8LOutOfHiRange     : int8    @90101 constant = 128
+//  constInt16LOutOfLowRange   : int16   @90102 constant = -32769
+//  constInt16LOutOfHiRange    : int16   @90103 constant = 32768
+//  constInt32LOutOfLowRange   : int32   @90104 constant = -2147483649
+//  constInt32LOutOfHiRange    : int32   @90105 constant = 2147483648
+//  constInt64LOutOfLowRange   : int64   @90106 constant = -9223372036854775809
+//  constInt64LOutOfHiRange    : int64   @90107 constant = 9223372036854775808
+//  constUint8LOutOfLowRange   : uint8   @90108 constant = -1
+//  constUint8LOutOfHiRange    : uint8   @90109 constant = 256
+//  constUint16LOutOfLowRange  : uint16  @90110 constant = -1
+//  constUint16LOutOfHiRange   : uint16  @90111 constant = 65536
+//  constUint32LOutOfLowRange  : uint32  @90112 constant = -1
+//  constUint32LOutOfHiRange   : uint32  @90113 constant = 4294967296
+//  constUint64LOutOfLowRange  : uint64  @90114 constant = -1
+//  constUint64LOutOfHiRange   : uint64  @90115 constant = 18446744073709551616
+    //
+    // override default null value
+    nv_primChar   : char   @23 nullValue='.'
+    nv_primInt8   : int8   @24 nullValue=127
+    nv_primInt16  : int16  @25 nullValue=32767
+    nv_primInt32  : int32  @26 nullValue=2147483647
+    nv_primInt64  : int64  @27 nullValue=9223372036854775807
+    nv_primUint8  : uint8  @28 nullValue=255
+    nv_primUint16 : uint16 @29 nullValue=65535
+    nv_primUint32 : uint32 @30 nullValue=4294967295
+    nv_primUint64 : uint64 @31 nullValue=18446744073709551615
+//  TODO: support float/double constants
+//  nv_primFloat  : float @32 nullValue=42
+//  nv_primDouble : double @33 nullValue=42
+//
+//
+//
+    // some illegal const value literals ------------
+//  int_for_char_const    : char   @91001 constant=42
+//  char_for_uint8_const  : uint8  @91002 constant='x'
+    // some illegal null value literals ------------
+//  int_for_char_null     : char   @91003 nullValue=55
+//  char_for_int8_null    : int8   @91004 nullValue='x'
+//  char_for_uint8_null   : uint8  @91005 nullValue='x'
+    // types where presence  does not apply -------
+//  int_for_enum_null     : EnumChar @91005 nullValue = 1
+//  char_for_enum_null    : EnumChar @91005 nullValue = 'x'
+//  int_for_enum_const    : EnumChar @91005 constant = 1
+//  char_for_enum_const   : EnumChar @91005 constant = 'x'
+//  enum_optional         : EnumChar @91005 optional
+//  char_for_set_null     : Set32 @91005 nullValue = 'x'
+//  int_for_set_null      : Set16 @91005 nullValue = 1
+//  char_for_set_const    : Set32 @91005 constant = 'x'
+//  int_for_set_const     : Set16 @91005 constant = 1
+//  set_optional          : Set64 @91005 optional
+//  simple_type_constant  : t_uint8 @91005 constant = 42
+//  simple_type_nullValue : t_uint8 @91005 nullValue = 42
+//  simple_type_optional  : t_uint8 @91005 optional
 }
 
 message MessageEverything id=9999
 {
     m_prim_int          : int32           @1
     m_st_char           : t_char          @2
+
     m_ref_simple_array  : array_float     @3
+
     m_ref_comp_enum     : CompEnums       @4
     m_ref_comp_sets     : CompSets        @5
     m_ref_comp_prims    : CompPrimitives  @6
     m_ref_comp_simple   : CompSimpleTypes @7
     m_ref_comp_ranges   : CompRanges      @8
     m_ref_comp_presence : CompPresence    @9
+    
+    m_ref_enum          : EnumUint16      @10
+    m_ref_set           : Set32           @11
 }

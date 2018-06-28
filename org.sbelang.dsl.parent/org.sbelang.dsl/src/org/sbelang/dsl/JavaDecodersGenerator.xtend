@@ -374,8 +374,10 @@ class JavaDecodersGenerator {
         val optionalEndian = endianParam(memberValueWireType)
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
 
-        val constantLiteral = if(constLiteral === null) null else JavaGenerator.javaLiteral(sbePrimitiveType,
-                constLiteral)
+        val constantLiteral = if (constLiteral === null)
+                null
+            else
+                JavaGenerator.javaLiteral(sbePrimitiveType, constLiteral)
 
         '''
             // «memberVarName»

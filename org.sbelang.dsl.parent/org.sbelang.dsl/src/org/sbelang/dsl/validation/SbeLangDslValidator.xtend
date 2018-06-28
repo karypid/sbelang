@@ -60,42 +60,8 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     @Check
     def checkMemberType(MemberRefTypeDeclaration mtd) {
-        val presence = mtd.presence
-        switch mtd.type {
-            case null: {
-                switch presence {
-                    PresenceConstantModifier: {
-                        validatePresenceConstant(presence, mtd.primitiveType)
-                    }
-                    PresenceOptionalModifier: {
-                        if (!presence.isOptional) {
-                            validatePresenceNullValue(presence, mtd.primitiveType)
-                        }
-                    }
-                }
-            }
-            SetDeclaration: {
-                if (presence !== null)
-                    error(
-                        '''Presence cannot be applied to sets.''',
-                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE
-                    )
-            }
-            EnumDeclaration: {
-                if (presence !== null)
-                    error(
-                        '''Presence cannot be applied to enum.''',
-                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE
-                    )
-            }
-            SimpleTypeDeclaration: {
-                if (presence !== null)
-                    error(
-                        '''Presence cannot be applied to simple type reference. You should just use the primitive type [«(mtd.type as SimpleTypeDeclaration).primitiveType»] directy''',
-                        SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE
-                    )
-            }
-        }
+        validatePresenceModifiers(mtd.presence, mtd.type, mtd.primitiveType,
+            SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE)
     }
 
     @Check
@@ -208,6 +174,51 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             field.fieldType,
             SbeLangDslPackage.Literals.FIELD_DECLARATION__RANGE
         )
+        validatePresenceModifiers(
+            field.presence,
+            field.fieldType,
+            field.primitiveType,
+            SbeLangDslPackage.Literals.FIELD_DECLARATION__PRESENCE
+        )
+    }
+
+    private def validatePresenceModifiers(PresenceModifiers presence, TypeDeclaration type, String primitiveType,
+        EReference errorMarkerTarget) {
+        switch type {
+            case null: {
+                switch presence {
+                    PresenceConstantModifier: {
+                        validatePresenceConstant(presence, primitiveType)
+                    }
+                    PresenceOptionalModifier: {
+                        if (!presence.isOptional) {
+                            validatePresenceNullValue(presence, primitiveType)
+                        }
+                    }
+                }
+            }
+            SetDeclaration: {
+                if (presence !== null)
+                    error(
+                        '''Presence cannot be applied to sets.''',
+                        errorMarkerTarget
+                    )
+            }
+            EnumDeclaration: {
+                if (presence !== null)
+                    error(
+                        '''Presence cannot be applied to enum.''',
+                        errorMarkerTarget
+                    )
+            }
+            SimpleTypeDeclaration: {
+                if (presence !== null)
+                    error(
+                        '''Presence cannot be applied to simple type reference. You should just use the primitive type [«(type as SimpleTypeDeclaration).primitiveType»] directy''',
+                        errorMarkerTarget
+                    )
+            }
+        }
     }
 
     private def validateRangeModifiers(RangeModifiers range, PresenceModifiers presence, String primitiveType,
