@@ -9,9 +9,11 @@ import java.nio.file.Paths
 import org.sbelang.dsl.generator.intermediate.FieldIndex
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.SbeUtils
+import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
@@ -236,11 +238,144 @@ class JavaDecodersGenerator {
     // -----------------------------------------------------------------------------
     // Code for generating message decoders
     // -----------------------------------------------------------------------------
-    // TODO: implement this
+    def generateMessageDecoder(BlockDeclaration block) {
+        val blockName = block.name.toFirstUpper + 'Decoder'
+        val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
+        '''
+            package  «parsedSchema.schemaName»;
+            
+            import org.agrona.MutableDirectBuffer;
+            
+            public class «blockName»
+            {
+                public static final int TEMPLATE_ID = «block.id»;
+                public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
+                
+                private MutableDirectBuffer buffer;
+                private int offset;
+                private int limit;
+                
+                public int sbeBlockLength()
+                {
+                    return BLOCK_LENGTH;
+                }
+                
+                public int sbeTemplateId()
+                {
+                    return TEMPLATE_ID;
+                }
+                
+                public int sbeSchemaId()
+                {
+                    return MessageSchema.SCHEMA_ID;
+                }
+                
+                public int sbeSchemaVersion()
+                {
+                    return MessageSchema.SCHEMA_VERSION;
+                }
+                
+                public «blockName» wrap( final MutableDirectBuffer buffer, final int offset )
+                {
+                    this.buffer = buffer;
+                    this.offset = offset;
+                    
+                    return this;
+                }
+                
+                public MutableDirectBuffer buffer()
+                {
+                    return buffer;
+                }
+                
+                public int offset()
+                {
+                    return offset;
+                }
+                
+                public int encodedLength()
+                {
+                    return limit - offset;
+                }
+                
+                public int limit()
+                {
+                    return limit;
+                }
+                
+                public void limit(final int limit)
+                {
+                    this.limit = limit;
+                }
+                
+                «FOR field : block.fieldDeclarations»
+                    «generateDecoderForBlockField(block, field)»
+                «ENDFOR»
+            }
+        '''
+    }
+
+    private def generateDecoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
+        val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
+
+        if (field.primitiveType !== null) {
+            val presence = field.presenceModifiers
+            val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                    presence.constantValue
+                } else
+                    null
+            return generateDecoderCodeForPrimitiveData(
+                block.name.toFirstUpper + "Decoder",
+                field.name,
+                field.primitiveType,
+                fieldIndex.getOffset(field.name),
+                fieldIndex.getOctectLength(field.name),
+                /* Fixed array length of ONE because fields can't have length */ 1,
+                constLiteral
+            )
+        }
+
+        val type = field.fieldType
+
+        switch type {
+            SimpleTypeDeclaration: {
+                val arrayLength = if(type.length === null) 1 else type.length
+                val presence = field.presenceModifiers
+                val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                        presence.constantValue
+                    } else
+                        null
+                generateDecoderCodeForPrimitiveData(
+                    block.name.toFirstUpper + "Decoder",
+                    field.name,
+                    type.primitiveType,
+                    fieldIndex.getOffset(field.name),
+                    fieldIndex.getOctectLength(field.name),
+                    arrayLength,
+                    constLiteral
+                )
+            }
+            EnumDeclaration:
+                generateDecoderCodeForEnumerationData(
+                    block.name,
+                    type,
+                    field.name.toFirstLower,
+                    parsedSchema.getBlockFieldIndex(block.name)
+                )
+            SetDeclaration:
+                generateDecoderCodeForSetData(type, field.name.toFirstLower,
+                    parsedSchema.getBlockFieldIndex(block.name))
+            CompositeTypeDeclaration:
+                generateDecoderCodeForCompositeData(type, field.name.toFirstLower,
+                    parsedSchema.getBlockFieldIndex(block.name))
+            default: '''// TODO: ???? - «field.name» : «type.name»'''
+        }
+    }
+
     // -----------------------------------------------------------------------------
     // Common code fragment templates used for both composites and  blocks
     // -----------------------------------------------------------------------------
-    private def generateDecoderCodeForPrimitiveData(String ownerCompositeEncoderClass, String memberVarName,
+    private def generateDecoderCodeForPrimitiveData(String ownerCompositeDecoderClass, String memberVarName,
         String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constantLiteral) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)

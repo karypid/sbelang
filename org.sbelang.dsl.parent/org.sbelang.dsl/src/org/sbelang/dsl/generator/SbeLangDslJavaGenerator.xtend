@@ -58,9 +58,10 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
             )
         ]
         parsedSchema.forAllMessages [ bd |
-            fsa.generateFile(encodersGenerator.filename(bd.name.toFirstUpper + "Decoder.java"), '''
-                // FIXME
-            ''')
+            fsa.generateFile(
+                decodersGenerator.filename(bd.name.toFirstUpper + "Decoder.java"),
+                decodersGenerator.generateMessageDecoder(bd)
+            )
         ]
     }
 }
