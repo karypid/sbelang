@@ -3,7 +3,6 @@
  */
 package org.sbelang.dsl.formatting2
 
-import com.google.inject.Inject
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
 import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
@@ -18,11 +17,10 @@ import org.sbelang.dsl.sbeLangDsl.RawVariableDataDeclaration
 import org.sbelang.dsl.sbeLangDsl.SchemaDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
-import org.sbelang.dsl.services.SbeLangDslGrammarAccess
 
 class SbeLangDslFormatter extends AbstractFormatter2 {
 
-    @Inject extension SbeLangDslGrammarAccess
+//    @Inject extension SbeLangDslGrammarAccess
 
     def dispatch void format(MessageSchema messageSchema, extension IFormattableDocument document) {
         val typesOpen = messageSchema.regionFor.keyword("{")

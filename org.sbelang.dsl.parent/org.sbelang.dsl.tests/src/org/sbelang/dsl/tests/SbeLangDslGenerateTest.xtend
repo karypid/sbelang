@@ -71,7 +71,6 @@ class SbeLangDslGenerateTest {
         g.doGenerate(resource, fsa, ctx)
         g.afterGenerate(resource, fsa, ctx)
 
-        System.out.println(fsa.textFiles.keySet)
         Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('MessageSchema')))
         Assert.assertNotNull(fsa.textFiles.get(getPackageFilename('DATAEncoder')))
     }

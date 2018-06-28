@@ -9,12 +9,13 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.sbelang.dsl.SbeLangDslStandaloneSetup
+import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.Parser
 import org.sbelang.dsl.sbeLangDsl.MessageSchema
-import org.sbelang.dsl.generator.intermediate.ParsedSchema
 
 @RunWith(XtextRunner)
 @InjectWith(SbeLangDslInjectorProvider)
@@ -28,6 +29,9 @@ class SbeLangDslIntermediateParserTest {
         val messageSchema = resource.getEObject("/") as MessageSchema
 
         val ParsedSchema parsedSchema = Parser.parse(messageSchema);
+
+        Assert.assertNotNull(parsedSchema)
+
     }
 
 }
