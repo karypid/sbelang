@@ -76,14 +76,13 @@ class JavaEncodersGenerator {
                 }
                 
                 «FOR cm : ctd.compositeMembers»
-                    «generateComposite_CompositeMember_Encoder(ctd, cm)»
+                    «generateEncoderCodeForCompositeData(ctd, cm)»
                 «ENDFOR»
             }
         '''
     }
 
-    private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
-        CompositeMember member) {
+    private def generateEncoderCodeForCompositeData(CompositeTypeDeclaration ownerComposite, CompositeMember member) {
         switch member {
             MemberRefTypeDeclaration: {
                 if (member.primitiveType !== null) {
@@ -118,8 +117,11 @@ class JavaEncodersGenerator {
                                 parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                             )
                         CompositeTypeDeclaration:
-                            generateComposite_CompositeMember_Encoder(ownerComposite, memberType,
-                                member.name.toFirstLower)
+                            generateEncoderCodeForCompositeData(
+                                memberType,
+                                member.name.toFirstLower,
+                                parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                            )
                         default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class .name» */'''
                     }
                 } else
@@ -127,7 +129,11 @@ class JavaEncodersGenerator {
             }
             // all inline declarations below --------------------
             CompositeTypeDeclaration:
-                generateComposite_CompositeMember_Encoder(ownerComposite, member, member.name.toFirstLower)
+                generateEncoderCodeForCompositeData(
+                    member,
+                    member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                )
             EnumDeclaration:
                 // val ownerEncoderClassName = ownerComposite.name.toFirstUpper + 'Encoder'
                 generateEncoderCodeForEnumerationData(ownerComposite.name, member, member.name.toFirstLower,
@@ -142,37 +148,6 @@ class JavaEncodersGenerator {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
         }
-    }
-
-    private def generateComposite_CompositeMember_Encoder(CompositeTypeDeclaration ownerComposite,
-        CompositeTypeDeclaration member, String memberVarName) {
-
-        val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
-        val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-        val fieldOffset = fieldIndex.getOffset(memberVarName)
-        val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
-
-        '''
-            // «memberEncoderClass»
-            public static int «memberVarName»EncodingOffset()
-            {
-                return «fieldOffset»;
-            }
-            
-            public static int «memberVarName»EncodingLength()
-            {
-                return «fieldEncodingLength»;
-            }
-            
-            private «memberEncoderClass» «memberVarName» = new «memberEncoderClass»();
-            
-            public «memberEncoderClass» «memberVarName»()
-            {
-                «memberVarName».wrap(buffer, offset + «fieldOffset» );
-                return «memberVarName»;
-            }
-            
-        '''
     }
 
     def generateSetEncoder(SetDeclaration sd) {
@@ -375,7 +350,9 @@ class JavaEncodersGenerator {
             SetDeclaration:
                 generateEncoderCodeForSetData(type, field.name.toFirstLower,
                     parsedSchema.getBlockFieldIndex(block.name))
-            CompositeTypeDeclaration: '''// TODO: composite -  «field.name» : «type.name»'''
+            CompositeTypeDeclaration:
+                generateEncoderCodeForCompositeData(type, field.name.toFirstLower,
+                    parsedSchema.getBlockFieldIndex(block.name))
             default: '''// TODO: ???? - «field.name» : «type.name»'''
         }
     }
@@ -500,6 +477,36 @@ class JavaEncodersGenerator {
             public «setEncoderClassName» «memberVarName»()
             {
                 «memberVarName».wrap(buffer, offset + «fieldOffset»);
+                return «memberVarName»;
+            }
+            
+        '''
+    }
+
+    private def generateEncoderCodeForCompositeData(CompositeTypeDeclaration member, String memberVarName,
+        FieldIndex fieldIndex) {
+
+        val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
+        val fieldOffset = fieldIndex.getOffset(memberVarName)
+        val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
+
+        '''
+            // «memberEncoderClass»
+            public static int «memberVarName»EncodingOffset()
+            {
+                return «fieldOffset»;
+            }
+            
+            public static int «memberVarName»EncodingLength()
+            {
+                return «fieldEncodingLength»;
+            }
+            
+            private final «memberEncoderClass» «memberVarName» = new «memberEncoderClass»();
+            
+            public «memberEncoderClass» «memberVarName»()
+            {
+                «memberVarName».wrap(buffer, offset + «fieldOffset» );
                 return «memberVarName»;
             }
             
