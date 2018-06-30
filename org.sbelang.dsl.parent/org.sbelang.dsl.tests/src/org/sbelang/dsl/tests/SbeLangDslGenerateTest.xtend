@@ -20,7 +20,7 @@ import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.sbelang.dsl.SbeLangDslStandaloneSetup
-import org.sbelang.dsl.generator.SbeLangDslJavaGenerator
+import org.sbelang.dsl.generator.java.SbeLangDslJavaGenerator
 import org.sbelang.dsl.generator.SbeLangDslXmlGenerator
 
 @RunWith(XtextRunner)

@@ -8,6 +8,7 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import com.google.inject.Inject
+import org.sbelang.dsl.generator.java.SbeLangDslJavaGenerator
 
 /**
  * Generates code from your model files on save.

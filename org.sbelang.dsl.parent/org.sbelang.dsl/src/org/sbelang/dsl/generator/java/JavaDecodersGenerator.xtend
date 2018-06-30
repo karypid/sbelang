@@ -2,29 +2,29 @@
  * Copyright (C) by Alexandros Karypidis
  * Created on 22 Jun 2018
  */
-package org.sbelang.dsl.generator
+package org.sbelang.dsl.generator.java
 
 import java.io.File
 import java.nio.file.Paths
+import org.sbelang.dsl.generator.intermediate.FieldIndex
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.SbeUtils
 import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
-import org.sbelang.dsl.generator.intermediate.FieldIndex
-import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 
 /**
  * @author karypid
  * 
  */
-class JavaEncodersGenerator {
+class JavaDecodersGenerator {
     val ParsedSchema parsedSchema
     val String packagePath
 
@@ -42,29 +42,26 @@ class JavaEncodersGenerator {
     }
 
     // -----------------------------------------------------------------------------
-    // Code for generating set encoders
+    // Code for generating set decoders
     // -----------------------------------------------------------------------------
-    def generateSetEncoder(SetDeclaration sd) {
+    def generateSetDecoder(SetDeclaration sd) {
         val setName = sd.name.toFirstUpper
-        val setEncoderName = setName + 'Encoder'
-        val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
+        val setDecoderName = setName + 'Decoder'
         val setEncodingOctetLength = SbeUtils.getPrimitiveTypeOctetLength(sd.encodingType)
-        val optionalEndian = endianParam(setJavaType)
-        val putSetter = 'put' + setJavaType.toFirstUpper
 
         '''
             package  «parsedSchema.schemaName»;
             
-            import org.agrona.MutableDirectBuffer;
+            import org.agrona.DirectBuffer;
             
-            public class «setEncoderName»
+            public class «setDecoderName»
             {
                 public static final int ENCODED_LENGTH = «setEncodingOctetLength»;
                 
-                private MutableDirectBuffer buffer;
+                private DirectBuffer buffer;
                 private int offset;
                 
-                public «setEncoderName» wrap( final MutableDirectBuffer buffer, final int offset )
+                public «setDecoderName» wrap( final DirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -72,7 +69,7 @@ class JavaEncodersGenerator {
                     return this;
                 }
                 
-                public MutableDirectBuffer buffer()
+                public DirectBuffer buffer()
                 {
                     return buffer;
                 }
@@ -87,67 +84,55 @@ class JavaEncodersGenerator {
                     return ENCODED_LENGTH;
                 }
                 
-                public «setEncoderName» clear()
-                {
-                    buffer.«putSetter»( offset, («setJavaType») 0«optionalEndian» );
-                    return this;
-                }
-                
                 «FOR setChoice : sd.setChoices»
                     // choice: «setChoice.name»
-                    «generateSetChoiceEncoder(sd, setChoice)»
+                    «generateSetChoiceDecoder(sd, setChoice)»
                     
                 «ENDFOR»
             }
         '''
     }
 
-    private def generateSetChoiceEncoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
-        val setName = sd.name.toFirstUpper
-        val setEncoderName = setName + 'Encoder'
+    private def generateSetChoiceDecoder(SetDeclaration sd, SetChoiceDeclaration setChoice) {
         val setChoiceName = setChoice.name.toFirstLower
         val setJavaType = JavaGenerator.primitiveToJavaWireType(sd.encodingType)
-        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
-        val optionalEndian = endianParam(setJavaType)
         val getFetcher = 'get' + setJavaType.toFirstUpper
-        val putSetter = 'put' + setJavaType.toFirstUpper
+        val optionalEndian = endianParam(setJavaType)
+        val constOne = if (setJavaType === 'long') '''1L''' else '''1'''
         val bitPos = setChoice.value
 
         '''
-            public «setEncoderName» «setChoiceName»( final boolean value )
+            public boolean «setChoiceName»()
             {
-                «setJavaType» bits = buffer.«getFetcher»( offset«optionalEndian» );
-                bits = («setJavaType») ( value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
-                buffer.«putSetter»( offset, bits«optionalEndian» );
-                return this;
+                return 0 !=  ( buffer.«getFetcher»( offset«optionalEndian» ) & («constOne» << «bitPos») );
             }
             
-            public static «setJavaType» «setChoiceName»( final short bits, final boolean value )
+            public static boolean «setChoiceName»( final «setJavaType» value )
             {
-                return («setJavaType») (value ? bits | («constOne» << «bitPos») : bits & ~(«constOne» << «bitPos») );
+                return 0 !=  ( value & («constOne» << «bitPos») );
             }
         '''
     }
 
     // -----------------------------------------------------------------------------
-    // Code for generating composite encoders
+    // Code for generating composite decoders
     // -----------------------------------------------------------------------------
-    def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
-        val compositeName = ctd.name.toFirstUpper + 'Encoder'
+    def generateCompositeDecoder(CompositeTypeDeclaration ctd) {
+        val compositeName = ctd.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
         '''
             package  «parsedSchema.schemaName»;
             
-            import org.agrona.MutableDirectBuffer;
+            import org.agrona.DirectBuffer;
             
             public class «compositeName»
             {
                 public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 
                 private int offset;
-                private MutableDirectBuffer buffer;
+                private DirectBuffer buffer;
                 
-                public «compositeName» wrap( final MutableDirectBuffer buffer, final int offset )
+                public «compositeName» wrap( final DirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -155,7 +140,7 @@ class JavaEncodersGenerator {
                     return this;
                 }
                 
-                public MutableDirectBuffer buffer()
+                public DirectBuffer buffer()
                 {
                     return buffer;
                 }
@@ -171,74 +156,73 @@ class JavaEncodersGenerator {
                 }
                 
                 «FOR cm : ctd.compositeMembers»
-                    «generateEncoderCodeForCompositeData(ctd, cm)»
+                    «generateComposite_CompositeMember_Decoder(ctd, cm)»
                 «ENDFOR»
             }
         '''
     }
 
-    private def generateEncoderCodeForCompositeData(CompositeTypeDeclaration ownerComposite, CompositeMember member) {
+    private def generateComposite_CompositeMember_Decoder(CompositeTypeDeclaration ownerComposite,
+        CompositeMember member) {
         switch member {
             MemberRefTypeDeclaration: {
                 val memberVarName = member.name.toFirstLower
-                val ownerCompositeEncoderClass = ownerComposite.name.toFirstUpper + 'Encoder'
+                val ownerCompositeDecoderClass = ownerComposite.name.toFirstUpper + 'Decoder'
                 val fieldIndex = parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                 val fieldOffset = fieldIndex.getOffset(member.name)
                 val fieldOctetLength = fieldIndex.getOctectLength(member.name)
-                val constLiteral = if (member.presence instanceof PresenceConstantModifier) {
-                        (member.presence as PresenceConstantModifier).constantValue
+                val presence = member.presence
+                val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                        presence.constantValue
                     } else
                         null
 
                 if (member.primitiveType !== null) {
                     val arrayLength = if(member.length === null) 1 else member.length
-                    generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName,
+                    generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName,
                         member.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                 } else if (member.type !== null) {
                     val memberType = member.type
                     switch memberType {
                         SimpleTypeDeclaration: {
                             val arrayLength = if(memberType.length === null) 1 else memberType.length
-                            generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName,
+                            generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName,
                                 memberType.primitiveType, fieldOffset, fieldOctetLength, arrayLength, constLiteral)
                         }
                         EnumDeclaration:
-                            generateEncoderCodeForEnumerationData(ownerComposite.name, memberType,
-                                member.name.toFirstLower, parsedSchema.getCompositeFieldIndex(ownerComposite.name))
+                            generateDecoderCodeForEnumerationData(
+                                ownerComposite.name,
+                                memberType,
+                                member.name.toFirstLower,
+                                parsedSchema.getCompositeFieldIndex(ownerComposite.name)
+                            )
                         SetDeclaration:
-                            generateEncoderCodeForSetData(
+                            generateDecoderCodeForSetData(
                                 memberType,
                                 member.name.toFirstLower,
                                 parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                             )
                         CompositeTypeDeclaration:
-                            generateEncoderCodeForCompositeData(
+                            generateDecoderCodeForCompositeData(
                                 memberType,
                                 member.name.toFirstLower,
                                 parsedSchema.getCompositeFieldIndex(ownerComposite.name)
                             )
-                        default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class .name» */'''
+                        default: ''' /* TODO: reference to non-primitive - «member.toString» : «memberType.name» «memberType.class.name» */'''
                     }
                 } else
                     ''' /* TODO: «member.toString» */'''
             }
             // all inline declarations below --------------------
             CompositeTypeDeclaration:
-                generateEncoderCodeForCompositeData(
-                    member,
-                    member.name.toFirstLower,
-                    parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-                )
+                generateDecoderCodeForCompositeData(member, member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             EnumDeclaration:
-                // val ownerEncoderClassName = ownerComposite.name.toFirstUpper + 'Encoder'
-                generateEncoderCodeForEnumerationData(ownerComposite.name, member, member.name.toFirstLower,
+                generateDecoderCodeForEnumerationData(ownerComposite.name, member, member.name.toFirstLower,
                     parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             SetDeclaration:
-                generateEncoderCodeForSetData(
-                    member,
-                    member.name.toFirstLower,
-                    parsedSchema.getCompositeFieldIndex(ownerComposite.name)
-                )
+                generateDecoderCodeForSetData(member, member.name.toFirstLower,
+                    parsedSchema.getCompositeFieldIndex(ownerComposite.name))
             default: {
                 ''' /* NOT IMPLEMENTED YET: «member.toString» */'''
             }
@@ -246,10 +230,10 @@ class JavaEncodersGenerator {
     }
 
     // -----------------------------------------------------------------------------
-    // Code for generating message encoders
+    // Code for generating message decoders
     // -----------------------------------------------------------------------------
-    def generateMessageEncoder(BlockDeclaration block) {
-        val blockName = block.name.toFirstUpper + 'Encoder'
+    def generateMessageDecoder(BlockDeclaration block) {
+        val blockName = block.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
         '''
             package  «parsedSchema.schemaName»;
@@ -319,22 +303,23 @@ class JavaEncodersGenerator {
                 }
                 
                 «FOR field : block.fieldDeclarations»
-                    «generateEncoderForBlockField(block, field)»
+                    «generateDecoderForBlockField(block, field)»
                 «ENDFOR»
             }
         '''
     }
 
-    private def generateEncoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
+    private def generateDecoderForBlockField(BlockDeclaration block, FieldDeclaration field) {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
-        val constLiteral = if (field.presence instanceof PresenceConstantModifier) {
-                (field.presence as PresenceConstantModifier).constantValue
-            } else
-                null
 
         if (field.primitiveType !== null) {
-            return generateEncoderCodeForPrimitiveData(
-                block.name.toFirstUpper + "Encoder",
+            val presence = field.presence
+            val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                    presence.constantValue
+                } else
+                    null
+            return generateDecoderCodeForPrimitiveData(
+                block.name.toFirstUpper + "Decoder",
                 field.name,
                 field.primitiveType,
                 fieldIndex.getOffset(field.name),
@@ -349,8 +334,13 @@ class JavaEncodersGenerator {
         switch type {
             SimpleTypeDeclaration: {
                 val arrayLength = if(type.length === null) 1 else type.length
-                generateEncoderCodeForPrimitiveData(
-                    block.name.toFirstUpper + "Encoder",
+                val presence = field.presence
+                val constLiteral = if (presence instanceof PresenceConstantModifier) {
+                        presence.constantValue
+                    } else
+                        null
+                generateDecoderCodeForPrimitiveData(
+                    block.name.toFirstUpper + "Decoder",
                     field.name,
                     type.primitiveType,
                     fieldIndex.getOffset(field.name),
@@ -360,17 +350,17 @@ class JavaEncodersGenerator {
                 )
             }
             EnumDeclaration:
-                generateEncoderCodeForEnumerationData(
+                generateDecoderCodeForEnumerationData(
                     block.name,
                     type,
                     field.name.toFirstLower,
                     parsedSchema.getBlockFieldIndex(block.name)
                 )
             SetDeclaration:
-                generateEncoderCodeForSetData(type, field.name.toFirstLower,
+                generateDecoderCodeForSetData(type, field.name.toFirstLower,
                     parsedSchema.getBlockFieldIndex(block.name))
             CompositeTypeDeclaration:
-                generateEncoderCodeForCompositeData(type, field.name.toFirstLower,
+                generateDecoderCodeForCompositeData(type, field.name.toFirstLower,
                     parsedSchema.getBlockFieldIndex(block.name))
             default: '''// TODO: ???? - «field.name» : «type.name»'''
         }
@@ -379,14 +369,12 @@ class JavaEncodersGenerator {
     // -----------------------------------------------------------------------------
     // Common code fragment templates used for both composites and  blocks
     // -----------------------------------------------------------------------------
-    private def generateEncoderCodeForPrimitiveData(String ownerCompositeEncoderClass, String memberVarName,
+    private def generateDecoderCodeForPrimitiveData(String ownerCompositeDecoderClass, String memberVarName,
         String sbePrimitiveType, int fieldOffset, int fieldOctetLength, int arrayLength, String constLiteral) {
         val memberValueParamType = JavaGenerator.primitiveToJavaDataType(sbePrimitiveType)
         val memberValueWireType = JavaGenerator.primitiveToJavaWireType(sbePrimitiveType)
-        val putSetter = 'put' + memberValueWireType.toFirstUpper
+        val getFetcher = 'get' + memberValueWireType.toFirstUpper
         val optionalEndian = endianParam(memberValueWireType)
-        val value = if (memberValueWireType ==
-                memberValueParamType) '''value''' else '''(«memberValueWireType») value'''
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
 
         val constantLiteral = if (constLiteral === null)
@@ -407,17 +395,14 @@ class JavaEncodersGenerator {
             }
             
             «IF constantLiteral !== null»
-                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
+                public «memberValueParamType» «memberVarName»()
                 {
-                    if ( value != «constantLiteral» )
-                        throw new IllegalArgumentException("This is a constant not transmitted on the wire; legal value is only: «constLiteral»");
-                    return this;
+                    return «constantLiteral»;
                 }
             «ELSEIF arrayLength <= 1»
-                public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
+                public «memberValueParamType» «memberVarName»()
                 {
-                    buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
-                    return this;
+                    return buffer.«getFetcher»( offset + «fieldOffset» «optionalEndian»);
                 }
             «ELSE»
                 public static int «memberVarName»Length()
@@ -425,7 +410,7 @@ class JavaEncodersGenerator {
                     return «arrayLength»;
                 }
                 
-                public «ownerCompositeEncoderClass» «memberVarName»( final int index, final «memberValueParamType» value )
+                public «memberValueParamType» «memberVarName»( final int index )
                 {
                     if (index < 0 || index >= «arrayLength»)
                     {
@@ -433,45 +418,52 @@ class JavaEncodersGenerator {
                     }
                     
                     final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
-                    buffer.«putSetter»(pos, «value» «optionalEndian»);
-                    return this;
+                    return buffer.«getFetcher»(pos «optionalEndian»);
                 }
                 «IF sbePrimitiveType == 'char'»
                     
-                    public «ownerCompositeEncoderClass» put«memberVarName.toFirstUpper»( final byte[] src, final int srcOffset )
+                    public int get«memberVarName.toFirstUpper»( final byte[] dst, final int dstOffset )
                     {
                         final int length = «arrayLength»;
-                        if (srcOffset < 0 || srcOffset > (src.length - length))
+                        if (dstOffset < 0 || dstOffset > (dst.length - length))
                         {
-                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + srcOffset);
+                            throw new IndexOutOfBoundsException("Copy will go out of range: offset=" + dstOffset);
                         }
                         
-                        buffer.putBytes(this.offset + «fieldOffset», src, srcOffset, length);
+                        buffer.getBytes(this.offset + «fieldOffset», dst, dstOffset, length);
                         
-                        return this;
+                        return length;
                     }
                 «ENDIF»
             «ENDIF»
             
         '''
+
         if (extensions === null)
             defaultCode
         else {
-            val extensionExtras = extensions.generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass,
+            val extensionExtras = extensions.generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass,
                 memberVarName, sbePrimitiveType, fieldOffset, fieldOctetLength, arrayLength, constantLiteral)
             defaultCode + extensionExtras
         }
     }
 
-    private def generateEncoderCodeForEnumerationData(String ownerName, EnumDeclaration enumMember,
+    private def generateDecoderCodeForEnumerationData(String ownerName, EnumDeclaration enumMember,
         String memberVarName, FieldIndex fieldIndex) {
-        val ownerEncoderClassName = ownerName.toFirstUpper + 'Encoder'
+
         val fieldOffset = fieldIndex.getOffset(enumMember.name)
 
         val memberEnumType = enumMember.name.toFirstUpper
-        val memberEnumEncodingJavaType = JavaGenerator.primitiveToJavaWireType(enumMember.encodingType)
-        val putSetter = 'put' + memberEnumEncodingJavaType.toFirstUpper
-        val optionalEndian = endianParam(memberEnumEncodingJavaType)
+        val memberEnumJavaWireType = JavaGenerator.primitiveToJavaWireType(enumMember.encodingType)
+        val memberEnumJavaDataType = JavaGenerator.primitiveToJavaDataType(enumMember.encodingType)
+        val getFetcher = 'get' + memberEnumJavaWireType.toFirstUpper
+        val optionalEndian = endianParam(memberEnumJavaWireType)
+
+        val mask = enumAllBitsMask(enumMember.encodingType)
+        val maskStart = if (mask == '') '''''' else '''('''
+        val maskEnd = if (mask == '') '''''' else ''' & «mask»)'''
+
+        val cast = if (memberEnumJavaWireType !== memberEnumJavaDataType) '''(«memberEnumJavaDataType»)'''
 
         '''
             // «enumMember.name»
@@ -485,17 +477,16 @@ class JavaEncodersGenerator {
                 return «fieldIndex.getOctectLength(enumMember.name)»;
             }
             
-            public «ownerEncoderClassName» «memberVarName»( final «memberEnumType» value )
+            public «memberEnumType» «memberVarName»()
             {
-                buffer.«putSetter»( offset + «fieldOffset», («memberEnumEncodingJavaType») value.value() «optionalEndian»);
-                return this;
+                return «memberEnumType».get( «cast» «maskStart»buffer.«getFetcher»( offset + «fieldOffset»«optionalEndian»)«maskEnd» );
             }
             
         '''
     }
 
-    private def generateEncoderCodeForSetData(SetDeclaration setMember, String memberVarName, FieldIndex fieldIndex) {
-        val setEncoderClassName = setMember.name.toFirstUpper + 'Encoder'
+    private def generateDecoderCodeForSetData(SetDeclaration setMember, String memberVarName, FieldIndex fieldIndex) {
+        val setDecoderClassName = setMember.name.toFirstUpper + 'Decoder'
         val fieldOffset = fieldIndex.getOffset(setMember.name)
 
         '''
@@ -510,9 +501,9 @@ class JavaEncodersGenerator {
                 return «fieldIndex.getOctectLength(setMember.name)»;
             }
             
-            private final «setEncoderClassName» «memberVarName» = new «setEncoderClassName»();
+            private final «setDecoderClassName» «memberVarName» = new «setDecoderClassName»();
             
-            public «setEncoderClassName» «memberVarName»()
+            public «setDecoderClassName» «memberVarName»()
             {
                 «memberVarName».wrap(buffer, offset + «fieldOffset»);
                 return «memberVarName»;
@@ -521,15 +512,15 @@ class JavaEncodersGenerator {
         '''
     }
 
-    private def generateEncoderCodeForCompositeData(CompositeTypeDeclaration member, String memberVarName,
+    private def generateDecoderCodeForCompositeData(CompositeTypeDeclaration member, String memberVarName,
         FieldIndex fieldIndex) {
 
-        val memberEncoderClass = member.name.toFirstUpper + 'Encoder'
+        val memberDecoderClass = member.name.toFirstUpper + 'Decoder'
         val fieldOffset = fieldIndex.getOffset(memberVarName)
         val fieldEncodingLength = fieldIndex.getOctectLength(memberVarName)
 
         '''
-            // «memberEncoderClass»
+            // «memberDecoderClass»
             public static int «memberVarName»EncodingOffset()
             {
                 return «fieldOffset»;
@@ -540,9 +531,9 @@ class JavaEncodersGenerator {
                 return «fieldEncodingLength»;
             }
             
-            private final «memberEncoderClass» «memberVarName» = new «memberEncoderClass»();
+            private «memberDecoderClass» «memberVarName» = new «memberDecoderClass»();
             
-            public «memberEncoderClass» «memberVarName»()
+            public «memberDecoderClass» «memberVarName»()
             {
                 «memberVarName».wrap(buffer, offset + «fieldOffset» );
                 return «memberVarName»;
@@ -551,9 +542,23 @@ class JavaEncodersGenerator {
         '''
     }
 
-// java utils ----------------------------------------------------
+    // java utils ----------------------------------------------------
     private def endianParam(String primitiveJavaType) {
         if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
+    }
+
+    private def enumAllBitsMask(String sbeEnumEncodingType) {
+        switch (sbeEnumEncodingType) {
+            case 'char':
+                ''
+            case 'uint8':
+                '0xFF'
+            case 'uint16':
+                '0xFFFF'
+            default:
+                throw new IllegalStateException('Why would you need this? Enums should not be of type: ' +
+                    sbeEnumEncodingType)
+        }
     }
 
     // other utils ---------------------------------------------------

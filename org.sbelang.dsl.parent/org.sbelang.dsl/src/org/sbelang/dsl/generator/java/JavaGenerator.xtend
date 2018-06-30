@@ -2,7 +2,7 @@
  * Copyright (C) by Alexandros Karypidis
  * Created on 27 Jun 2018
  */
-package org.sbelang.dsl.generator
+package org.sbelang.dsl.generator.java
 
 import java.math.BigInteger
 import java.nio.ByteOrder

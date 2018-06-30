@@ -2,7 +2,7 @@
  * Copyright (C) by Alexandros Karypidis
  * Created on 28 Jun 2018
  */
-package org.sbelang.dsl.generator;
+package org.sbelang.dsl.generator.java;
 
 /**
  * @author karypid
