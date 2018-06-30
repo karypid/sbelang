@@ -58,7 +58,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                     package="«parsedSchema.schemaName»"
                     id="«parsedSchema.schemaId»" version="«parsedSchema.schemaVersion»"«xmlHeaderTypeAttribute»«xmlByteOrderAttribute»>
                     
-                    <types>
+                    <sbe:types>
                         «FOR type : parsedSchema.messageSchema.typeDelcarations.filter(SimpleTypeDeclaration)»
                             «compile(type)»
                         «ENDFOR»
@@ -74,10 +74,10 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                         «FOR compositeType : parsedSchema.messageSchema.typeDelcarations.filter(CompositeTypeDeclaration)»
                             «compile(compositeType)»
                         «ENDFOR»
-                    </types>
+                    </sbe:types>
                     
                     «FOR message : parsedSchema.messageSchema.messageDeclarations»
-                        «compile("message", message.block)»
+                        «compile("sbe:message", message.block)»
                     «ENDFOR»
                 </sbe:messageSchema>
             '''
