@@ -121,15 +121,12 @@ class JavaDecodersGenerator {
         val decoderClassName = ctd.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
 
-        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
-                decoderClassDeclarationExtensions(decoderClassName)
-
         '''
             package  «parsedSchema.schemaName»;
             
             import org.agrona.DirectBuffer;
             
-            public class «decoderClassName»«classDeclarationInterfaces»
+            public class «decoderClassName»
             {
                 public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 

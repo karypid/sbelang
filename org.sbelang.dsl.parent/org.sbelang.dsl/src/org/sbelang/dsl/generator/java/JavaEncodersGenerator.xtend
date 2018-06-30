@@ -136,15 +136,12 @@ class JavaEncodersGenerator {
         val encoderClassName = ctd.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
 
-        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
-                encoderClassDeclarationExtensions(encoderClassName)
-
         '''
             package  «parsedSchema.schemaName»;
             
             import org.agrona.MutableDirectBuffer;
             
-            public class «encoderClassName»«classDeclarationInterfaces»
+            public class «encoderClassName»
             {
                 public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 
