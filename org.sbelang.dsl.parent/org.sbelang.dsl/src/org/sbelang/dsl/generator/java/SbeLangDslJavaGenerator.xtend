@@ -14,19 +14,22 @@ class SbeLangDslJavaGenerator extends SbeLangDslBaseGenerator {
     override void compile(ParsedSchema parsedSchema, IFileSystemAccess2 fsa, IGeneratorContext context) {
         if(!genJava) return;
 
-        val JavaEncodersGenerator encodersGenerator = new JavaEncodersGenerator(parsedSchema)
-        val JavaDecodersGenerator decodersGenerator = new JavaDecodersGenerator(parsedSchema)
+        val JavaGeneratorExt extensions = JavaGenerator.loadExt
+
+        val JavaGenerator generator = new JavaGenerator(parsedSchema, extensions)
+        val JavaEncodersGenerator encodersGenerator = new JavaEncodersGenerator(parsedSchema, extensions)
+        val JavaDecodersGenerator decodersGenerator = new JavaDecodersGenerator(parsedSchema, extensions)
 
         // meta-data for overall message schema
         fsa.generateFile(
             encodersGenerator.filename('MessageSchema.java'),
-            JavaGenerator.generateMessageSchema(parsedSchema)
+            generator.generateMessageSchema()
         )
 
         // enumerations each define a Java enum type (common for encoders and decoders)
         parsedSchema.forAllEnums [ ed |
             fsa.generateFile(encodersGenerator.filename(ed.name.toFirstUpper + ".java"),
-                JavaGenerator.generateEnumDefinition(parsedSchema, ed))
+                generator.generateEnumDefinition(ed))
         ]
 
         // sets generate encoders and decoders

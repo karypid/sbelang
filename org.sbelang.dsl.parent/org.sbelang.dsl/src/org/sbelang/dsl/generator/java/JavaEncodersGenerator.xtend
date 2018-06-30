@@ -6,19 +6,19 @@ package org.sbelang.dsl.generator.java
 
 import java.io.File
 import java.nio.file.Paths
+import org.sbelang.dsl.generator.intermediate.FieldIndex
 import org.sbelang.dsl.generator.intermediate.ParsedSchema
 import org.sbelang.dsl.generator.intermediate.SbeUtils
 import org.sbelang.dsl.sbeLangDsl.BlockDeclaration
 import org.sbelang.dsl.sbeLangDsl.CompositeMember
 import org.sbelang.dsl.sbeLangDsl.CompositeTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.EnumDeclaration
+import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
 import org.sbelang.dsl.sbeLangDsl.MemberRefTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
-import org.sbelang.dsl.sbeLangDsl.FieldDeclaration
-import org.sbelang.dsl.generator.intermediate.FieldIndex
-import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 
 /**
  * @author karypid
@@ -30,9 +30,9 @@ class JavaEncodersGenerator {
 
     val JavaGeneratorExt extensions
 
-    new(ParsedSchema parsedSchema) {
+    new(ParsedSchema parsedSchema, JavaGeneratorExt extensions) {
         this.parsedSchema = parsedSchema
-        this.extensions = JavaGenerator.loadExt
+        this.extensions = extensions
 
         this.packagePath = {
             val String[] components = parsedSchema.schemaName.split("\\.")
@@ -135,10 +135,10 @@ class JavaEncodersGenerator {
     def generateCompositeEncoder(CompositeTypeDeclaration ctd) {
         val encoderClassName = ctd.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
-   
-        val classDeclarationInterfaces = if (extensions ===null) ''''''
-        else extensions.encoderClassDeclarationExtensions(encoderClassName)
-        
+
+        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
+                encoderClassDeclarationExtensions(encoderClassName)
+
         '''
             package  «parsedSchema.schemaName»;
             
@@ -256,8 +256,8 @@ class JavaEncodersGenerator {
         val encoderClassName = block.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
-        val classDeclarationInterfaces = if (extensions ===null) ''''''
-        else extensions.encoderClassDeclarationExtensions(encoderClassName)
+        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
+                encoderClassDeclarationExtensions(encoderClassName)
 
         '''
             package  «parsedSchema.schemaName»;
@@ -462,12 +462,12 @@ class JavaEncodersGenerator {
             «ENDIF»
             
         '''
-        
+
         if (extensions === null)
             defaultCode
         else {
-            extensions.generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass,
-                memberVarName, sbePrimitiveType, fieldOffset, fieldOctetLength, arrayLength, constantLiteral, defaultCode)
+            extensions.generateEncoderCodeForPrimitiveData(ownerCompositeEncoderClass, memberVarName, sbePrimitiveType,
+                fieldOffset, fieldOctetLength, arrayLength, constantLiteral, defaultCode)
         }
     }
 

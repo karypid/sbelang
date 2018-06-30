@@ -30,9 +30,9 @@ class JavaDecodersGenerator {
 
     val JavaGeneratorExt extensions
 
-    new(ParsedSchema parsedSchema) {
+    new(ParsedSchema parsedSchema, JavaGeneratorExt extensions) {
         this.parsedSchema = parsedSchema
-        this.extensions = JavaGenerator.loadExt
+        this.extensions = extensions
 
         this.packagePath = {
             val String[] components = parsedSchema.schemaName.split("\\.")
@@ -121,8 +121,8 @@ class JavaDecodersGenerator {
         val decoderClassName = ctd.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
 
-        val classDeclarationInterfaces = if (extensions ===null) ''''''
-        else extensions.decoderClassDeclarationExtensions(decoderClassName)
+        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
+                decoderClassDeclarationExtensions(decoderClassName)
 
         '''
             package  «parsedSchema.schemaName»;
@@ -240,8 +240,8 @@ class JavaDecodersGenerator {
         val decoderClassName = block.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
-        val classDeclarationInterfaces = if (extensions ===null) ''''''
-        else extensions.encoderClassDeclarationExtensions(decoderClassName)
+        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
+                encoderClassDeclarationExtensions(decoderClassName)
 
         '''
             package  «parsedSchema.schemaName»;
