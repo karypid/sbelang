@@ -343,10 +343,10 @@ types
 //
 //
 //
-        // some illegal const value literals ------------
+    // some illegal const value literals ------------
 //      int_for_char_const    : char constant=42
 //      char_for_uint8_const  : uint8 constant='x'
-        // some illegal null value literals ------------
+    // some illegal null value literals ------------
 //      int_for_char_null     : char  nullValue=55
 //      char_for_int8_null    : int8  nullValue='x'
 //      char_for_uint8_null   : uint8 nullValue='x'
@@ -412,7 +412,6 @@ types
         m_ref_comp_sets     : CompSets
         m_ref_comp_prims   : CompPrimitives // reference composite
         m_ref_comp_simple   : CompSimpleTypes // reference composite
-        
         m_ref_enum          : EnumUint16
         m_ref_set           : Set32
     }
@@ -430,6 +429,15 @@ types
         // version is a keyword in sbelang; the ^ character escapes it
         numGroups : uint16 // number of repeating groups after fixed-length portion of message
         numVarDataFields : uint16 // number of variable data fields after fixed-length portion of message
+    }
+
+    // this is required to exist if you use groups in messages
+    composite groupSizeEncoding
+    {
+        blockLength : uint16
+        numInGroup : uint16
+        numGroups : uint16
+        numVarDataFields : uint16
     }
 }
 
@@ -619,14 +627,14 @@ message MessagePresence id = 6
 //
 //
 //
-    // some illegal const value literals ------------
+// some illegal const value literals ------------
 //  int_for_char_const    : char   @91001 constant=42
 //  char_for_uint8_const  : uint8  @91002 constant='x'
-    // some illegal null value literals ------------
+// some illegal null value literals ------------
 //  int_for_char_null     : char   @91003 nullValue=55
 //  char_for_int8_null    : int8   @91004 nullValue='x'
 //  char_for_uint8_null   : uint8  @91005 nullValue='x'
-    // types where presence  does not apply -------
+// types where presence  does not apply -------
 //  int_for_enum_null     : EnumChar @91005 nullValue = 1
 //  char_for_enum_null    : EnumChar @91005 nullValue = 'x'
 //  int_for_enum_const    : EnumChar @91005 constant = 1
@@ -642,20 +650,46 @@ message MessagePresence id = 6
 //  simple_type_optional  : t_uint8 @91005 optional
 }
 
+message MessageWithGroups id = 7
+{
+    m_prim_int          : int32           @1
+    m_st_char           : t_char          @2
+    m_ref_simple_array  : array_float     @3
+
+    group g_one id = 4
+    {
+        gm_primChar     : char @5 optional
+        gm_primInt8     : int8 @6
+        gm_st_arr_int32 : array_int32 @7
+        gm_st_char      : t_char @8
+        gm_st_int8      : t_int8 @9
+        gm_ref_enum     : EnumUint16 @10
+        gm_ref_set      : Set32 @11
+    }
+
+    group g_two id = 12
+    {
+        gm_primUnt8     : uint8 @13
+        gm_st_arr_float : array_float @14
+        group g_nested id = 15
+        {
+            gm_primUnt8     : uint8 @16
+            gm_st_arr_float : array_float @17
+        }
+    }
+}
+
 message MessageEverything id=9999
 {
     m_prim_int          : int32           @1
     m_st_char           : t_char          @2
-
     m_ref_simple_array  : array_float     @3
-
     m_ref_comp_enum     : CompEnums       @4
     m_ref_comp_sets     : CompSets        @5
     m_ref_comp_prims    : CompPrimitives  @6
     m_ref_comp_simple   : CompSimpleTypes @7
     m_ref_comp_ranges   : CompRanges      @8
     m_ref_comp_presence : CompPresence    @9
-    
     m_ref_enum          : EnumUint16      @10
     m_ref_set           : Set32           @11
 }
