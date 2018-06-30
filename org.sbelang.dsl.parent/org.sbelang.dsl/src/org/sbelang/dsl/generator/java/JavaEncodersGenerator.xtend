@@ -19,6 +19,7 @@ import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
 
 /**
  * @author karypid
@@ -253,11 +254,13 @@ class JavaEncodersGenerator {
         val encoderClassName = block.name.toFirstUpper + 'Encoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
-        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
-                encoderClassDeclarationExtensions(encoderClassName)
+        val classDeclarationInterfaces = if (extensions === null)
+                ''''''
+            else
+                extensions.encoderClassDeclarationExtensions(encoderClassName)
 
         '''
-            package  «parsedSchema.schemaName»;
+            package «parsedSchema.schemaName»;
             
             import org.agrona.MutableDirectBuffer;
             
@@ -326,7 +329,87 @@ class JavaEncodersGenerator {
                 «FOR field : block.fieldDeclarations»
                     «generateEncoderForBlockField(block, field)»
                 «ENDFOR»
+                
+                «FOR group : block.groupDeclarations»
+                    // group : «group.block.name»
+                    
+                    «generateGroupEncoder(encoderClassName, group)»
+                «ENDFOR»
             }
+        '''
+    }
+
+    private def generateGroupEncoder(String messageEncoderClassName, GroupDeclaration group) {
+        val memberVarName = group.block.name.toFirstLower
+        val groupEncoderClassName = group.block.name.toFirstUpper
+        val groupSizeEncoderClassName = if (group.dimensionType === null) '''GroupSizeEncodingDecoder''' else group.dimensionType.name.
+                toFirstUpper
+        '''
+            private final «groupEncoderClassName» «memberVarName» = new «groupEncoderClassName»();
+            
+            public «groupEncoderClassName» «memberVarName»( final int count )
+            {
+                g_one.wrap(this, buffer, count);
+                return «memberVarName»;
+            }
+            
+            public static class «groupEncoderClassName»
+            {
+                private static final int HEADER_SIZE = «groupSizeEncoderClassName».ENCODED_LENGTH;
+                
+                private final GroupSizeEncodingEncoder dimensions = new GroupSizeEncodingEncoder();
+                
+                private «messageEncoderClassName» parentMessage;
+                private MutableDirectBuffer buffer;
+                private int count;
+                private int index;
+                private int offset;
+                
+                public void wrap(
+                    final «messageEncoderClassName» parentMessage, final MutableDirectBuffer buffer, final int count)
+                {
+                    if (count < 0 || count > 65534)
+                    {
+                        throw new IllegalArgumentException("count outside allowed range: count=" + count);
+                    }
+                    
+                    this.parentMessage = parentMessage;
+                    this.buffer = buffer;
+                    
+                    dimensions.wrap(buffer, parentMessage.limit());
+                    dimensions.blockLength((int)26);
+                    dimensions.numInGroup((int)count);
+                    
+                    index = -1;
+                    this.count = count;
+                    parentMessage.limit(parentMessage.limit() + HEADER_SIZE);
+                }
+                
+                public static int sbeHeaderSize()
+                {
+                    return HEADER_SIZE;
+                }
+                
+                public static int sbeBlockLength()
+                {
+                    return -1; // TODO: group member block length
+                }
+                
+                public «groupEncoderClassName» next()
+                {
+                    if (index + 1 >= count)
+                    {
+                        throw new java.util.NoSuchElementException();
+                    }
+                    
+                    offset = parentMessage.limit();
+                    parentMessage.limit( offset + sbeBlockLength() );
+                    ++index;
+                    
+                    return this;
+                }
+            }
+            
         '''
     }
 
