@@ -269,6 +269,7 @@ class JavaEncodersGenerator {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
                 
+                private «encoderClassName» parentMessage;
                 private MutableDirectBuffer buffer;
                 private int offset;
                 private int limit;
@@ -339,17 +340,18 @@ class JavaEncodersGenerator {
         '''
     }
 
-    private def generateGroupEncoder(String messageEncoderClassName, GroupDeclaration group) {
+    private def CharSequence generateGroupEncoder(String messageEncoderClassName, GroupDeclaration group) {
         val memberVarName = group.block.name.toFirstLower
-        val groupEncoderClassName = group.block.name.toFirstUpper
+        val groupEncoderClassName = group.block.name.toFirstUpper + 'Encoder'
         val groupSizeEncoderClassName = if (group.dimensionType === null) '''GroupSizeEncodingDecoder''' else group.dimensionType.name.
                 toFirstUpper
+        
         '''
             private final «groupEncoderClassName» «memberVarName» = new «groupEncoderClassName»();
             
             public «groupEncoderClassName» «memberVarName»( final int count )
             {
-                g_one.wrap(this, buffer, count);
+                «memberVarName».wrap( parentMessage, buffer, count );
                 return «memberVarName»;
             }
             
@@ -408,6 +410,16 @@ class JavaEncodersGenerator {
                     
                     return this;
                 }
+                
+                «FOR field : group.block.fieldDeclarations»
+                    «generateEncoderForBlockField(group.block, field)»
+                «ENDFOR»
+                
+                «FOR g : group.block.groupDeclarations»
+                    // group : «group.block.name»
+                    
+                    «generateGroupEncoder(messageEncoderClassName, g)»
+                «ENDFOR»
             }
             
         '''
