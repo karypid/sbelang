@@ -118,21 +118,25 @@ class JavaDecodersGenerator {
     // Code for generating composite decoders
     // -----------------------------------------------------------------------------
     def generateCompositeDecoder(CompositeTypeDeclaration ctd) {
-        val compositeName = ctd.name.toFirstUpper + 'Decoder'
+        val decoderClassName = ctd.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getCompositeFieldIndex(ctd.name)
+
+        val classDeclarationInterfaces = if (extensions ===null) ''''''
+        else extensions.decoderClassDeclarationExtensions(decoderClassName)
+
         '''
             package  «parsedSchema.schemaName»;
             
             import org.agrona.DirectBuffer;
             
-            public class «compositeName»
+            public class «decoderClassName»«classDeclarationInterfaces»
             {
                 public static final int ENCODED_LENGTH = «fieldIndex.totalOctetLength»;
                 
                 private int offset;
                 private DirectBuffer buffer;
                 
-                public «compositeName» wrap( final DirectBuffer buffer, final int offset )
+                public «decoderClassName» wrap( final DirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -233,14 +237,18 @@ class JavaDecodersGenerator {
     // Code for generating message decoders
     // -----------------------------------------------------------------------------
     def generateMessageDecoder(BlockDeclaration block) {
-        val blockName = block.name.toFirstUpper + 'Decoder'
+        val decoderClassName = block.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
+
+        val classDeclarationInterfaces = if (extensions ===null) ''''''
+        else extensions.encoderClassDeclarationExtensions(decoderClassName)
+
         '''
             package  «parsedSchema.schemaName»;
             
             import org.agrona.MutableDirectBuffer;
             
-            public class «blockName»
+            public class «decoderClassName»«classDeclarationInterfaces»
             {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
@@ -269,7 +277,7 @@ class JavaDecodersGenerator {
                     return MessageSchema.SCHEMA_VERSION;
                 }
                 
-                public «blockName» wrap( final MutableDirectBuffer buffer, final int offset )
+                public «decoderClassName» wrap( final MutableDirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -442,9 +450,8 @@ class JavaDecodersGenerator {
         if (extensions === null)
             defaultCode
         else {
-            val extensionExtras = extensions.generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass,
-                memberVarName, sbePrimitiveType, fieldOffset, fieldOctetLength, arrayLength, constantLiteral)
-            defaultCode + extensionExtras
+            extensions.generateDecoderCodeForPrimitiveData(ownerCompositeDecoderClass, memberVarName, sbePrimitiveType,
+                fieldOffset, fieldOctetLength, arrayLength, constantLiteral, defaultCode)
         }
     }
 

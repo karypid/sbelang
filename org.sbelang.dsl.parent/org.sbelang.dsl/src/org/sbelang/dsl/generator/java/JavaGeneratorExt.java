@@ -10,11 +10,21 @@ package org.sbelang.dsl.generator.java;
  */
 public interface JavaGeneratorExt
 {
-    public CharSequence generateEncoderCodeForPrimitiveData(String ownerEncoderClass,
-                    String memberVarName, String sbePrimitiveType, int fieldOffset,
-                    int fieldOctetLength, int arrayLength, String constLiteral);
+    // encoder extensions
 
-    public CharSequence generateDecoderCodeForPrimitiveData(String ownerDecoderClass,
+    public CharSequence encoderClassDeclarationExtensions(String encoderClassName);
+
+    public CharSequence generateEncoderCodeForPrimitiveData(String encoderClassName,
                     String memberVarName, String sbePrimitiveType, int fieldOffset,
-                    int fieldOctetLength, int arrayLength, String constLiteral);
+                    int fieldOctetLength, int arrayLength, String constLiteral,
+                    CharSequence defaultGeneratedCode);
+
+    // decoder extensions
+
+    public CharSequence decoderClassDeclarationExtensions(String decoderClassName);
+
+    public CharSequence generateDecoderCodeForPrimitiveData(String decoderClassName,
+                    String memberVarName, String sbePrimitiveType, int fieldOffset,
+                    int fieldOctetLength, int arrayLength, String constLiteral,
+                    CharSequence defaultGeneratedCode);
 }
