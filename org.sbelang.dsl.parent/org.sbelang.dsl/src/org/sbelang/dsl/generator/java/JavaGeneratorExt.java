@@ -19,10 +19,10 @@ public interface JavaGeneratorExt
                     int fieldOctetLength, int arrayLength, String constLiteral,
                     CharSequence defaultGeneratedCode);
 
-    public CharSequence groupSizeDimensionsDeclaration(String dimensionsVarName,
+    public CharSequence groupSizeEncoderDimensionsDeclaration(String dimensionsVarName,
                     CharSequence defaultGeneratedCode);
 
-    public CharSequence groupSizeDimensionsPopulation(String dimensionsVarName,
+    public CharSequence groupSizeEncoderDimensionsPopulation(String dimensionsVarName,
                     CharSequence defaultGeneratedCode);
 
     // decoder extensions
@@ -33,4 +33,11 @@ public interface JavaGeneratorExt
                     String memberVarName, String sbePrimitiveType, int fieldOffset,
                     int fieldOctetLength, int arrayLength, String constLiteral,
                     CharSequence defaultGeneratedCode);
+
+    public CharSequence groupSizeDecoderDimensionsDeclaration(String dimensionsVarName,
+                    CharSequence defaultGeneratedCode);
+
+    public CharSequence groupSizeDecoderDimensionsPopulation(String dimensionsVarName,
+                    CharSequence defaultGeneratedCode);
+
 }

@@ -344,20 +344,20 @@ class JavaEncodersGenerator {
         val fieldIndex = parsedSchema.getBlockFieldIndex(group.block.name)
         val memberVarName = group.block.name.toFirstLower
         val groupEncoderClassName = group.block.name.toFirstUpper + 'Encoder'
-        val groupSizeEncoderClassName = if (group.dimensionType === null)
-                '''GroupSizeEncodingDecoder'''
+        val groupSizeDimensionsEncoderClassName = if (group.dimensionType === null)
+                '''GroupSizeEncodingEncoder'''
             else
                 group.dimensionType.name.toFirstUpper
 
         val defaultGroupSizeDimensionsDeclarationCode = '''
-            private static final int HEADER_SIZE = «groupSizeEncoderClassName».ENCODED_LENGTH;
+            private static final int HEADER_SIZE = «groupSizeDimensionsEncoderClassName».ENCODED_LENGTH;
             
-            private final GroupSizeEncodingEncoder dimensions = new GroupSizeEncodingEncoder();
+            private final «groupSizeDimensionsEncoderClassName» dimensions = new «groupSizeDimensionsEncoderClassName»();
         '''
         val groupSizeDimensionsDeclarations = if (extensions === null)
                 defaultGroupSizeDimensionsDeclarationCode
             else
-                extensions.groupSizeDimensionsDeclaration('dimension', defaultGroupSizeDimensionsDeclarationCode);
+                extensions.groupSizeEncoderDimensionsDeclaration('dimension', defaultGroupSizeDimensionsDeclarationCode);
 
         val defaultFroupSizeDimensionsPopulationCode = '''
             dimensions.wrap(buffer, parentMessage.limit());
@@ -367,12 +367,12 @@ class JavaEncodersGenerator {
         val groupSizeDimensionsPopulation = if (extensions === null)
                 defaultFroupSizeDimensionsPopulationCode
             else
-                extensions.groupSizeDimensionsPopulation('dimensions', defaultFroupSizeDimensionsPopulationCode)
+                extensions.groupSizeEncoderDimensionsPopulation('dimensions', defaultFroupSizeDimensionsPopulationCode)
 
         '''
             private final «groupEncoderClassName» «memberVarName» = new «groupEncoderClassName»();
             
-            public «groupEncoderClassName» «memberVarName»( final int count )
+            public «groupEncoderClassName» «memberVarName»Count( final int count )
             {
                 «memberVarName».wrap( parentMessage, buffer, count );
                 return «memberVarName»;

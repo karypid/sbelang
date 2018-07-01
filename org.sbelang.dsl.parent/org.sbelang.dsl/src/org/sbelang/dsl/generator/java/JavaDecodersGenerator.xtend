@@ -328,8 +328,33 @@ class JavaDecodersGenerator {
     }
 
     private def CharSequence generateGroupDecoder(String messageDecoderClassName, GroupDeclaration group) {
+        val fieldIndex = parsedSchema.getBlockFieldIndex(group.block.name)
         val memberVarName = group.block.name.toFirstLower
         val groupDecoderClassName = group.block.name.toFirstUpper + 'Decoder'
+        val groupSizeDimensionsDecoderClassName = if (group.dimensionType === null)
+                '''GroupSizeEncodingDecoder'''
+            else
+                group.dimensionType.name.toFirstUpper
+
+        val defaultGroupSizeDecoderDimensionsDeclarationCode = '''
+            private static final int HEADER_SIZE = «groupSizeDimensionsDecoderClassName».ENCODED_LENGTH;
+            
+            private final «groupSizeDimensionsDecoderClassName» dimensions = new «groupSizeDimensionsDecoderClassName»();
+        '''
+        val groupSizeDecoderDimensionsDeclarations = if (extensions === null)
+                defaultGroupSizeDecoderDimensionsDeclarationCode
+            else
+                extensions.groupSizeDecoderDimensionsDeclaration('dimension', defaultGroupSizeDecoderDimensionsDeclarationCode);
+
+        val defaultFroupSizeDimensionsPopulationCode = '''
+            dimensions.wrap( buffer, parentMessage.limit() );
+            blockLength = dimensions.blockLength();
+            count = dimensions.numInGroup();
+        '''
+        val groupSizeDimensionsPopulation = if (extensions === null)
+                defaultFroupSizeDimensionsPopulationCode
+            else
+                extensions.groupSizeDecoderDimensionsPopulation('dimensions', defaultFroupSizeDimensionsPopulationCode)
         '''
             private final «groupDecoderClassName» «memberVarName» = new «groupDecoderClassName»();
             
@@ -342,8 +367,7 @@ class JavaDecodersGenerator {
             public static class «groupDecoderClassName»
                 implements java.util.Iterator<«groupDecoderClassName»>
             {
-                private static final int HEADER_SIZE = -1;
-                private final GroupSizeEncodingDecoder dimensions = new GroupSizeEncodingDecoder();
+                «groupSizeDecoderDimensionsDeclarations»
                 
                 private «messageDecoderClassName» parentMessage;
                 private DirectBuffer buffer;
@@ -358,9 +382,7 @@ class JavaDecodersGenerator {
                     this.parentMessage = parentMessage;
                     this.buffer = buffer;
                     
-                    dimensions.wrap( buffer, parentMessage.limit() );
-                    blockLength = dimensions.blockLength();
-                    count = dimensions.numInGroup();
+                    «groupSizeDimensionsPopulation»
                     
                     index = -1;
                     parentMessage.limit( parentMessage.limit() + HEADER_SIZE );
@@ -373,7 +395,7 @@ class JavaDecodersGenerator {
                 
                 public static int sbeBlockLength()
                 {
-                    return 132;
+                    return «fieldIndex.totalOctetLength»;
                 }
                 
                 public int actingBlockLength()
