@@ -19,6 +19,7 @@ import org.sbelang.dsl.sbeLangDsl.PresenceConstantModifier
 import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
+import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
 
 /**
  * @author karypid
@@ -250,9 +251,12 @@ class JavaDecodersGenerator {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
                 
+                private «decoderClassName» parentMessage;
                 private DirectBuffer buffer;
                 private int offset;
                 private int limit;
+                private int actingBlockLength;
+                private int actingVersion;
                 
                 public int sbeBlockLength()
                 {
@@ -274,10 +278,13 @@ class JavaDecodersGenerator {
                     return MessageSchema.SCHEMA_VERSION;
                 }
                 
-                public «decoderClassName» wrap( final DirectBuffer buffer, final int offset )
+                public «decoderClassName» wrap( final DirectBuffer buffer, final int offset, final int actingBlockLength, final int actingVersion )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
+                    this.actingBlockLength = actingBlockLength;
+                    this.actingVersion = actingVersion;
+                    limit(offset + this.actingBlockLength);
                     
                     return this;
                 }
@@ -309,6 +316,108 @@ class JavaDecodersGenerator {
                 
                 «FOR field : block.fieldDeclarations»
                     «generateDecoderForBlockField(block, field)»
+                «ENDFOR»
+                
+                «FOR group : block.groupDeclarations»
+                    // group : «group.block.name»
+                    
+                    «generateGroupDecoder(decoderClassName, group)»
+                «ENDFOR»
+            }
+        '''
+    }
+
+    private def CharSequence generateGroupDecoder(String messageDecoderClassName, GroupDeclaration group) {
+        val memberVarName = group.block.name.toFirstLower
+        val groupDecoderClassName = group.block.name.toFirstUpper + 'Decoder'
+        '''
+            private final «groupDecoderClassName» «memberVarName» = new «groupDecoderClassName»();
+            
+            public «groupDecoderClassName» «memberVarName»()
+            {
+                «memberVarName».wrap( parentMessage, buffer );
+                return «memberVarName»;
+            }
+            
+            public static class «groupDecoderClassName»
+                implements java.util.Iterator<«groupDecoderClassName»>
+            {
+                private static final int HEADER_SIZE = -1;
+                private final GroupSizeEncodingDecoder dimensions = new GroupSizeEncodingDecoder();
+                
+                private «messageDecoderClassName» parentMessage;
+                private DirectBuffer buffer;
+                private int count;
+                private int index;
+                private int offset;
+                private int blockLength;
+                
+                public void wrap(
+                    final «messageDecoderClassName» parentMessage, final DirectBuffer buffer)
+                {
+                    this.parentMessage = parentMessage;
+                    this.buffer = buffer;
+                    
+                    dimensions.wrap( buffer, parentMessage.limit() );
+                    blockLength = dimensions.blockLength();
+                    count = dimensions.numInGroup();
+                    
+                    index = -1;
+                    parentMessage.limit( parentMessage.limit() + HEADER_SIZE );
+                }
+                
+                public static int sbeHeaderSize()
+                {
+                    return HEADER_SIZE;
+                }
+                
+                public static int sbeBlockLength()
+                {
+                    return 132;
+                }
+                
+                public int actingBlockLength()
+                {
+                    return blockLength;
+                }
+                
+                public int count()
+                {
+                    return count;
+                }
+                
+                public void remove()
+                {
+                    throw new UnsupportedOperationException();
+                }
+                
+                public boolean hasNext()
+                {
+                    return ( index + 1 ) < count;
+                }
+                
+                public «groupDecoderClassName» next()
+                {
+                    if ( index + 1 >= count )
+                    {
+                        throw new java.util.NoSuchElementException();
+                    }
+                    
+                    offset = parentMessage.limit();
+                    parentMessage.limit( offset + blockLength );
+                    ++index;
+                    
+                    return this;
+                }
+                
+                «FOR field : group.block.fieldDeclarations»
+                    «generateDecoderForBlockField(group.block, field)»
+                «ENDFOR»
+                
+                «FOR g : group.block.groupDeclarations»
+                    // group : «group.block.name»
+                    
+                    «generateGroupDecoder(messageDecoderClassName, g)»
                 «ENDFOR»
             }
         '''
