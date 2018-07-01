@@ -308,7 +308,7 @@
         </composite>
     </types>
     
-    <message name="MsgEnumerations" id="1">
+    <sbe:message name="MsgEnumerations" id="1">
         <field name="f_e_Char" id="1" type="E_Char"/>
         <field name="f_e_Char_nvd" id="2" type="E_Char_nvd"/>
         <field name="f_e_Char_nvo" id="3" type="E_Char_nvo"/>
@@ -318,8 +318,8 @@
         <field name="f_e_Uint16" id="7" type="E_Uint16"/>
         <field name="f_e_Uint16_nvd" id="8" type="E_Uint16_nvd"/>
         <field name="f_e_Uint16_nvo" id="9" type="E_Uint16_nvo"/>
-    </message>
-    <message name="TestMessage2" id="2">
+    </sbe:message>
+    <sbe:message name="TestMessage2" id="2">
         <field name="fChar" id="1" type="char"/>
         <field name="fUint8" id="2" type="uint8"/>
         <field name="fInt8" id="3" type="t_int8"/>
@@ -335,5 +335,5 @@
         </group>
         <data name="fVarRawData1" id="9" type="DATA" />
         <data name="fVarRawData2" id="9" type="DATA" />
-    </message>
+    </sbe:message>
 </sbe:messageSchema>
