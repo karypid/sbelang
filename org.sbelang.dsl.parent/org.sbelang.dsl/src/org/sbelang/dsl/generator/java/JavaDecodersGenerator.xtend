@@ -238,7 +238,7 @@ class JavaDecodersGenerator {
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
         val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
-                encoderClassDeclarationExtensions(decoderClassName)
+                decoderClassDeclarationExtensions(decoderClassName)
 
         '''
             package  «parsedSchema.schemaName»;
