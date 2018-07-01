@@ -19,6 +19,12 @@ public interface JavaGeneratorExt
                     int fieldOctetLength, int arrayLength, String constLiteral,
                     CharSequence defaultGeneratedCode);
 
+    public CharSequence groupSizeDimensionsDeclaration(String dimensionsVarName,
+                    CharSequence defaultGeneratedCode);
+
+    public CharSequence groupSizeDimensionsPopulation(String dimensionsVarName,
+                    CharSequence defaultGeneratedCode);
+
     // decoder extensions
 
     public CharSequence decoderClassDeclarationExtensions(String decoderClassName);

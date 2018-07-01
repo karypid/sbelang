@@ -341,11 +341,34 @@ class JavaEncodersGenerator {
     }
 
     private def CharSequence generateGroupEncoder(String messageEncoderClassName, GroupDeclaration group) {
+        val fieldIndex = parsedSchema.getBlockFieldIndex(group.block.name)
         val memberVarName = group.block.name.toFirstLower
         val groupEncoderClassName = group.block.name.toFirstUpper + 'Encoder'
-        val groupSizeEncoderClassName = if (group.dimensionType === null) '''GroupSizeEncodingDecoder''' else group.dimensionType.name.
-                toFirstUpper
-        
+        val groupSizeEncoderClassName = if (group.dimensionType === null)
+                '''GroupSizeEncodingDecoder'''
+            else
+                group.dimensionType.name.toFirstUpper
+
+        val defaultGroupSizeDimensionsDeclarationCode = '''
+            private static final int HEADER_SIZE = «groupSizeEncoderClassName».ENCODED_LENGTH;
+            
+            private final GroupSizeEncodingEncoder dimensions = new GroupSizeEncodingEncoder();
+        '''
+        val groupSizeDimensionsDeclarations = if (extensions === null)
+                defaultGroupSizeDimensionsDeclarationCode
+            else
+                extensions.groupSizeDimensionsDeclaration('dimension', defaultGroupSizeDimensionsDeclarationCode);
+
+        val defaultFroupSizeDimensionsPopulationCode = '''
+            dimensions.wrap(buffer, parentMessage.limit());
+            dimensions.blockLength((int)26);
+            dimensions.numInGroup((int)count);
+        '''
+        val groupSizeDimensionsPopulation = if (extensions === null)
+                defaultFroupSizeDimensionsPopulationCode
+            else
+                extensions.groupSizeDimensionsPopulation('dimensions', defaultFroupSizeDimensionsPopulationCode)
+
         '''
             private final «groupEncoderClassName» «memberVarName» = new «groupEncoderClassName»();
             
@@ -357,9 +380,7 @@ class JavaEncodersGenerator {
             
             public static class «groupEncoderClassName»
             {
-                private static final int HEADER_SIZE = «groupSizeEncoderClassName».ENCODED_LENGTH;
-                
-                private final GroupSizeEncodingEncoder dimensions = new GroupSizeEncodingEncoder();
+                «groupSizeDimensionsDeclarations»
                 
                 private «messageEncoderClassName» parentMessage;
                 private MutableDirectBuffer buffer;
@@ -378,9 +399,7 @@ class JavaEncodersGenerator {
                     this.parentMessage = parentMessage;
                     this.buffer = buffer;
                     
-                    dimensions.wrap(buffer, parentMessage.limit());
-                    dimensions.blockLength((int)26);
-                    dimensions.numInGroup((int)count);
+                    «groupSizeDimensionsPopulation»
                     
                     index = -1;
                     this.count = count;
@@ -394,7 +413,7 @@ class JavaEncodersGenerator {
                 
                 public static int sbeBlockLength()
                 {
-                    return -1; // TODO: group member block length
+                    return «fieldIndex.totalOctetLength»;
                 }
                 
                 public «groupEncoderClassName» next()
