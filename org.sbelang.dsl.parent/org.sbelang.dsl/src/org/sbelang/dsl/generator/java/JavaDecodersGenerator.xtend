@@ -243,14 +243,14 @@ class JavaDecodersGenerator {
         '''
             package  «parsedSchema.schemaName»;
             
-            import org.agrona.MutableDirectBuffer;
+            import org.agrona.DirectBuffer;
             
             public class «decoderClassName»«classDeclarationInterfaces»
             {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
                 
-                private MutableDirectBuffer buffer;
+                private DirectBuffer buffer;
                 private int offset;
                 private int limit;
                 
@@ -274,7 +274,7 @@ class JavaDecodersGenerator {
                     return MessageSchema.SCHEMA_VERSION;
                 }
                 
-                public «decoderClassName» wrap( final MutableDirectBuffer buffer, final int offset )
+                public «decoderClassName» wrap( final DirectBuffer buffer, final int offset )
                 {
                     this.buffer = buffer;
                     this.offset = offset;
@@ -282,7 +282,7 @@ class JavaDecodersGenerator {
                     return this;
                 }
                 
-                public MutableDirectBuffer buffer()
+                public DirectBuffer buffer()
                 {
                     return buffer;
                 }
