@@ -6,7 +6,7 @@
     package="org.sbelang.examples.v2.AllFeatures"
     id="1" version="100">
     
-    <types>
+    <sbe:types>
         <type name="t_char" primitiveType="char"/>
         <type name="t_int8" primitiveType="int8"/>
         <type name="t_int16" primitiveType="int16"/>
@@ -306,7 +306,7 @@
                 <type name="nestedInt8" primitiveType="int8"/>
             </composite>
         </composite>
-    </types>
+    </sbe:types>
     
     <sbe:message name="MsgEnumerations" id="1">
         <field name="f_e_Char" id="1" type="E_Char"/>
