@@ -69,7 +69,7 @@ class JavaEncodersGenerator {
                 {
                     this.buffer = buffer;
                     this.offset = offset;
-                
+                    
                     return this;
                 }
                 
@@ -299,6 +299,8 @@ class JavaEncodersGenerator {
                     this.buffer = buffer;
                     this.offset = offset;
                     
+                    limit(offset + BLOCK_LENGTH);
+                    
                     return this;
                 }
                 
@@ -360,9 +362,9 @@ class JavaEncodersGenerator {
                 extensions.groupSizeEncoderDimensionsDeclaration('dimension', defaultGroupSizeDimensionsDeclarationCode);
 
         val defaultFroupSizeDimensionsPopulationCode = '''
-            dimensions.wrap(buffer, parentMessage.limit());
-            dimensions.blockLength((int)26);
-            dimensions.numInGroup((int)count);
+            dimensions.wrap( buffer, parentMessage.limit() );
+            dimensions.blockLength( (int) «fieldIndex.totalOctetLength» );
+            dimensions.numInGroup( (int) count );
         '''
         val groupSizeDimensionsPopulation = if (extensions === null)
                 defaultFroupSizeDimensionsPopulationCode
