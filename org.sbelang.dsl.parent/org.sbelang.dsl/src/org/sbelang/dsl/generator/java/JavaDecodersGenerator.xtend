@@ -20,6 +20,7 @@ import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
+import java.util.Arrays
 
 /**
  * @author karypid
@@ -238,8 +239,10 @@ class JavaDecodersGenerator {
         val decoderClassName = block.name.toFirstUpper + 'Decoder'
         val fieldIndex = parsedSchema.getBlockFieldIndex(block.name)
 
-        val classDeclarationInterfaces = if (extensions === null) '''''' else extensions.
-                decoderClassDeclarationExtensions(decoderClassName)
+        val classDeclarationInterfaces = if (extensions === null)
+                ''''''
+            else
+                extensions.decoderClassDeclarationExtensions(decoderClassName)
 
         '''
             package  «parsedSchema.schemaName»;
@@ -344,7 +347,8 @@ class JavaDecodersGenerator {
         val groupSizeDecoderDimensionsDeclarations = if (extensions === null)
                 defaultGroupSizeDecoderDimensionsDeclarationCode
             else
-                extensions.groupSizeDecoderDimensionsDeclaration('dimension', defaultGroupSizeDecoderDimensionsDeclarationCode);
+                extensions.groupSizeDecoderDimensionsDeclaration('dimension',
+                    defaultGroupSizeDecoderDimensionsDeclarationCode);
 
         val defaultFroupSizeDimensionsPopulationCode = '''
             dimensions.wrap( buffer, parentMessage.limit() );
@@ -513,6 +517,11 @@ class JavaDecodersGenerator {
         val optionalEndian = endianParam(memberValueWireType)
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
 
+        val maskPrimitives = Arrays.asList('uint8', 'uint16', 'uint32')
+        val needsMask = maskPrimitives.contains(sbePrimitiveType)
+        val maskStart = if(needsMask) '( 'else ''
+        val maskEnd = if(needsMask) ' & ' + allBitsMask(sbePrimitiveType) + ')' else ''
+
         val constantLiteral = if (constLiteral === null)
                 null
             else
@@ -538,7 +547,7 @@ class JavaDecodersGenerator {
             «ELSEIF arrayLength <= 1»
                 public «memberValueParamType» «memberVarName»()
                 {
-                    return buffer.«getFetcher»( offset + «fieldOffset» «optionalEndian»);
+                    return «maskStart»buffer.«getFetcher»( offset + «fieldOffset»«optionalEndian» )«maskEnd»;
                 }
             «ELSE»
                 public static int «memberVarName»Length()
@@ -594,7 +603,7 @@ class JavaDecodersGenerator {
         val getFetcher = 'get' + memberEnumJavaWireType.toFirstUpper
         val optionalEndian = endianParam(memberEnumJavaWireType)
 
-        val mask = enumAllBitsMask(enumMember.encodingType)
+        val mask = allBitsMask(enumMember.encodingType)
         val maskStart = if (mask == '') '''''' else '''('''
         val maskEnd = if (mask == '') '''''' else ''' & «mask»)'''
 
@@ -682,7 +691,7 @@ class JavaDecodersGenerator {
         if (primitiveJavaType == 'byte') '''''' else ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»'''
     }
 
-    private def enumAllBitsMask(String sbeEnumEncodingType) {
+    private def allBitsMask(String sbeEnumEncodingType) {
         switch (sbeEnumEncodingType) {
             case 'char':
                 ''
@@ -690,9 +699,10 @@ class JavaDecodersGenerator {
                 '0xFF'
             case 'uint16':
                 '0xFFFF'
+            case 'uint32':
+                '0xFFFFFF'
             default:
-                throw new IllegalStateException('Why would you need this? Enums should not be of type: ' +
-                    sbeEnumEncodingType)
+                throw new IllegalStateException('Should not be using mask for: ' + sbeEnumEncodingType)
         }
     }
 
