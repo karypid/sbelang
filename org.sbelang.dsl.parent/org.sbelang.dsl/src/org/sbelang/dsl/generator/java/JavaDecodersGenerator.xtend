@@ -251,7 +251,7 @@ class JavaDecodersGenerator {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
                 
-                private «decoderClassName» parentMessage;
+                private final «decoderClassName» parentMessage = this;
                 private DirectBuffer buffer;
                 private int offset;
                 private int limit;

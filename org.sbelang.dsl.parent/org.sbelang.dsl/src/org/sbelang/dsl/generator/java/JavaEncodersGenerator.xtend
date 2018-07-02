@@ -269,7 +269,7 @@ class JavaEncodersGenerator {
                 public static final int TEMPLATE_ID = «block.id»;
                 public static final int BLOCK_LENGTH = «fieldIndex.totalOctetLength»;
                 
-                private «encoderClassName» parentMessage;
+                private final «encoderClassName» parentMessage = this;
                 private MutableDirectBuffer buffer;
                 private int offset;
                 private int limit;
