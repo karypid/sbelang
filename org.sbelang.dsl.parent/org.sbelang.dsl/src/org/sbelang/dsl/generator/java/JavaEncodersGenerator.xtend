@@ -572,6 +572,27 @@ class JavaEncodersGenerator {
                         return this;
                     }
                 «ENDIF»
+                «IF (sbePrimitiveType == 'char') && (arrayLength > 1)»
+                    
+                    public «ownerCompositeEncoderClass» «memberVarName.toFirstLower»( final String src )
+                    {
+                        final int length = «arrayLength»;
+                        final int srcLength = src.length();
+                        if ( srcLength > length )
+                        {
+                            throw new IndexOutOfBoundsException("String too large for copy: length=" + srcLength);
+                        }
+                        
+                        buffer.putStringWithoutLengthAscii(this.offset + «fieldOffset», src);
+                        
+                        for (int start = srcLength; start < length; ++start)
+                        {
+                            buffer.putByte(this.offset + «fieldOffset» + start, (byte)0);
+                        }
+                        
+                        return this;
+                    }
+                «ENDIF»
             «ENDIF»
             
         '''
