@@ -517,10 +517,16 @@ class JavaDecodersGenerator {
         val optionalEndian = endianParam(memberValueWireType)
         val fieldElementLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType)
 
+        // primitive that require brackets for applying bit mask
         val maskPrimitives = Arrays.asList('uint8', 'uint16', 'uint32')
+        // primitives that require type casting
+        val maskCasts = #{'uint8' -> '(short) (' }
+        
         val needsMask = maskPrimitives.contains(sbePrimitiveType)
-        val maskStart = if(needsMask) '( 'else ''
-        val maskEnd = if(needsMask) ' & ' + allBitsMask(sbePrimitiveType) + ')' else ''
+        val maskCastStart = maskCasts.getOrDefault(sbePrimitiveType, '')
+        val maskStart = if (needsMask) '''( «maskCastStart» '''else ''
+        val maskCastEnd = if (!maskCastStart.isNullOrEmpty) ')' else ''
+        val maskEnd = if (needsMask) ''' & «allBitsMask(sbePrimitiveType)» «maskCastEnd»)''' else ''
 
         val constantLiteral = if (constLiteral === null)
                 null
@@ -700,7 +706,7 @@ class JavaDecodersGenerator {
             case 'uint16':
                 '0xFFFF'
             case 'uint32':
-                '0xFFFFFF'
+                '0xFFFF_FFFFL'
             default:
                 throw new IllegalStateException('Should not be using mask for: ' + sbeEnumEncodingType)
         }
