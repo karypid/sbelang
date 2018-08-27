@@ -46,15 +46,40 @@ class SbeLangDslGenerateTest {
             "org.sbelang.examples.v2.AllFeatures.xml");
         Assert.assertNotNull(xmlOutput)
 
-        val String expectedXmlOutput = new String(
-            Files.readAllBytes(Paths.get(new File("resources/AllFeatures.xml").getAbsolutePath())));
+        val String rawExpectedOutput = new String(
+            Files.readAllBytes(Paths.get(new File("resources/AllFeatures.xml").getAbsolutePath())))
+        // resource file has UNIX line breaks (LF); replace with system line breaks so that test
+        // is portable to windows (where actual output will have CRLF instead of just LF)
+        val String expectedXmlOutput = rawExpectedOutput.replace('\n', System.lineSeparator);
         // the XML output has a null (zero) character; we want to strip that out
         // as it is illegal for XML; in the expected output it has been replaced
         // with a space character so we do the same here
         var char nullChar // we do not set a value as it defaults to zero
-        val strippedNullChars = xmlOutput.toString.replace(nullChar, ' ')
+        val outputWithStrippedNullChars = xmlOutput.toString.replace(nullChar, ' ')
 
-        Assert.assertEquals(expectedXmlOutput, strippedNullChars);
+        if (!expectedXmlOutput.equals(outputWithStrippedNullChars)) {
+
+            val expectedLines = expectedXmlOutput.split(System.getProperty("line.separator"));
+            val actualLines = outputWithStrippedNullChars.split(System.getProperty("line.separator"));
+
+            val max = Math.max(expectedLines.length, actualLines.length)
+            for (var i = 0; i < max; i += 1) {
+                if (!expectedLines.get(i).equals(actualLines.get(i))) {
+                    System.err.println(
+                        '''Line «i» differs:
+                            expected: «expectedLines.get(i)»
+                              actual: «actualLines.get(i)»
+                        ''')
+                    i = max + 1; // break loop
+                }
+            }
+
+            val f = Files.createTempFile("sbeLang", ".xml");
+            Files.write(f.toAbsolutePath, outputWithStrippedNullChars.bytes)
+            System.err.println("Wrote output to: " + f.toAbsolutePath)
+        }
+
+        Assert.assertEquals(expectedXmlOutput, outputWithStrippedNullChars);
     }
 
     @Test
