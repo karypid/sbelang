@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://fixprotocol.io/2016/sbe http://fixprotocol.io/2016/sbe/sbe.xsd"
+    
+    package="org.sbelang.DevTest"
+    id="1" version="100">
+    
+    <types>
+        
+        
+        
+        <composite name="messageHeader">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+            <type name="numGroups" primitiveType="uint16"/>
+            <type name="numVarDataFields" primitiveType="uint16"/>
+        </composite>
+        <composite name="groupSizeEncoding">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint16"/>
+            <type name="numGroups" primitiveType="uint16"/>
+            <type name="numVarDataFields2" primitiveType="uint16"/>
+        </composite>
+        <composite name="varString">
+            <type name="length" primitiveType="uint16"/>
+            <type name="varData" primitiveType="uint16" length="0"/>
+        </composite>
+        <composite name="varLong">
+            <type name="length" primitiveType="uint16"/>
+            <type name="varData" primitiveType="uint64" length="0"/>
+        </composite>
+        <composite name="DATA">
+            <type name="length" primitiveType="uint16"/>
+            <type name="varData" primitiveType="uint8" length="0"/>
+        </composite>
+    </types>
+    
+    <sbe:message name="TestVarLenMessage" id="1">
+        <data name="fVarString" id="100" type="varString" />
+        <data name="fVarLong" id="101" type="varLong" />
+        <data name="fVarData" id="102" type="DATA" />
+    </sbe:message>
+</sbe:messageSchema>

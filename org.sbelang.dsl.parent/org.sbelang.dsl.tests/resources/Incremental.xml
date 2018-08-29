@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xsi:schemaLocation="http://fixprotocol.io/2016/sbe/sbe.xsd"
+    xsi:schemaLocation="http://fixprotocol.io/2016/sbe http://fixprotocol.io/2016/sbe/sbe.xsd"
     
     package="org.sbelang.examples.v2.Incremental"
     id="1" version="100">
     
-    <sbe:types>
+    <types>
         <type name="t_char" primitiveType="char"/>
         <type name="t_int8" primitiveType="int8"/>
         <type name="t_int16" primitiveType="int16"/>
@@ -202,7 +202,7 @@
             <type name="numGroups" primitiveType="uint16"/>
             <type name="numVarDataFields" primitiveType="uint16"/>
         </composite>
-    </sbe:types>
+    </types>
     
     <sbe:message name="MessagePrimitives" id="1">
         <field name="t_char" id="1" type="char"/>

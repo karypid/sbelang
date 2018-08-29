@@ -1,0 +1,53 @@
+schema org.sbelang.DevTest 
+    id = 1 version = 100
+
+types
+{
+    composite messageHeader
+    {
+        // FIX SBE defaults to the composite with this name to use as the message header.
+        // You can override it using the "headerType" keyword of the schema. The below
+        // members are suggested (all required).
+        blockLength : uint16 // size of message's fixed-length portion
+        templateId : uint16 // message template identifier
+        schemaId : uint16 // identifier of the schema defining the message
+        ^version : uint16 // version of the schema used to create this message 
+        // version is a keyword in sbelang; the ^ character escapes it
+        numGroups : uint16 // number of repeating groups after fixed-length portion of message
+        numVarDataFields : uint16 // number of variable data fields after fixed-length portion of message
+    }
+
+    composite groupSizeEncoding
+    {
+        // FIX SBE defaults to the composite with this name to use as the group header.
+        // You can override it using the "dimensionType" keyword. The below  members are 
+        // suggested (all required).
+        blockLength : uint16 // fixed-length portion of the group
+        numInGroup : uint16 // number of items in the gorup
+        numGroups : uint16
+        numVarDataFields2 : uint16
+    }
+
+    composite varString
+    {
+        // FIX SBE recommends using this declaration for variable-length string fields.
+        length : uint16 // number of bytes (octets)
+        varData : uint16[0] // a length of zero means variable length
+    }
+
+    composite DATA
+    {
+        // FIX SBE recommends using this declaration for variable-length data fields.
+        length : uint16 // number of bytes (octets)
+        varData : uint8[0] // a length of zero means variable length
+    }
+}
+
+message TestVarLenMessage id=1
+{
+    data
+    {
+        fVarString : varString @ 100
+        fVarData : DATA @ 101
+    }
+}

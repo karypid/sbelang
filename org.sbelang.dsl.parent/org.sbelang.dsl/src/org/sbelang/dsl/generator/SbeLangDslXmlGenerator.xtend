@@ -53,12 +53,12 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                    xsi:schemaLocation="http://fixprotocol.io/2016/sbe/sbe.xsd"
+                    xsi:schemaLocation="http://fixprotocol.io/2016/sbe http://fixprotocol.io/2016/sbe/sbe.xsd"
                     
                     package="«parsedSchema.schemaName»"
                     id="«parsedSchema.schemaId»" version="«parsedSchema.schemaVersion»"«xmlHeaderTypeAttribute»«xmlByteOrderAttribute»>
                     
-                    <sbe:types>
+                    <types>
                         «FOR type : parsedSchema.messageSchema.typeDelcarations.filter(SimpleTypeDeclaration)»
                             «compile(type)»
                         «ENDFOR»
@@ -74,7 +74,7 @@ class SbeLangDslXmlGenerator extends SbeLangDslBaseGenerator {
                         «FOR compositeType : parsedSchema.messageSchema.typeDelcarations.filter(CompositeTypeDeclaration)»
                             «compile(compositeType)»
                         «ENDFOR»
-                    </sbe:types>
+                    </types>
                     
                     «FOR message : parsedSchema.messageSchema.messageDeclarations»
                         «compile("sbe:message", message.block)»

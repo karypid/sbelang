@@ -32,13 +32,13 @@
                             <key>sbe.output.dir</key>
                             <value>${project.build.directory}/generated-sources/java</value>
                         </systemProperty>
-                            <!--
                         <systemProperty>
                             <key>sbe.validation.xsd</key>
                             <value>${project.basedir}/resources/sbe_V1-0-STANDARD.xsd</value>
+                            <!--
                             <value>${project.basedir}/resources/sbe_V2-0-RC1.xsd</value>
-                        </systemProperty>
                             -->
+                        </systemProperty>
                         <systemProperty>
                             <key>sbe.validation.warnings.fatal</key>
                             <value>true</value>
@@ -51,6 +51,7 @@
                     <arguments>
                         <argument>${project.basedir}/resources/AllFeatures.xml</argument>
                         <argument>${project.basedir}/resources/Incremental.xml</argument>
+                        <argument>${project.basedir}/resources/DevTest.xml</argument>
                         <!--
                         -->
                     </arguments>
