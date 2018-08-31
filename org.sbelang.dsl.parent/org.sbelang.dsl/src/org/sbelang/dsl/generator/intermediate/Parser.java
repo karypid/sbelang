@@ -182,10 +182,9 @@ public class Parser
                     // arrays...
                     int length = m.getLength() == null ? 1 : m.getLength();
                     // ...HOWEVER: there is the special case of presence being
-                    // constant
-                    // in which case we use zero for length as the field does
-                    // not occupy
-                    // space since it is not transferred on the wire
+                    // constant in which case we use zero for length as the
+                    // field does not occupy space since it is not transferred
+                    // on the wire
                     if (m.getPresence() instanceof PresenceConstantModifier) length = 0;
                     fieldIndex.addPrimitiveField(m.getName(), m.getPrimitiveType(), length, m);
                 }
