@@ -20,7 +20,7 @@ public class ParsedComposite
         super();
         this.compositeType = compositeType;
         this.containerComposite = containerComposite;
-        this.fieldIndex = new FieldIndex(false);
+        this.fieldIndex = new FieldIndex(compositeType.getName(), false);
     }
 
     public CompositeTypeDeclaration getCompositeType()

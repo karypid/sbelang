@@ -20,7 +20,7 @@ public class ParsedBlock
         super();
         this.blockDeclaration = compositeType;
         this.containerMessageOrGroup = containerComposite;
-        this.fieldIndex = new FieldIndex(false);
+        this.fieldIndex = new FieldIndex(compositeType.getName(), false);
     }
 
     public BlockDeclaration getBlockDeclaration()

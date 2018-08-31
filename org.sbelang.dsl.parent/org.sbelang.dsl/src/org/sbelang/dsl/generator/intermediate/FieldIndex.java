@@ -19,7 +19,8 @@ import org.eclipse.emf.ecore.EObject;
  */
 public class FieldIndex
 {
-    private final boolean             caseSensitive;
+    private final boolean caseSensitive;
+    private final String  ownerName;
 
     private ArrayList<String>  fieldNames;
     private ArrayList<Integer> fieldOffsets;
@@ -31,8 +32,9 @@ public class FieldIndex
 
     private int totalLength;
 
-    public FieldIndex(boolean caseSensitive)
+    public FieldIndex(String ownerName, boolean caseSensitive)
     {
+        this.ownerName = ownerName;
         this.caseSensitive = caseSensitive;
 
         fieldNames = new ArrayList<>();
@@ -42,6 +44,11 @@ public class FieldIndex
         fieldGrammarElements = new ArrayList<>();
 
         fieldIndexes = new HashMap<>();
+    }
+
+    public String getOwnerName()
+    {
+        return ownerName;
     }
 
     public int getTotalOctetLength()
@@ -67,7 +74,7 @@ public class FieldIndex
         int offset = totalLength;
 
         int idx = addField(name, offset, 1, length, grammarElement);
-        totalLength += length;
+        if (totalLength != -1) totalLength += length;
 
         return idx;
     }
@@ -94,6 +101,12 @@ public class FieldIndex
         fieldElementLengths.add(elementsLength);
         fieldOctectLengths.add(octetsLength);
         fieldGrammarElements.add(grammarElement);
+
+        if (elementsLength == 0)
+        {
+            // variable length block/composite...
+            totalLength = -1;
+        }
 
         return idx;
     }
