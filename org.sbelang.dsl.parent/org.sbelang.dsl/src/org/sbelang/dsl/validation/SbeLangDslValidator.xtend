@@ -33,6 +33,7 @@ import org.sbelang.dsl.sbeLangDsl.RangeModifiers
 import org.sbelang.dsl.sbeLangDsl.PresenceModifiers
 import org.sbelang.dsl.sbeLangDsl.TypeDeclaration
 import org.eclipse.emf.ecore.EReference
+import java.util.HashSet
 
 /**
  * This class contains custom validation rules. 
@@ -45,11 +46,15 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
 
     public static val NULL_VAL = 'NULL_VAL'
 
+    public HashSet<EObject> varLenComposites = new HashSet()
+
     // TODO: add check for unique IDs for each message in schema
     // TODO: add check for unique names for messages and groups
     // TODO: add check for char literals to ensure they're not out of ASCII range (e.g. Greek delta letter)
     @Check
     def checkAllTypeNamesAreUnique(MessageSchema messageSchema) {
+        // this is the root grammar rule, so it's the first validator called...
+        varLenComposites.clear // ...clear to recalculate
         try {
             validateAllTypeNamesAreUnique(messageSchema.typeDelcarations.map[t|new NameDeclaration(t.name, t)],
                 new HashMap<String, EObject>())
@@ -62,6 +67,49 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     def checkMemberType(MemberRefTypeDeclaration mtd) {
         validatePresenceModifiers(mtd.presence, mtd.type, mtd.primitiveType,
             SbeLangDslPackage.Literals.MEMBER_REF_TYPE_DECLARATION__PRESENCE)
+
+        if ((mtd.length === null) || (mtd.length != 0)) {
+            // for non-zero length must still check if its type
+            // references a variable-length composite...
+            val type = mtd.type
+            if (type instanceof CompositeTypeDeclaration) {
+                if (varLenComposites.contains(type)) {
+                    // member references var-len composite...
+                    markVarLenComposite(mtd)
+                }
+            }
+            return
+        }
+
+        // zero-length member makes this a variable-length composite
+        markVarLenComposite(mtd)
+    }
+
+    private def void markVarLenComposite(MemberRefTypeDeclaration mtd) {
+        val memberRefTypeNode = NodeModelUtils.getNode(mtd)
+        val ownerCompositeNode = memberRefTypeNode.parent
+        val ownerComposite = ownerCompositeNode.semanticElement
+        if (ownerComposite instanceof CompositeTypeDeclaration) {
+            markVarLenComposite(ownerComposite as CompositeTypeDeclaration)
+        } else {
+            throw new IllegalStateException('''Variable-length member ref type [«mtd.name»] has non-composite type parent [«ownerComposite»]!''')
+        }
+    }
+
+    private def void markVarLenComposite(CompositeTypeDeclaration composite) {
+        // add to set of var-len composites
+        varLenComposites.add(composite)
+
+        // check if it is nested, in which case add mark parent as well
+        val memberRefTypeNode = NodeModelUtils.getNode(composite)
+        val parentCompositeNode = memberRefTypeNode.parent
+        val parentComposite = parentCompositeNode.semanticElement
+        if (parentComposite instanceof CompositeTypeDeclaration) {
+            markVarLenComposite(parentComposite) // recurse to parent
+        } else if (parentComposite instanceof MessageSchema) {
+        } else {
+            throw new IllegalStateException('''Variable-length member ref type [«composite.name»] has non-composite type parent [«parentComposite»]!''')
+        }
     }
 
     @Check
@@ -180,6 +228,9 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
             field.primitiveType,
             SbeLangDslPackage.Literals.FIELD_DECLARATION__PRESENCE
         )
+        if (varLenComposites.contains(field.type)) {
+            error('''Field type is not of fixed length''', field, SbeLangDslPackage.Literals.FIELD_DECLARATION__TYPE)
+        }
     }
 
     private def validatePresenceModifiers(PresenceModifiers presence, TypeDeclaration type, String primitiveType,
