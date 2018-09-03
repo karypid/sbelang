@@ -60,10 +60,15 @@ public class FieldIndex
                     EObject grammarElement) throws DuplicateIdentifierException
     {
         int offset = totalLength;
-        int octetLength = SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType) * length;
+        int octetLength = length == 0 ? -1
+                        : SbeUtils.getPrimitiveTypeOctetLength(sbePrimitiveType) * length;
 
         int idx = addField(name, offset, length, octetLength, grammarElement);
-        totalLength += octetLength;
+        if (totalLength != -1)
+        {
+            if (octetLength == -1) totalLength = -1;
+            else totalLength += octetLength;
+        }
 
         return idx;
     }

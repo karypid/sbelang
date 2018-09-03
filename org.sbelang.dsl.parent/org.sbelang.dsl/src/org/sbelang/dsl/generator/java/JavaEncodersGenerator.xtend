@@ -534,13 +534,14 @@ class JavaEncodersGenerator {
                         throw new IllegalArgumentException("This is a constant not transmitted on the wire; legal value is only: «constLiteral»");
                     return this;
                 }
-            «ELSEIF arrayLength <= 1»
+            «ELSEIF arrayLength == 1»
                 public «ownerCompositeEncoderClass» «memberVarName»( final «memberValueParamType» value )
                 {
                     buffer.«putSetter»( offset + «fieldOffset», «value» «optionalEndian»);
                     return this;
                 }
             «ELSE»
+                «IF arrayLength > 1»
                 public static int «memberVarName»Length()
                 {
                     return «arrayLength»;
@@ -556,7 +557,7 @@ class JavaEncodersGenerator {
                     final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
                     buffer.«putSetter»(pos, «value» «optionalEndian»);
                     return this;
-                }
+                }«ENDIF»
                 «IF sbePrimitiveType == 'char'»
                     
                     public «ownerCompositeEncoderClass» put«memberVarName.toFirstUpper»( final byte[] src, final int srcOffset )
