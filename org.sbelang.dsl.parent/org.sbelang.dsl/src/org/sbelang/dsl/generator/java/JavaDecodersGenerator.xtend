@@ -21,6 +21,7 @@ import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
 import java.util.Arrays
+import org.sbelang.dsl.sbeLangDsl.RawVariableDataDeclaration
 
 /**
  * @author karypid
@@ -248,6 +249,7 @@ class JavaDecodersGenerator {
             package  «parsedSchema.schemaName»;
             
             import org.agrona.DirectBuffer;
+            import org.agrona.MutableDirectBuffer;
             
             public class «decoderClassName»«classDeclarationInterfaces»
             {
@@ -325,7 +327,64 @@ class JavaDecodersGenerator {
                     // group : «group.block.name»
                     
                     «generateGroupDecoder(decoderClassName, group)»
-                «ENDFOR»
+                «ENDFOR»«IF block.rawDataBlockDeclaration !== null»
+                
+                «FOR data : block.rawDataBlockDeclaration.varDataDeclarations»
+                // data : «data.name»
+                
+                «generateDecoderForVarLenData(decoderClassName, data)»
+                «ENDFOR»«ENDIF»
+            }
+        '''
+    }
+    
+    private def generateDecoderForVarLenData(String decoderClassName, RawVariableDataDeclaration data) {
+        val lengthMember =  data.dataEncodingType.compositeMembers.filter(MemberRefTypeDeclaration).findFirst[m | m.name == 'length']
+        if (
+            (lengthMember === null) || (lengthMember.primitiveType === null) || 
+            ((lengthMember.primitiveType != 'uint8') && (lengthMember.primitiveType != 'uint16'))
+            )
+            throw new IllegalStateException("Member with name 'length' must exist with primitive uint8/uint16 type! Instead it is: " + lengthMember)
+        
+        val lenBytes = SbeUtils.getPrimitiveTypeOctetLength(lengthMember.primitiveType)
+        val lenGetterName = if (lenBytes == 2) 'getShort' else 'getByte'
+        val endianParam = if (lenBytes ==2) ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»''' else ''
+        val mask = allBitsMask(lengthMember.primitiveType) 
+        val getterMethodName = '''get«data.name.toFirstUpper»'''
+        '''
+            public static int «data.name»HeaderLength()
+            {
+                return «lenBytes»;
+            }
+            
+            public int «data.name»Length()
+            {
+                final int limit = parentMessage.limit();
+                return (int)(buffer.«lenGetterName»(limit«endianParam») & «mask»);
+            }
+            
+            public int «getterMethodName»(final MutableDirectBuffer dst, final int dstOffset, final int length)
+            {
+                final int headerLength = «lenBytes»;
+                final int limit = parentMessage.limit();
+                final int dataLength = (int)(buffer.«lenGetterName»(limit«endianParam») & «mask»);
+                final int bytesCopied = Math.min(length, dataLength);
+                parentMessage.limit(limit + headerLength + dataLength);
+                buffer.getBytes(limit + headerLength, dst, dstOffset, bytesCopied);
+                
+                return bytesCopied;
+            }
+            
+            public int «getterMethodName»(final byte[] dst, final int dstOffset, final int length)
+            {
+                final int headerLength = «lenBytes»;
+                final int limit = parentMessage.limit();
+                final int dataLength = (int)(buffer.«lenGetterName»(limit«endianParam») & «mask»);
+                final int bytesCopied = Math.min(length, dataLength);
+                parentMessage.limit(limit + headerLength + dataLength);
+                buffer.getBytes(limit + headerLength, dst, dstOffset, bytesCopied);
+                
+                return bytesCopied;
             }
         '''
     }
@@ -444,7 +503,13 @@ class JavaDecodersGenerator {
                     // group : «group.block.name»
                     
                     «generateGroupDecoder(messageDecoderClassName, g)»
-                «ENDFOR»
+                «ENDFOR»«IF group.block.rawDataBlockDeclaration !== null»
+                
+                «FOR data : group.block.rawDataBlockDeclaration.varDataDeclarations»
+                // data : «data.name»
+                
+                «generateDecoderForVarLenData(groupDecoderClassName, data)»
+                «ENDFOR»«ENDIF»
             }
         '''
     }

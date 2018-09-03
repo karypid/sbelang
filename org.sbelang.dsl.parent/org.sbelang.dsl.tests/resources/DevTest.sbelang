@@ -4,7 +4,6 @@ schema org.sbelang.DevTest
 types
 {
     // simpleType illegalVarLenST : uint8[0]
-
     composite messageHeader
     {
         // FIX SBE defaults to the composite with this name to use as the message header.
@@ -33,8 +32,8 @@ types
     composite varString
     {
         // FIX SBE recommends using this declaration for variable-length string fields.
-        length : uint16 // number of bytes (octets)
-        varData : uint16[0] // a length of zero means variable length
+        length : uint8 // number of bytes (octets)
+        varData : uint8[0] // a length of zero means variable length
     }
 
     composite DATA
@@ -63,7 +62,6 @@ message TestVarLenMessage id=1
 {
     fInt32 : int32 @ 1
     fDouble : double @ 2
-
     regularComp : RegularComp @ 5
 
     // illegalVarLen : varString @ 202
@@ -92,7 +90,7 @@ message TestVarLenMessage id=1
 
     data
     {
-        fVarString : varString @ 100
+        fVarStringA : varString @ 100
         fVarData : DATA @ 101
     }
 }

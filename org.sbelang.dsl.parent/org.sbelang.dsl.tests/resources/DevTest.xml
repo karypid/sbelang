@@ -25,8 +25,8 @@
             <type name="numVarDataFields" primitiveType="uint16"/>
         </composite>
         <composite name="varString">
-            <type name="length" primitiveType="uint16"/>
-            <type name="varData" primitiveType="uint16" length="0"/>
+            <type name="length" primitiveType="uint8"/>
+            <type name="varData" primitiveType="uint8" length="0"/>
         </composite>
         <composite name="DATA">
             <type name="length" primitiveType="uint16"/>
@@ -56,7 +56,7 @@
         <group name="int64Group" id="3">
             <field name="fInt" id="30" type="int64"/>
         </group>
-        <data name="fVarString" id="100" type="varString" />
+        <data name="fVarStringA" id="100" type="varString" />
         <data name="fVarData" id="101" type="DATA" />
     </sbe:message>
 </sbe:messageSchema>

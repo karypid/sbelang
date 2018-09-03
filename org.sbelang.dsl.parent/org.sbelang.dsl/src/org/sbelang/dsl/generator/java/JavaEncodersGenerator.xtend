@@ -20,6 +20,7 @@ import org.sbelang.dsl.sbeLangDsl.SetChoiceDeclaration
 import org.sbelang.dsl.sbeLangDsl.SetDeclaration
 import org.sbelang.dsl.sbeLangDsl.SimpleTypeDeclaration
 import org.sbelang.dsl.sbeLangDsl.GroupDeclaration
+import org.sbelang.dsl.sbeLangDsl.RawVariableDataDeclaration
 
 /**
  * @author karypid
@@ -262,6 +263,7 @@ class JavaEncodersGenerator {
         '''
             package «parsedSchema.schemaName»;
             
+            import org.agrona.DirectBuffer;
             import org.agrona.MutableDirectBuffer;
             
             public class «encoderClassName»«classDeclarationInterfaces»
@@ -337,7 +339,68 @@ class JavaEncodersGenerator {
                     // group : «group.block.name»
                     
                     «generateGroupEncoder(encoderClassName, group)»
-                «ENDFOR»
+                «ENDFOR»«IF block.rawDataBlockDeclaration !== null»
+                
+                «FOR data : block.rawDataBlockDeclaration.varDataDeclarations»
+                // data : «data.name»
+                
+                «generateEncoderForVarLenData(encoderClassName, data)»
+                «ENDFOR»«ENDIF»
+            }
+        '''
+    }
+    
+    private def generateEncoderForVarLenData(String encoderClassName, RawVariableDataDeclaration data) {
+        val lengthMember =  data.dataEncodingType.compositeMembers.filter(MemberRefTypeDeclaration).findFirst[m | m.name == 'length']
+        if (
+            (lengthMember === null) || (lengthMember.primitiveType === null) || 
+            ((lengthMember.primitiveType != 'uint8') && (lengthMember.primitiveType != 'uint16'))
+            )
+            throw new IllegalStateException("Member with name 'length' must exist with primitive uint8/uint16 type! Instead it is: " + lengthMember)
+        
+        val lenBytes = SbeUtils.getPrimitiveTypeOctetLength(lengthMember.primitiveType)
+        val maxLenValue = if (lenBytes == 2) 65534 else 254 // max value is reserved for NULL
+        val lenCastType = if (lenBytes == 2) 'short' else 'byte'
+        val lenPutterName = if (lenBytes == 2) 'putShort' else 'putByte'
+        val endianParam = if (lenBytes ==2) ''', java.nio.ByteOrder.«parsedSchema.schemaByteOrder»''' else ''
+            
+        val putterMethodName = '''put«data.name.toFirstUpper»'''
+        '''
+            public static int «data.name»HeaderLength()
+            {
+                return «lenBytes»;
+            }
+            
+            public «encoderClassName» «putterMethodName»(final DirectBuffer src, final int srcOffset, final int length)
+            {
+                if (length > «maxLenValue»)
+                {
+                    throw new IllegalStateException("length > maxValue for type: " + length);
+                }
+                
+                final int headerLength = «lenBytes»;
+                final int limit = parentMessage.limit();
+                parentMessage.limit(limit + headerLength + length);
+                buffer.«lenPutterName»(limit, («lenCastType»)length«endianParam»);
+                buffer.putBytes(limit + headerLength, src, srcOffset, length);
+                
+                return this;
+            }
+            
+            public «encoderClassName» «putterMethodName»(final byte[] src, final int srcOffset, final int length)
+            {
+                if (length > «maxLenValue»)
+                {
+                    throw new IllegalStateException("length > maxValue for type: " + length);
+                }
+                
+                final int headerLength = «lenBytes»;
+                final int limit = parentMessage.limit();
+                parentMessage.limit(limit + headerLength + length);
+                buffer.«lenPutterName»(limit, («lenCastType»)length«endianParam»);
+                buffer.putBytes(limit + headerLength, src, srcOffset, length);
+                
+                return this;
             }
         '''
     }
@@ -440,7 +503,13 @@ class JavaEncodersGenerator {
                     // group : «group.block.name»
                     
                     «generateGroupEncoder(messageEncoderClassName, g)»
-                «ENDFOR»
+                «ENDFOR»«IF group.block.rawDataBlockDeclaration !== null»
+                
+                «FOR data : group.block.rawDataBlockDeclaration.varDataDeclarations»
+                // data : «data.name»
+                
+                «generateEncoderForVarLenData(groupEncoderClassName, data)»
+                «ENDFOR»«ENDIF»
             }
             
         '''
