@@ -3,6 +3,8 @@ schema org.sbelang.DevTest
 
 types
 {
+    // simpleType illegalVarLenST : uint8[0]
+
     composite messageHeader
     {
         // FIX SBE defaults to the composite with this name to use as the message header.
@@ -25,7 +27,7 @@ types
         blockLength : uint16 // fixed-length portion of the group
         numInGroup : uint16 // number of items in the gorup
         numGroups : uint16
-        numVarDataFields2 : uint16
+        numVarDataFields : uint16
     }
 
     composite varString
@@ -41,10 +43,53 @@ types
         length : uint16 // number of bytes (octets)
         varData : uint8[0] // a length of zero means variable length
     }
+
+    composite RegularComp
+    {
+        fixedLenIntA : int32
+        // illegalVarLen : DATA
+        fixedLenIntB : int32
+
+        composite NestedComp
+        {
+            fixedLenIntA : int32
+        // a nested composite implicitly creates a field instance at its point of declaration
+        // varData : uint8[0] // a length of zero means variable length
+        }
+    }
 }
 
 message TestVarLenMessage id=1
 {
+    fInt32 : int32 @ 1
+    fDouble : double @ 2
+
+    regularComp : RegularComp @ 5
+
+    // illegalVarLen : varString @ 202
+    group int32Group id = 2
+    {
+        fInt : int32 @20
+
+        // illegalVarLen : varString @ 202
+        group nestedFloatGroup id = 200
+        {
+            floatA : float @ 201
+        // illegalVarLen : varString @ 202
+        }
+
+        data
+        {
+            stringA : varString @ 25
+            dataB : DATA @ 26
+        }
+    }
+
+    group int64Group id = 3
+    {
+        fInt : int64 @30
+    }
+
     data
     {
         fVarString : varString @ 100
