@@ -550,12 +550,13 @@ class JavaDecodersGenerator {
                 {
                     return «constantLiteral»;
                 }
-            «ELSEIF arrayLength <= 1»
+            «ELSEIF arrayLength == 1»
                 public «memberValueParamType» «memberVarName»()
                 {
                     return «maskStart»buffer.«getFetcher»( offset + «fieldOffset»«optionalEndian» )«maskEnd»;
                 }
             «ELSE»
+                «IF arrayLength > 1»
                 public static int «memberVarName»Length()
                 {
                     return «arrayLength»;
@@ -570,7 +571,7 @@ class JavaDecodersGenerator {
                     
                     final int pos = this.offset + «fieldOffset» + (index * «fieldElementLength»);
                     return buffer.«getFetcher»(pos «optionalEndian»);
-                }
+                }«ENDIF»
                 «IF sbePrimitiveType == 'char'»
                     
                     public int get«memberVarName.toFirstUpper»( final byte[] dst, final int dstOffset )
