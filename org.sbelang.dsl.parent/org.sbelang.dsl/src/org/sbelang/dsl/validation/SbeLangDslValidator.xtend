@@ -395,6 +395,16 @@ class SbeLangDslValidator extends AbstractSbeLangDslValidator {
     }
 
     @Check
+    def checkSimpleType(SimpleTypeDeclaration std) {
+        if (std.length !== null) {
+            if (std.length == 0) {
+            error('''Simple types cannot have variable-length!''', std,
+                SbeLangDslPackage.Literals.SIMPLE_TYPE_DECLARATION__LENGTH)
+            }
+        }
+    }
+
+    @Check
     def checkComposite(CompositeTypeDeclaration ctd) {
         val Map<String, CompositeMember> names = new HashMap()
         for (cm : ctd.compositeMembers) {
