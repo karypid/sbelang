@@ -24,14 +24,13 @@ class SbeLangDslIntermediateParserTest {
     def void testIntermediateParser() {
         val Injector injector = new SbeLangDslStandaloneSetup().createInjectorAndDoEMFRegistration()
         val XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet);
-        val Resource resource = resourceSet.getResource(URI.createURI("resources/Incremental.sbelang"), true);
+        val Resource resource = resourceSet.getResource(URI.createURI("resources/AllFeatures.sbelang"), true);
 
         val messageSchema = resource.getEObject("/") as MessageSchema
 
         val ParsedSchema parsedSchema = Parser.parse(messageSchema);
 
         Assert.assertNotNull(parsedSchema)
-
     }
 
 }
