@@ -50,7 +50,6 @@
                     </systemProperties>
                     <arguments>
                         <argument>${project.basedir}/resources/AllFeatures.xml</argument>
-                        <argument>${project.basedir}/resources/Incremental.xml</argument>
                         <argument>${project.basedir}/resources/DevTest.xml</argument>
                         <!--
                         -->
